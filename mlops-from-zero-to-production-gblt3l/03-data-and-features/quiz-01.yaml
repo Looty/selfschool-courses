@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: q09
+title: "Check: data versioning with DVC"
+questions:
+  - id: q09-1
+    type: mcq
+    text: "What does Git store when you track a dataset with DVC?"
+    concepts: [dvc, data-versioning]
+    sources: [7]
+    options:
+      - {text: "A small .dvc file that records the data's hash", correct: true, explanation: "Git versions the .dvc file; the data itself lives in the DVC cache and remote."}
+      - {text: "The full dataset, compressed", correct: false, explanation: "Keeping large data out of Git is the point of DVC."}
+      - {text: "Nothing, DVC replaces Git", correct: false, explanation: "DVC is not a version control system by itself; it relies on Git to version the .dvc files."}
+      - {text: "Only the .gitignore", correct: false, explanation: "The .gitignore keeps raw data out of Git, but the .dvc file is what identifies the version."}
+  - id: q09-2
+    type: fill
+    text: "Put the commands for adding a new dataset version in order."
+    concepts: [dvc, data-versioning]
+    sources: [7]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+    chips:
+      - {text: "dvc add data/data.xml", slot: 1, explanation: "Re-hashes the file and updates the .dvc file."}
+      - {text: "dvc push", slot: 2, explanation: "Uploads the cached data to the remote so teammates and older revisions can get it."}
+      - {text: "git commit data/data.xml.dvc", slot: 3, explanation: "The commit records which data version goes with this code revision."}
+      - {text: "dvc checkout", explanation: "This syncs the workspace to an existing .dvc revision; it is not a step for adding a new version."}
+  - id: q09-3
+    type: match
+    text: "Match each command to what it does."
+    concepts: [dvc]
+    sources: [7]
+    pairs:
+      - {left: "dvc add", right: "Moves data into the cache and writes a .dvc file with its hash", explanation: "The data is linked back into the workspace."}
+      - {left: "dvc push", right: "Copies cached data to the remote", explanation: "So others can retrieve the version."}
+      - {left: "dvc pull", right: "Retrieves data from the remote", explanation: "Usually run after git pull or git clone."}
+      - {left: "dvc checkout", right: "Syncs the workspace to the data version a .dvc file selects", explanation: "Run after git checkout of a different .dvc revision."}
+  - id: q09-4
+    type: open
+    text: "A teammate clones the repository and runs the training code, but the data directory is empty. What happened, and what should they run?"
+    concepts: [dvc, data-versioning]
+    sources: [7]
+    rubric: |
+      - Says that Git holds only the small .dvc files, not the data.
+      - Says to run dvc pull (after git pull or clone) to retrieve the data that matches the checked-out revision from the remote.

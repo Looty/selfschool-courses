@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q31
+title: "Check: self-attention"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q31-1
+    type: fill
+    text: "Put the steps of self-attention for one token in order."
+    concepts: [self-attention]
+    sources: [20]
+    template: |
+      {{1}}, then {{2}}, then {{3}}, then {{4}}, then {{5}}.
+    chips:
+      - {text: "make a query, key and value for every token", slot: 1, explanation: "Three learned matrices produce them from the embeddings."}
+      - {text: "score the token's query against every key", slot: 2, explanation: "Dot products measure relevance."}
+      - {text: "scale the scores and apply softmax", slot: 3, explanation: "This gives weights that sum to 1."}
+      - {text: "weight each value by its softmax weight", slot: 4, explanation: "Relevant tokens keep their influence."}
+      - {text: "sum the weighted values", slot: 5, explanation: "The sum is the token's output vector."}
+  - id: q31-2
+    type: match
+    text: "Match each of the three vectors to its role."
+    concepts: [query-key-value]
+    sources: [20]
+    pairs:
+      - {left: "Query", right: "What this token is looking for", explanation: "Compared against every key."}
+      - {left: "Key", right: "What this token offers for matching", explanation: "Compared with queries to get scores."}
+      - {left: "Value", right: "What this token passes on if attended to", explanation: "Weighted and summed to form the output."}
+    distractors:
+      - "How many layers the model has"
+  - id: q31-3
+    type: mcq
+    text: "Why does a Transformer train faster than an LSTM on the same text?"
+    concepts: [parallelism, transformer]
+    sources: [1, 20]
+    options:
+      - {text: "Self-attention processes all tokens at once in matrices instead of one step at a time.", correct: true, explanation: "No token has to wait for the previous one."}
+      - {text: "It uses fewer parameters.", correct: false, explanation: "Parameter count is not the reason."}
+      - {text: "It ignores word order entirely.", correct: false, explanation: "Position information is added; order is not ignored."}
+  - id: q31-4
+    type: short
+    text: "What operation turns the attention scores into weights that are positive and add up to 1?"
+    concepts: [softmax]
+    sources: [20]
+    answers: ["softmax", "the softmax function"]

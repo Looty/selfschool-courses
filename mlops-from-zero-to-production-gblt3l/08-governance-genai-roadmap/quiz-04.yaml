@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: q32
+title: "Check: reference architecture and roadmap"
+questions:
+  - id: q32-1
+    type: hotspot
+    text: "Click the component that decides whether a trained model beats the baseline and may be deployed."
+    concepts: [reference-architecture, model-validation]
+    sources: [1]
+    image: resources/ml-system.svg
+    alt: "Nine boxes around a small box labelled Model code. Around it: data validation, feature store, metadata store, pipeline orchestrator, model validation, model registry, prediction service and monitoring."
+    regions:
+      - {name: "Model validation", correct: true, shape: rect, x: 68, y: 38.3, w: 28, h: 23.3, explanation: "Model validation checks the model against a baseline and the production model before it can be deployed."}
+      - {name: "Model registry", shape: rect, x: 4, y: 78.3, w: 28, h: 16.7, explanation: "The registry stores and versions models; it does not judge them."}
+      - {name: "Monitoring", shape: rect, x: 68, y: 78.3, w: 28, h: 16.7, explanation: "Monitoring watches the live service and triggers new iterations."}
+      - {name: "Feature store", shape: rect, x: 36, y: 5, w: 28, h: 16.7, explanation: "Serves feature definitions for training and serving."}
+  - id: q32-2
+    type: sort
+    text: "Put each step in the adoption phase where you would normally do it."
+    concepts: [adoption-roadmap, maturity-levels]
+    sources: [1, 13, 15]
+    buckets: ["Early: baseline and plumbing", "Middle: reproducibility and pipelines", "Later: automated releases and closed loop"]
+    items:
+      - {text: "A simple first model with shared training and serving feature code", bucket: "Early: baseline and plumbing", explanation: "Rules #4 and #32."}
+      - {text: "Experiment tracking, data versioning and a model registry", bucket: "Middle: reproducibility and pipelines", explanation: "Makes training managed and traceable."}
+      - {text: "An orchestrated pipeline with data and model validation and retraining triggers", bucket: "Middle: reproducibility and pipelines", explanation: "Google's Level 1."}
+      - {text: "CI/CD for the pipeline with canary releases and approvals", bucket: "Later: automated releases and closed loop", explanation: "Google's Level 2 and Microsoft's Level 3."}
+      - {text: "Drift or regression signals that trigger retraining automatically", bucket: "Later: automated releases and closed loop", explanation: "Microsoft's Level 4."}
+  - id: q32-3
+    type: mcq
+    text: "Two questions help you decide how much MLOps automation a system needs. Which pair does the lesson give?"
+    concepts: [adoption-roadmap]
+    sources: [13]
+    options:
+      - {text: "How fast does performance decay, and what does a wrong prediction cost?", correct: true, explanation: "Decay speed sets how automated retraining must be; cost of errors sets how strict validation and approval must be."}
+      - {text: "How many data scientists do we have, and which cloud do we use?", correct: false, explanation: "Staffing and vendor matter, but they are not the two questions the lesson names."}
+      - {text: "Which framework is newest, and which is fastest?", correct: false, explanation: "Tool novelty is not a criterion here."}
+      - {text: "How large is the model file, and how many GPUs do we own?", correct: false, explanation: "Size and hardware are implementation details."}
+  - id: q32-4
+    type: open
+    text: "Pick a model use case you know and write a short plan: baseline, data and features, records per run, gates and approvals, monitoring by layer, and rollback."
+    concepts: [reference-architecture, design-exercise]
+    sources: [1, 13, 15]
+    rubric: |
+      - States a baseline and how the model would be shown to beat it.
+      - Describes data and feature handling with shared code or a feature store between training and serving.
+      - Lists records kept per run and release, and where the gates and approvals sit.
+      - Names monitoring signals for the service, data and model layers, and a rollback mechanism.

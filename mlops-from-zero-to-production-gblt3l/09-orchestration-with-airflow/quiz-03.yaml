@@ -1,0 +1,55 @@
+schemaVersion: 1
+id: q35
+title: "Check: XComs"
+questions:
+  - id: q35-1
+    type: sort
+    text: "Which of these belong in an XCom, and which should live in external storage?"
+    concepts: [airflow-xcom, artifact-storage]
+    sources: [48, 50]
+    buckets: ["XCom (small, descriptive)", "External storage"]
+    items:
+      - {text: "The URI of the prepared training dataset", bucket: "XCom (small, descriptive)", explanation: "A reference is small, and the next task can load the data from it."}
+      - {text: "The version number returned by the model registry", bucket: "XCom (small, descriptive)", explanation: "A small value that the next task needs."}
+      - {text: "The validation accuracy a branch will test", bucket: "XCom (small, descriptive)", explanation: "A single number is exactly what XComs are for."}
+      - {text: "The full training dataframe", bucket: "External storage", explanation: "The documentation advises against passing dataframes through XComs."}
+      - {text: "The trained model file", bucket: "External storage", explanation: "Large, and it also needs a registry for versions and approval."}
+  - id: q35-2
+    type: mcq
+    text: "You migrate a Dag from Airflow 2 to 3. A task calls `xcom_pull(key='path')` with no `task_ids` and now gets nothing. Why?"
+    concepts: [airflow-xcom, migration]
+    sources: [50]
+    options:
+      - {text: "In Airflow 3 it pulls only from the current task; Airflow 2 searched all tasks", correct: true, explanation: "Always name task_ids when pulling from another task."}
+      - {text: "XComs are disabled by default in Airflow 3", correct: false, explanation: "XComs still exist; operators push return values by default."}
+      - {text: "XCom keys must now be numbers", correct: false, explanation: "Keys are strings."}
+      - {text: "XComs expire after one minute", correct: false, explanation: "The page describes no expiry; they are cleared when a failed task is retried."}
+  - id: q35-3
+    type: short
+    text: "Under which key does an operator or `@task` function push its return value by default?"
+    concepts: [airflow-xcom]
+    sources: [50]
+    answers: ["return_value", "return_value key"]
+  - id: q35-4
+    type: trace
+    text: "A task is retried after a failure. Track whether the XCom it pushed in its first attempt is still available."
+    concepts: [airflow-xcom, retries]
+    sources: [50]
+    code: |
+      1. Attempt 1 pushes key "rows" = 100 and then fails
+      2. Attempt 2 starts (retry)
+    variables: [rows_available]
+    steps:
+      - {label: "Before", values: {rows_available: "no"}, given: [rows_available]}
+      - {label: "After attempt 1 pushes", values: {rows_available: "yes"}}
+      - {label: "After attempt 2 starts", values: {rows_available: "no"}}
+    explanation: "XComs are cleared when a task that failed earlier is retried, so they cannot carry state across retries."
+  - id: q35-5
+    type: open
+    text: "A colleague proposes returning the trained model from a task so Airflow stores it as an XCom with a custom backend. Argue for or against, citing what the documentation says."
+    concepts: [airflow-xcom, model-registry]
+    sources: [48, 50]
+    rubric: |
+      - States that XComs are designed for small values and the default backend struggles with large ones.
+      - Notes a custom backend or object storage can hold bigger values, so size alone is solvable.
+      - Argues that a model also needs versioning, aliases and approval, which an XCom backend does not give, so a registry should hold it and the XCom should carry the version or URI.

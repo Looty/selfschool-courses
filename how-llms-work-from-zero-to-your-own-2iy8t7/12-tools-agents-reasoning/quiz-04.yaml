@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q56
+title: "Check: reasoning models"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q56-1
+    type: mcq
+    text: "How does a reasoning model differ from a normal model prompted with chain-of-thought?"
+    concepts: [reasoning-models, chain-of-thought]
+    sources: [21, 12]
+    options:
+      - {text: "It is trained to produce long step-by-step reasoning before answering as its normal behaviour.", correct: true, explanation: "Chain-of-thought prompting is a technique; reasoning models build it in through training."}
+      - {text: "It has no attention layers.", correct: false, explanation: "The architecture is still a Transformer."}
+      - {text: "It can only answer maths.", correct: false, explanation: "It helps with maths, code and logic but is general."}
+  - id: q56-2
+    type: sort
+    text: "For each task, is a reasoning model or a plain fast model the better first choice?"
+    concepts: [model-choice]
+    sources: [21]
+    buckets: ["Reasoning model", "Plain fast model"]
+    items:
+      - {text: "Plan a multi-step data migration with dependencies", bucket: "Reasoning model", explanation: "Multi-step problems where correctness matters."}
+      - {text: "Rewrite a sentence to sound friendlier", bucket: "Plain fast model", explanation: "Simple, so extra reasoning only adds cost."}
+      - {text: "Solve a tricky logic puzzle", bucket: "Reasoning model", explanation: "These models help on logic tasks."}
+  - id: q56-3
+    type: open
+    text: "What are two costs of reasoning models, and what should you still do about their written reasoning?"
+    concepts: [reasoning-models, evaluation]
+    sources: [21, 12]
+    rubric: |
+      - Names two costs, such as more compute per query, higher latency, or higher cost.
+      - Says that the written reasoning can look plausible while being wrong, so test the answers on your own cases.

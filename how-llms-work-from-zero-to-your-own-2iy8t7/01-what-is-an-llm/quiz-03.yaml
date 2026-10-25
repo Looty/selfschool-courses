@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: q03
+title: "Check: what an LLM gets wrong"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q03-1
+    type: mcq
+    text: "Why can an LLM state something false in a confident, fluent voice?"
+    concepts: [hallucination, training-objective]
+    sources: [21]
+    options:
+      - {text: "It is trained to produce likely text; nothing in that objective checks the facts.", correct: true, explanation: "Likely and true usually coincide, but the objective only rewards likely."}
+      - {text: "It deliberately lies to the user.", correct: false, explanation: "A model has no intent to deceive; the failure comes from the objective and the data."}
+      - {text: "It always looks answers up in a database that is sometimes out of date.", correct: false, explanation: "An LLM does not look answers up; its knowledge sits in its parameters."}
+  - id: q03-2
+    type: mcq
+    text: "What did TruthfulQA find about model size and truthfulness?"
+    concepts: [truthfulqa, scaling-limits]
+    sources: [37]
+    options:
+      - {text: "The largest models were generally the least truthful.", correct: true, explanation: "They had learned popular misconceptions from their training text."}
+      - {text: "Truthfulness always rises with model size.", correct: false, explanation: "The result was the opposite for the models tested."}
+      - {text: "Model size made no difference at all.", correct: false, explanation: "The authors reported larger models were generally less truthful."}
+  - id: q03-3
+    type: short
+    text: "What is the word for a confident statement from a model that its training data does not justify?"
+    concepts: [hallucination]
+    sources: [21]
+    answers: ["hallucination", "a hallucination", "hallucinations"]
+  - id: q03-4
+    type: open
+    text: "Give two different ways an LLM can fail, and say what in its design or training causes each."
+    concepts: [hallucination, bias, instruction-following]
+    sources: [21, 29, 4]
+    rubric: |
+      - Names one failure (for example hallucination, bias, or not following the user's intent) and links it to its cause.
+      - Names a second, different failure and links it to its cause.
+      - Causes refer to the training objective or the training data (for example likely text rather than true text, or biases in the data).

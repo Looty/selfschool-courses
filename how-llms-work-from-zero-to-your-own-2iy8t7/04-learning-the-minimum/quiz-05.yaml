@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q19
+title: "Check: overfitting"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q19-1
+    type: mcq
+    text: "Training loss keeps falling, but validation loss starts to rise. What does that suggest?"
+    concepts: [overfitting, loss-curves]
+    sources: [35]
+    options:
+      - {text: "The model is overfitting: improving on training data while getting worse on new data.", correct: true, explanation: "This divergence is the classic sign."}
+      - {text: "The model is learning well and should train longer.", correct: false, explanation: "More training would make the divergence worse."}
+      - {text: "The learning rate is too small.", correct: false, explanation: "A small learning rate would show slow progress on both curves."}
+  - id: q19-2
+    type: sort
+    text: "Which of these describes overfitting, and which describes generalisation?"
+    concepts: [overfitting, generalisation]
+    sources: [35]
+    buckets: ["Overfitting", "Generalisation"]
+    items:
+      - {text: "A model recites its training text but fails on new text", bucket: "Overfitting", explanation: "It memorised instead of learning patterns."}
+      - {text: "A model continues text it never saw sensibly", bucket: "Generalisation", explanation: "It learned the underlying patterns."}
+      - {text: "Perfect score on training data, poor score on validation data", bucket: "Overfitting", explanation: "The gap is the symptom."}
+  - id: q19-3
+    type: open
+    text: "Why do we keep part of the data out of training, and what do we do with it?"
+    concepts: [validation-set]
+    sources: [35]
+    rubric: |
+      - Says that the held-out data is unseen by the model, so measuring on it shows how well the model generalises.
+      - Says that we compare loss on training and validation data and watch whether validation loss rises.

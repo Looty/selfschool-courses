@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q27
+title: "Check: lab 6"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q27-1
+    type: spot
+    text: "Click the line that applies temperature before sampling."
+    concepts: [temperature, code-reading]
+    sources: [30]
+    code: |
+      p = probs(prev)
+      weights = [p[ch] ** (1.0 / TEMPERATURE) for ch in vocab]
+      return random.choices(vocab, weights)[0]
+    correct: [2]
+    explanation: "Raising each probability to the power 1/TEMPERATURE sharpens (T below 1) or flattens (T above 1) the distribution before random.choices draws a character."
+  - id: q27-2
+    type: mcq
+    text: "In the test run the held-out loss was 2.493 and the uniform-guess loss was 4.174. What does that tell you?"
+    concepts: [loss, baseline]
+    sources: [17]
+    options:
+      - {text: "The counting model puts more probability on the true next character than blind guessing would.", correct: true, explanation: "Lower loss means less average surprise."}
+      - {text: "The counting model writes sensible sentences.", correct: false, explanation: "Loss says nothing about meaning; the sampled text still has none."}
+      - {text: "The model is overfitting.", correct: false, explanation: "The loss was measured on held-out text, and it beat the baseline."}
+  - id: q27-3
+    type: open
+    text: "You change the lab to use the previous two characters as context. Predict what happens to the table size and the held-out loss, and say why."
+    concepts: [n-gram, context, curse-of-dimensionality]
+    sources: [17]
+    rubric: |
+      - Says that the number of rows in the count table multiplies by the vocabulary size (about 65 times more).
+      - Says that held-out loss should fall because more context gives better predictions, but that counts get sparse (many contexts are rarely seen).

@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: q22
+title: "Check: serving with KServe"
+questions:
+  - id: q22-1
+    type: spot
+    text: "Which line tells KServe where the model files are stored?"
+    concepts: [kserve, inferenceservice]
+    sources: [39]
+    code: |
+      apiVersion: "serving.kserve.io/v1beta1"
+      kind: "InferenceService"
+      metadata:
+        name: "sklearn-iris"
+      spec:
+        predictor:
+          model:
+            modelFormat:
+              name: sklearn
+            storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
+    correct: [10]
+    explanation: "storageUri holds the model's location, for example a cloud storage path. modelFormat on the previous lines says what kind of model it is."
+  - id: q22-2
+    type: match
+    text: "Match each KServe field to its role."
+    concepts: [kserve, inferenceservice]
+    sources: [39]
+    pairs:
+      - {left: "modelFormat", right: "The type of the model, such as sklearn", explanation: "Helps KServe choose a serving runtime."}
+      - {left: "storageUri", right: "Where the model files are stored", explanation: "For example a gs:// path."}
+      - {left: "resources", right: "CPU and memory requests and limits for the predictor", explanation: "As for any Kubernetes workload."}
+      - {left: "kind: InferenceService", right: "The resource that declares a model to serve", explanation: "The core KServe resource."}
+  - id: q22-3
+    type: mcq
+    text: "Which KServe features need the Knative serverless installation rather than a standard Kubernetes deployment? Select all that apply."
+    concepts: [kserve, deployment-modes]
+    sources: [11]
+    options:
+      - {text: "Scale to zero for predictive workloads", correct: true, explanation: "Scale to zero requires the Knative serverless installation."}
+      - {text: "Canary rollouts", correct: true, explanation: "A standard Kubernetes deployment does not support canary deployment."}
+      - {text: "Serving a model from a storageUri", correct: false, explanation: "Basic serving works in a standard deployment too."}
+      - {text: "Choosing a model format", correct: false, explanation: "The model format is part of every InferenceService."}
+  - id: q22-4
+    type: short
+    text: "How many Pods does the HPA formula ask for with 3 replicas, a current average CPU of 90% and a target of 60%? (Round up.)"
+    concepts: [hpa, autoscaling]
+    sources: [42]
+    answers: ["5", "five"]
+  - id: q22-5
+    type: open
+    text: "Your registry has a champion alias, but KServe wants a storageUri. Describe the deployment step that connects them and why it should go through Git."
+    concepts: [kserve, model-registry, deployment]
+    sources: [4, 39]
+    rubric: |
+      - Says that a pipeline step resolves the alias to the stored model location and writes it into the InferenceService manifest, then applies it.
+      - Says that keeping the manifest in version control makes the change reviewable and recorded, like any production change.

@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q62
+title: "Check: optimisers"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q62-1
+    type: mcq
+    text: "What does Adam do that plain gradient descent does not?"
+    concepts: [adam, optimiser]
+    sources: [46]
+    options:
+      - {text: "It keeps running averages of each parameter's gradient and squared gradient and scales each step by them.", correct: true, explanation: "'Adaptive estimates of lower-order moments' of the gradients."}
+      - {text: "It computes gradients exactly on the whole dataset every step.", correct: false, explanation: "Adam works on stochastic (minibatch) gradients."}
+      - {text: "It removes the need for a learning rate.", correct: false, explanation: "A learning rate is still set, usually on a schedule."}
+  - id: q62-2
+    type: fill
+    text: "Describe the Transformer paper's learning-rate schedule."
+    concepts: [warmup, learning-rate-schedule]
+    sources: [1]
+    template: |
+      The learning rate {{1}} linearly for the first {{2}} steps, then {{3}} in proportion to the inverse square root of the step number.
+    chips:
+      - {text: "increases", slot: 1, explanation: "This is the warmup phase."}
+      - {text: "4000", slot: 2, explanation: "warmup_steps = 4000."}
+      - {text: "decreases", slot: 3, explanation: "The decay follows."}
+      - {text: "stays constant", explanation: "The point is that it does not stay constant."}
+  - id: q62-3
+    type: open
+    text: "Why do training runs use minibatches, and what is the effect on the gradient?"
+    concepts: [minibatch, sgd]
+    sources: [32, 46]
+    rubric: |
+      - Says that computing the gradient on all the data every step is too slow, so each step uses a small random subset.
+      - Says that the resulting gradient is a noisy estimate of the true gradient, which makes progress jagged.

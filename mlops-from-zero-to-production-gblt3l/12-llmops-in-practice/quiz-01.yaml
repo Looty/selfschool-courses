@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q45
+title: "Check: RAG as a system"
+questions:
+  - id: q45-1
+    type: match
+    text: "Match each kind of memory to its description in the RAG paper."
+    concepts: [rag, parametric-memory]
+    sources: [61]
+    pairs:
+      - {left: "Parametric memory", right: "Knowledge stored in the model's weights", explanation: "In the paper, a pre-trained seq2seq model."}
+      - {left: "Non-parametric memory", right: "An external store the model reads from", explanation: "In the paper, a dense vector index of Wikipedia."}
+      - {left: "Retriever", right: "Searches the external store and returns passages", explanation: "A pre-trained neural retriever in the paper."}
+    distractors:
+      - "A cache of recent user prompts"
+  - id: q45-2
+    type: mcq
+    text: "According to the abstract, which limitation of parametric-only models motivates RAG?"
+    concepts: [rag, motivation]
+    sources: [61]
+    options:
+      - {text: "They cannot easily provide provenance for outputs or update their world knowledge", correct: true, explanation: "The abstract names provenance and updating knowledge."}
+      - {text: "They cannot generate text longer than one sentence", correct: false, explanation: "Not mentioned."}
+      - {text: "They always run slower than retrieval systems", correct: false, explanation: "No speed claim."}
+      - {text: "They cannot be fine-tuned", correct: false, explanation: "The paper fine-tunes its models."}
+  - id: q45-3
+    type: sort
+    text: "Which RAG component belongs to which operational concern?"
+    concepts: [rag, operations]
+    sources: [26]
+    buckets: ["Data you version", "Behaviour you test and monitor"]
+    items:
+      - {text: "The documents indexed and their versions", bucket: "Data you version", explanation: "Answers can only be as good as the sources."}
+      - {text: "Chunk size, overlap and embedding model", bucket: "Data you version", explanation: "They determine what is in the index."}
+      - {text: "The retrieval quality for sample questions", bucket: "Behaviour you test and monitor", explanation: "Checked with evaluation sets."}
+      - {text: "Whether the answer uses the retrieved passages", bucket: "Behaviour you test and monitor", explanation: "Groundedness is one of the guide's RAG metrics."}
+  - id: q45-4
+    type: fill
+    text: "Complete the diagnosis rule from the lesson."
+    concepts: [rag, debugging]
+    sources: [26]
+    template: |
+      If the answer is wrong but the retrieved passages were right, suspect the {{1}} step; if the passages were wrong, suspect {{2}}.
+    chips:
+      - {text: "generation", slot: 1, explanation: "The model had the right context and still answered wrongly."}
+      - {text: "retrieval", slot: 2, explanation: "The right information never reached the prompt."}
+      - {text: "billing", explanation: "Not a cause of wrong answers."}
+      - {text: "deployment", explanation: "Not specific to either step."}
+  - id: q45-5
+    type: open
+    text: "A RAG assistant answers questions about an internal policy that changed last week, but still quotes the old rule. List what you would check and what you would put in place so it does not recur."
+    concepts: [rag, index-freshness]
+    sources: [26, 61]
+    rubric: |
+      - Checks whether the source documents were re-indexed after the change and which version the index holds.
+      - Checks retrieval for the question (which passages were returned) before blaming the model.
+      - Puts in place a re-indexing process tied to source updates, including removals, and versioned index builds.
+      - Adds evaluation questions about recently changed policies and logs the passages used for each answer.

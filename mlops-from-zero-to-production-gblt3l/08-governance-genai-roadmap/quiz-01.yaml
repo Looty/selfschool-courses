@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: q29
+title: "Check: the NIST AI RMF"
+questions:
+  - id: q29-1
+    type: match
+    text: "Match each AI RMF function to what it does."
+    concepts: [nist-ai-rmf, governance]
+    sources: [24]
+    pairs:
+      - {left: "Govern", right: "Builds a culture of risk management with processes, documentation and accountability", explanation: "It is cross-cutting and supports the other three functions."}
+      - {left: "Map", right: "Establishes the context: purposes, settings, impacts and limitations", explanation: "Supports an early decision about whether to proceed."}
+      - {left: "Measure", right: "Analyses, assesses, benchmarks and monitors AI risks", explanation: "Systems should be tested before deployment and regularly during operation."}
+      - {left: "Manage", right: "Allocates resources to prioritised risks and plans responses and recovery", explanation: "It also covers recovering from incidents and communicating about them."}
+  - id: q29-2
+    type: mcq
+    text: "Which characteristic does the framework call a necessary condition of trustworthiness and place at the base of the others?"
+    concepts: [trustworthy-ai]
+    sources: [46]
+    options:
+      - {text: "Valid and reliable", correct: true, explanation: "Systems are validated against their intended use and perform as required over time."}
+      - {text: "Fair with harmful bias managed", correct: false, explanation: "Important, but the framework places valid and reliable at the base."}
+      - {text: "Privacy-enhanced", correct: false, explanation: "One of the seven characteristics, not the base."}
+      - {text: "Explainable and interpretable", correct: false, explanation: "Supports transparency, but is not the base."}
+  - id: q29-3
+    type: sort
+    text: "Which AI RMF function does each pipeline practice mainly support? (This mapping is the course's, not NIST's.)"
+    concepts: [nist-ai-rmf, mlops-mapping]
+    sources: [24]
+    buckets: ["Govern", "Map", "Measure", "Manage"]
+    items:
+      - {text: "An approval stage before a model reaches production", bucket: "Govern", explanation: "Accountability structures and processes."}
+      - {text: "Writing intended use and limitations in the model card", bucket: "Map", explanation: "Framing context, intended purposes and limitations."}
+      - {text: "Evaluating a model across data segments before release", bucket: "Measure", explanation: "Assessing and benchmarking risks before deployment."}
+      - {text: "Rolling back a model and running an incident review", bucket: "Manage", explanation: "Responding to and recovering from incidents."}
+  - id: q29-4
+    type: short
+    text: "What is the identifier of NIST's Generative AI Profile released in July 2024?"
+    concepts: [nist-ai-rmf, genai]
+    sources: [23]
+    answers: ["NIST-AI-600-1", "NIST AI 600-1", "AI 600-1", "600-1"]
+  - id: q29-5
+    type: open
+    text: "The framework says its characteristics can conflict. Give one example from the lesson and say how a team should handle it."
+    concepts: [trustworthy-ai, trade-offs]
+    sources: [46]
+    rubric: |
+      - Gives a tradeoff from the page, such as interpretability against privacy, or accuracy against interpretability.
+      - Says that a balance is needed, because trustworthiness is only as strong as the weakest characteristic, and that the choice should be made deliberately and documented.

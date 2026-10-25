@@ -1,0 +1,64 @@
+schemaVersion: 1
+id: q19
+title: "Check: CD for pipelines and models"
+questions:
+  - id: q19-1
+    type: hotspot
+    text: "Click the stage whose output is a trained model pushed to the model registry."
+    concepts: [ci-cd-pipeline, model-registry]
+    sources: [1]
+    image: resources/pipeline-stages.svg
+    alt: "Six boxes in two rows: development and experimentation, pipeline CI and pipeline CD in the top row; automated triggering, model CD and monitoring in the bottom row."
+    regions:
+      - {name: "Automated triggering", correct: true, shape: rect, x: 70, y: 60, w: 26, h: 30, explanation: "The pipeline runs on a schedule or a trigger, and its output is a trained model pushed to the model registry."}
+      - {name: "Model continuous delivery", shape: rect, x: 37, y: 60, w: 26, h: 30, explanation: "This stage serves the already trained model as a prediction service."}
+      - {name: "Pipeline continuous integration", shape: rect, x: 37, y: 10, w: 26, h: 30, explanation: "CI builds and tests the pipeline code; its outputs are components, not trained models."}
+      - {name: "Monitoring", shape: rect, x: 4, y: 60, w: 26, h: 30, explanation: "Monitoring collects live statistics; its output is a trigger."}
+  - id: q19-2
+    type: fill
+    text: "Put the six stages of the pipeline in order."
+    concepts: [ci-cd-pipeline]
+    sources: [1]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+      {{6}}
+    chips:
+      - {text: "Development and experimentation", slot: 1, explanation: "The output is the pipeline's source code in a repository."}
+      - {text: "Pipeline continuous integration", slot: 2, explanation: "Builds and tests the code; outputs components."}
+      - {text: "Pipeline continuous delivery", slot: 3, explanation: "Deploys the pipeline to the target environment."}
+      - {text: "Automated triggering", slot: 4, explanation: "Runs the deployed pipeline and pushes a trained model to the registry."}
+      - {text: "Model continuous delivery", slot: 5, explanation: "Serves the trained model as a prediction service."}
+      - {text: "Monitoring", slot: 6, explanation: "Collects live statistics and triggers the next run."}
+      - {text: "Manual hotfix", explanation: "Not one of the six stages."}
+  - id: q19-3
+    type: match
+    text: "Match each environment to how it deploys, according to the guide."
+    concepts: [environments, ci-cd-pipeline]
+    sources: [1]
+    pairs:
+      - {left: "Test", right: "Automatically, on pushes to the development branch", explanation: "The lowest-risk environment is the most automated."}
+      - {left: "Preproduction", right: "Semi-automatically, on a merge to main after reviewers approve", explanation: "A human approval sits before the merge deploys."}
+      - {left: "Production", right: "Manually, after several successful preproduction runs", explanation: "The highest-risk environment keeps a manual step."}
+  - id: q19-4
+    type: mcq
+    text: "Which of these are continuous-delivery checks for a model, according to Google? Select all that apply."
+    concepts: [model-cd, testing]
+    sources: [1]
+    options:
+      - {text: "Verify the model is compatible with the target infrastructure", correct: true, explanation: "Packages, memory, compute and accelerators must match what the service has."}
+      - {text: "Test the prediction service API with expected inputs", correct: true, explanation: "The API must return the expected outputs."}
+      - {text: "Load-test the service for queries per second and latency", correct: true, explanation: "Performance under load is checked before release."}
+      - {text: "Skip validation for models trained by the pipeline", correct: false, explanation: "Predictive performance targets are verified before deployment regardless of who trained the model."}
+  - id: q19-5
+    type: open
+    text: "Describe how a code change to the training pipeline reaches production, naming the environments and where a human approves."
+    concepts: [ci-cd-pipeline, environments]
+    sources: [1]
+    rubric: |
+      - Describes CI building and testing the pipeline code, then delivering it to a test environment automatically.
+      - Says that preproduction deployment follows a merge to the main branch after reviewer approval.
+      - Says that production deployment is manual after several successful preproduction runs.

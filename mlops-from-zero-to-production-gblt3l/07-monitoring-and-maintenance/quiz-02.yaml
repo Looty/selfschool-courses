@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: q26
+title: "Check: drift detection"
+questions:
+  - id: q26-1
+    type: sort
+    text: "Which default Evidently test is used for each situation?"
+    concepts: [drift-detection, evidently]
+    sources: [22]
+    buckets: ["Kolmogorov-Smirnov", "Chi-squared", "Wasserstein distance", "Jensen-Shannon divergence"]
+    items:
+      - {text: "A numerical column with 40 unique values, 500 reference rows", bucket: "Kolmogorov-Smirnov", explanation: "Small reference (1,000 rows or fewer) and a numerical column with more than 5 unique values."}
+      - {text: "A categorical column, 800 reference rows", bucket: "Chi-squared", explanation: "Small reference and a categorical column (not binary)."}
+      - {text: "A numerical column with 40 unique values, 50,000 reference rows", bucket: "Wasserstein distance", explanation: "Large reference and a numerical column with more than 5 unique values; drift when the distance is at least 0.1."}
+      - {text: "A categorical column, 50,000 reference rows", bucket: "Jensen-Shannon divergence", explanation: "Large reference and a categorical column; drift when the divergence is at least 0.1."}
+  - id: q26-2
+    type: mcq
+    text: "For a small reference dataset, a drift score is a p-value. How do you read it?"
+    concepts: [drift-detection, evidently]
+    sources: [22]
+    options:
+      - {text: "A lower value indicates drift; drift is flagged at p ≤ 0.05", correct: true, explanation: "For small datasets the score is a p-value, so lower means more evidence of drift."}
+      - {text: "A higher value indicates drift", correct: false, explanation: "That is how distances and divergences behave for large datasets, not p-values."}
+      - {text: "It does not matter; the score is only decoration", correct: false, explanation: "The score is compared with a threshold to decide drift."}
+      - {text: "It is the share of drifting columns", correct: false, explanation: "The dataset-level share is a separate rule applied to per-column results."}
+  - id: q26-3
+    type: mcq
+    text: "Which of these are true about Evidently's drift checks? Select all that apply."
+    concepts: [drift-detection, evidently]
+    sources: [22]
+    options:
+      - {text: "A reference and a current dataset are both required", correct: true, explanation: "The tested columns must not be empty in either."}
+      - {text: "By default the tests do not react to changes in the number of nulls", correct: true, explanation: "Use separate tests on missing values."}
+      - {text: "Dataset-level drift can be declared when a chosen share of columns drift", correct: true, explanation: "For example 50%; the page does not state a default share."}
+      - {text: "A drift alert proves the model's accuracy has fallen", correct: false, explanation: "Drift is a change in data; model quality must be checked separately."}
+  - id: q26-4
+    type: open
+    text: "A drift alert fires on three features. What do you do next, and why is it not enough to retrain straight away?"
+    concepts: [drift-detection, incident-response]
+    sources: [19, 22]
+    rubric: |
+      - Says to investigate the affected features and compare prediction distributions, and check quality metrics if labels are available.
+      - Says that drift means the data changed, not that the model got worse, and that retraining might not help if the cause is a data problem.

@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q41
+title: "Check: cost and data"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q41-1
+    type: mcq
+    text: "According to the nanochat README, roughly how long and how much to train a GPT-2-class model on 8 H100 GPUs?"
+    concepts: [training-cost]
+    sources: [18]
+    options:
+      - {text: "About 2 hours and about $48 at on-demand prices.", correct: true, explanation: "The README also notes spot instances can bring it nearer $15."}
+      - {text: "About 2 weeks and $48,000.", correct: false, explanation: "Those figures are about a thousand times too high for the README's claim."}
+      - {text: "About 2 minutes and $0.50.", correct: false, explanation: "That is far below what the README states."}
+  - id: q41-2
+    type: sort
+    text: "Which risk of web-scale data does each example illustrate?"
+    concepts: [data-risks]
+    sources: [3, 29]
+    buckets: ["Bias", "Contamination"]
+    items:
+      - {text: "Completions that differ in stereotyped ways for two prompts differing only by race", bucket: "Bias", explanation: "Described on the GPT-2 model card."}
+      - {text: "Benchmark questions appear in the training text, inflating scores", bucket: "Contamination", explanation: "Raised as a methodological concern in the GPT-3 paper."}
+      - {text: "The model repeats a popular misconception", bucket: "Bias", explanation: "Falsehoods learned from the data resemble bias: the data was skewed."}
+  - id: q41-3
+    type: open
+    text: "Why do the figures in this lesson need a year and a source attached, and how should you use them?"
+    concepts: [training-cost]
+    sources: [21, 18]
+    rubric: |
+      - Says that costs depend on hardware, prices and code that change fast, so a figure is only valid for its year and accounting.
+      - Says that they should be used as orders of magnitude, not exact values.

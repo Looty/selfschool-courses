@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q45
+title: "Check: DPO"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q45-1
+    type: match
+    text: "Match each method to how it uses preference data."
+    concepts: [rlhf, dpo]
+    sources: [4, 14]
+    pairs:
+      - {left: "RLHF", right: "Trains a reward model, then optimises the language model with reinforcement learning", explanation: "A multi-stage pipeline."}
+      - {left: "DPO", right: "Trains directly on preferred/rejected pairs with a simple classification-style loss", explanation: "No separate reward model or RL loop."}
+    distractors:
+      - "Writes ideal answers by hand for every prompt"
+  - id: q45-2
+    type: mcq
+    text: "What does the frozen reference model do in DPO?"
+    concepts: [dpo, reference-model]
+    sources: [14]
+    options:
+      - {text: "It anchors the comparison so the tuned model does not drift too far from where it started.", correct: true, explanation: "The loss is measured relative to the reference."}
+      - {text: "It generates the training data.", correct: false, explanation: "The data are human preference pairs."}
+      - {text: "It replaces the tokenizer.", correct: false, explanation: "Unrelated to tokenization."}
+  - id: q45-3
+    type: open
+    text: "Why did DPO become popular, according to the authors' claims?"
+    concepts: [dpo]
+    sources: [14]
+    rubric: |
+      - Says that it is simpler than RLHF: no separate reward model and no reinforcement-learning sampling loop.
+      - Says that the authors reported it needs little hyperparameter tuning and matches or improves quality.

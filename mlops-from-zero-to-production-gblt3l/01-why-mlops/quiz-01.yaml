@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: q01
+title: "Check: how ML systems differ from software"
+questions:
+  - id: q01-1
+    type: mcq
+    text: "According to Google's MLOps guide, which of these is a property unique to ML systems?"
+    concepts: [ci-cd-ct, mlops-definition]
+    sources: [1]
+    options:
+      - {text: "Continuous training (CT)", correct: true, explanation: "CT automatically retrains and serves models. It is described as unique to ML systems."}
+      - {text: "Continuous integration (CI)", correct: false, explanation: "CI exists in ordinary software too. For ML it is widened to also test data, schemas and models."}
+      - {text: "Continuous delivery (CD)", correct: false, explanation: "CD exists in ordinary software too. For ML it describes a pipeline that deploys the prediction service."}
+      - {text: "Source control", correct: false, explanation: "Source control is general engineering practice and is not specific to ML."}
+  - id: q01-2
+    type: match
+    text: "Match each term to its meaning in an ML system."
+    concepts: [ci-cd-ct]
+    sources: [1]
+    pairs:
+      - {left: "Continuous integration (CI)", right: "Also tests and validates data, data schemas and models", explanation: "In ML, CI extends beyond code and components."}
+      - {left: "Continuous delivery (CD)", right: "A training pipeline that automatically deploys the prediction service", explanation: "The thing being delivered is a system that deploys another service."}
+      - {left: "Continuous training (CT)", right: "Automatically retrains and serves models", explanation: "A property unique to ML systems."}
+    distractors:
+      - "Manually promotes a notebook to production"
+  - id: q01-3
+    type: sort
+    text: "Which axis of change does each of these belong to?"
+    concepts: [axes-of-change]
+    sources: [14]
+    buckets: ["Code", "Model", "Data"]
+    items:
+      - {text: "A refactor of the feature-engineering function", bucket: "Code", explanation: "Source code changes are the familiar axis that a normal release pipeline reacts to."}
+      - {text: "A retrained model with different hyperparameters", bucket: "Model", explanation: "A new trained artifact is a change to the model, even if no code changed."}
+      - {text: "A new batch of customer records arrives", bucket: "Data", explanation: "The code and the model are the same, but the data the system sees has changed."}
+      - {text: "A new column appears in an upstream table", bucket: "Data", explanation: "A schema change is a change to the data axis and can break code and models without any commit."}
+  - id: q01-4
+    type: open
+    text: "Why is deploying an ML system different from deploying an ordinary service? Give at least two reasons from the lesson."
+    concepts: [ml-vs-software]
+    sources: [1]
+    rubric: |
+      - Says that what is deployed is a multi-step pipeline that retrains and redeploys models, not a single model or package.
+      - Says that models decay as data profiles change, so production needs monitoring of data statistics and online performance.
+      - Says that testing must also cover data validation and the quality of the trained model, beyond unit and integration tests.

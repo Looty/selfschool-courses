@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: q38
+title: "Check: caching and reuse"
+questions:
+  - id: q38-1
+    type: sort
+    text: "Which statements are true of SageMaker step caching, and which are not?"
+    concepts: [sagemaker-caching]
+    sources: [53]
+    buckets: ["True", "False"]
+    items:
+      - {text: "It is off by default and you must set a timeout when you turn it on", bucket: "True", explanation: "The timeout defines how old a previous run can be and still be reused."}
+      - {text: "It only reuses successful runs", bucket: "True", explanation: "Failed runs are never reused."}
+      - {text: "A step from another pipeline can be reused if its signature matches", bucket: "False", explanation: "Caching is scoped to individual pipelines."}
+      - {text: "It is on by default for every step type", bucket: "False", explanation: "Opt-in, and only supported step types can use it."}
+  - id: q38-2
+    type: mcq
+    text: "Two successful runs of a training step match the cache key and both are within the timeout. Which result is used?"
+    concepts: [sagemaker-caching]
+    sources: [53]
+    options:
+      - {text: "The most recent successful run", correct: true, explanation: "The page says Pipelines uses the most recent successful run."}
+      - {text: "The oldest one, because it is the original", correct: false, explanation: "The page says most recent."}
+      - {text: "Neither; the step always reruns when there are two matches", correct: false, explanation: "Reuse happens when any matching successful run exists in the timeout."}
+      - {text: "The one with the lowest loss", correct: false, explanation: "Caching compares configuration and inputs, not quality."}
+  - id: q38-3
+    type: match
+    text: "Match each system to how it decides to reuse a result."
+    concepts: [caching, dvc, sagemaker]
+    sources: [37, 53]
+    pairs:
+      - {left: "DVC", right: "Compares hashes of declared dependencies and the listed parameter keys", explanation: "Only the listed keys invalidate the stage."}
+      - {left: "SageMaker Pipelines", right: "Looks for a prior successful run with the same step-type attributes within a timeout", explanation: "Opt-in, scoped to one pipeline."}
+    distractors:
+      - "Reruns everything unless told otherwise"
+      - "Compares model accuracy across runs"
+  - id: q38-4
+    type: short
+    text: "Which DVC option re-runs a stage even when nothing changed?"
+    concepts: [dvc, caching]
+    sources: [37]
+    answers: ["--force", "dvc repro --force", "force"]
+  - id: q38-5
+    type: open
+    text: "A cached training step keeps returning an old model even though the data behind its S3 path was refreshed. Explain the likely cause and give two fixes."
+    concepts: [caching, stale-cache, data-versioning]
+    sources: [37, 53]
+    rubric: |
+      - Identifies that the step signature has not changed (same path and configuration), so the cached successful run still matches.
+      - Fix 1: pass a versioned reference to the data (a version id or hash) as an input so the signature changes.
+      - Fix 2: shorten the cache timeout or turn caching off for that step.
+      - May mention declaring data as a dependency, the way DVC hashes deps.

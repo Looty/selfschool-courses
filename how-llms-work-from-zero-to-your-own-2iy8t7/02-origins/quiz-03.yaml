@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: q07
+title: "Check: Shannon's approximations"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q07-1
+    type: fill
+    text: "Put Shannon's approximations in order, from least to most context."
+    concepts: [n-gram, shannon]
+    sources: [31]
+    template: |
+      {{1}} -> {{2}} -> {{3}} -> {{4}}
+    chips:
+      - {text: "zero-order: equiprobable symbols", slot: 1, explanation: "No statistics at all: every symbol equally likely."}
+      - {text: "first-order: English letter frequencies", slot: 2, explanation: "Letters chosen by how often they appear, with no context."}
+      - {text: "second-order: digram structure", slot: 3, explanation: "Each letter chosen given the one before it."}
+      - {text: "third-order: trigram structure", slot: 4, explanation: "Each letter chosen given the previous two."}
+  - id: q07-2
+    type: mcq
+    text: "How did Shannon generate his third-order sample without a computer?"
+    concepts: [shannon, n-gram]
+    sources: [31]
+    options:
+      - {text: "By opening a book at random, finding a chosen letter and recording the letter that follows, then repeating with the new letter.", correct: true, explanation: "The book served as the table of trigram statistics."}
+      - {text: "By running a program on a mainframe.", correct: false, explanation: "He did it by hand with books; the labor stopped him at the next stage."}
+      - {text: "By asking people to guess letters.", correct: false, explanation: "Guessing experiments were used for another purpose, estimating redundancy."}
+  - id: q07-3
+    type: short
+    text: "Roughly what percentage did Shannon estimate for the redundancy of ordinary English?"
+    concepts: [redundancy]
+    sources: [31]
+    answers: ["50%", "50", "fifty percent", "about 50%", "roughly 50%", "50 percent"]
+  - id: q07-4
+    type: open
+    text: "Why is Shannon's ladder of approximations an ancestor of today's language models?"
+    concepts: [language-model, next-token]
+    sources: [31]
+    rubric: |
+      - Says that each approximation chooses the next symbol from probabilities estimated from real text, which is what a language model does.
+      - Says that each step adds more preceding context and looks more like English, as larger-context models do.

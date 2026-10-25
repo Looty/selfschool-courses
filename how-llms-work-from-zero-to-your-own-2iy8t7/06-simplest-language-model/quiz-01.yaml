@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q24
+title: "Check: counting bigrams"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q24-1
+    type: mcq
+    text: "Suppose that out of 60,000 pairs starting with the character t, the character h follows 20,592 times. Roughly what is P(next = h | previous = t)?"
+    concepts: [conditional-probability, bigram]
+    sources: [34]
+    options:
+      - {text: "About 0.34", correct: true, explanation: "20,592 / 60,000 is about 0.34."}
+      - {text: "About 0.034", correct: false, explanation: "That is ten times too small."}
+      - {text: "About 3.4", correct: false, explanation: "Probabilities cannot exceed 1."}
+  - id: q24-2
+    type: mcq
+    text: "Why does the lab add 1 to every count before turning counts into probabilities?"
+    concepts: [smoothing]
+    sources: [34]
+    options:
+      - {text: "So that a pair never seen in training does not get probability zero.", correct: true, explanation: "One zero would make any text containing that pair impossible."}
+      - {text: "To make the counts add up to 1.", correct: false, explanation: "Dividing by the total does that."}
+      - {text: "To speed up training.", correct: false, explanation: "Smoothing is about avoiding zeros, not speed."}
+  - id: q24-3
+    type: open
+    text: "The bigram model generates text that looks like English words but has no meaning. Explain why, in terms of context."
+    concepts: [bigram, context]
+    sources: [31]
+    rubric: |
+      - Says that the model sees only one previous character when choosing the next.
+      - Says that nothing links the choices over longer stretches (words or sentences), so the text lacks meaning.

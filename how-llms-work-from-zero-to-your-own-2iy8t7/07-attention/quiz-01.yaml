@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q29
+title: "Check: the bottleneck"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q29-1
+    type: mcq
+    text: "What problem with encoder-decoder translation did Bahdanau, Cho and Bengio point out?"
+    concepts: [bottleneck, encoder-decoder]
+    sources: [5]
+    options:
+      - {text: "Compressing a whole source sentence into one fixed-length vector limits translation quality.", correct: true, explanation: "This is the stated motivation for attention."}
+      - {text: "The decoder cannot output more than ten words.", correct: false, explanation: "Output length is not the issue."}
+      - {text: "The encoder cannot read numbers.", correct: false, explanation: "Not mentioned and not the issue."}
+  - id: q29-2
+    type: match
+    text: "Match each part to its job."
+    concepts: [encoder-decoder]
+    sources: [5, 27]
+    pairs:
+      - {left: "Encoder", right: "Reads the source sentence and builds a representation", explanation: "The first half of the design."}
+      - {left: "Decoder", right: "Writes the target sentence one word at a time", explanation: "The second half."}
+      - {left: "Fixed-length vector", right: "The single summary passed between them", explanation: "The bottleneck."}
+    distractors:
+      - "The loss function"
+  - id: q29-3
+    type: open
+    text: "Using the analogy of translating after hearing a long sentence once, explain why the fixed-length summary is a bottleneck."
+    concepts: [bottleneck]
+    sources: [5]
+    rubric: |
+      - Says that the summary has the same size regardless of the sentence length, so long inputs lose detail.
+      - Says that the decoder must use that one summary for every output word, though different words depend on different input parts.

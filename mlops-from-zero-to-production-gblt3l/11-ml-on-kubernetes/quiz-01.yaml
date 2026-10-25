@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q41
+title: "Check: GPUs on Kubernetes"
+questions:
+  - id: q41-1
+    type: spot
+    text: "This Pod should get one GPU. Which line is invalid according to the Kubernetes GPU rules?"
+    concepts: [gpu-scheduling]
+    sources: [55]
+    code: |
+      resources:
+        requests:
+          nvidia.com/gpu: 1
+        limits:
+          cpu: "4"
+    correct: [3]
+    explanation: "A GPU request is only valid together with a GPU limit (and they must be equal). Put `nvidia.com/gpu: 1` under limits."
+  - id: q41-2
+    type: sort
+    text: "Who is responsible for each item, according to the page?"
+    concepts: [gpu-scheduling, operations]
+    sources: [55]
+    buckets: ["Cluster administrator", "Pod author"]
+    items:
+      - {text: "Install GPU drivers on each node", bucket: "Cluster administrator", explanation: "The page says this is the administrator's job."}
+      - {text: "Run the vendor's device plugin", bucket: "Cluster administrator", explanation: "Required for the GPU resource to appear."}
+      - {text: "Put the GPU in the container's resources.limits", bucket: "Pod author", explanation: "Containers request GPUs like cpu or memory."}
+      - {text: "Add a node selector for the needed GPU type", bucket: "Pod author", explanation: "Pods pick nodes through labels and affinity."}
+  - id: q41-3
+    type: mcq
+    text: "A GPU Pod stays Pending on a cluster that has GPU nodes. Which cause fits what the page says?"
+    concepts: [gpu-scheduling, troubleshooting]
+    sources: [55]
+    options:
+      - {text: "The device plugin is not running on the node, so the GPU resource is not advertised", correct: true, explanation: "The GPU resource only exists after the plugin is installed."}
+      - {text: "GPUs can only be requested in the `requests` section", correct: false, explanation: "The page says they go in `limits`."}
+      - {text: "GPU Pods need a special restartPolicy", correct: false, explanation: "The example uses OnFailure, but that is not a requirement."}
+      - {text: "GPUs require Node Feature Discovery to be scheduled at all", correct: false, explanation: "NFD helps with labels but is not required for the resource."}
+  - id: q41-4
+    type: fill
+    text: "Complete the sentence about Node Feature Discovery."
+    concepts: [gpu-scheduling, nfd]
+    sources: [55]
+    template: |
+      NFD detects each node's hardware features and advertises them as {{1}}, which a Pod can match with node {{2}}.
+    chips:
+      - {text: "labels", slot: 1, explanation: "NFD advertises features as node labels."}
+      - {text: "affinity", slot: 2, explanation: "The page's example uses nodeAffinity with an NFD label."}
+      - {text: "secrets", explanation: "NFD does not store hardware features as secrets."}
+      - {text: "quotas", explanation: "Quotas are a different mechanism."}
+  - id: q41-5
+    type: open
+    text: "A cluster has two node pools with different GPU types. Write how you would make sure a training job only runs on the larger one, and name one thing that is outside the page's scope."
+    concepts: [gpu-scheduling, node-selection]
+    sources: [55]
+    rubric: |
+      - Labels the nodes (or uses NFD labels) and uses a nodeSelector or node affinity in the Pod spec.
+      - Requests the GPU in resources.limits.
+      - Names something the page does not cover, such as GPU sharing, utilisation monitoring or multi-node training.

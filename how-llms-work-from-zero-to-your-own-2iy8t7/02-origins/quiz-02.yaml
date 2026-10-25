@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q06
+title: "Check: Dartmouth"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q06-1
+    type: mcq
+    text: "What was the central conjecture of the 1955 Dartmouth proposal?"
+    concepts: [dartmouth, ai-origins]
+    sources: [23]
+    options:
+      - {text: "Any aspect of learning or intelligence can in principle be described so precisely that a machine can simulate it.", correct: true, explanation: "This is the field's founding bet."}
+      - {text: "Machines will surpass humans within one decade.", correct: false, explanation: "The proposal made a claim about describability, not a timeline."}
+      - {text: "Intelligence requires biological neurons.", correct: false, explanation: "The proposal assumes the opposite: that it can be simulated."}
+  - id: q06-2
+    type: match
+    text: "Match each person to the fact."
+    concepts: [dartmouth]
+    sources: [23]
+    pairs:
+      - {left: "John McCarthy", right: "Chose the term 'artificial intelligence'", explanation: "He picked it partly because it was neutral."}
+      - {left: "Claude Shannon", right: "One of the four organisers", explanation: "Shannon is listed with McCarthy, Minsky and Rochester."}
+    distractors:
+      - "Wrote the 1986 backpropagation paper"
+      - "Built ELIZA"
+  - id: q06-3
+    type: open
+    text: "The Dartmouth bet leaves open how to describe intelligence precisely. Name the two broad approaches this lesson contrasts."
+    concepts: [rules-vs-learning]
+    sources: [23]
+    rubric: |
+      - Names writing the rules down by hand (explicit, expert-written rules).
+      - Names letting the machine learn the rules from examples.

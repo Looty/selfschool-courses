@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q14
+title: "Check: word vectors"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q14-1
+    type: mcq
+    text: "What was the main advance of the 2013 word2vec paper?"
+    concepts: [word2vec, embeddings]
+    sources: [7]
+    options:
+      - {text: "High-quality word vectors at much lower computational cost, in under a day on 1.6 billion words.", correct: true, explanation: "Cost and scale were the headline."}
+      - {text: "The first ever neural language model.", correct: false, explanation: "Bengio et al. proposed a neural language model in 2003."}
+      - {text: "Replacing words with letters.", correct: false, explanation: "The paper is about word representations."}
+  - id: q14-2
+    type: sort
+    text: "Which representation is a one-hot vector and which is a learned word vector?"
+    concepts: [one-hot, embeddings]
+    sources: [7]
+    buckets: ["One-hot vector", "Learned word vector"]
+    items:
+      - {text: "A very long list of zeros with a single 1", bucket: "One-hot vector", explanation: "Every pair of words looks equally unrelated."}
+      - {text: "300 numbers adjusted during training", bucket: "Learned word vector", explanation: "Trained so that similar contexts give similar vectors."}
+      - {text: "'Paris' and 'Rome' end up close together", bucket: "Learned word vector", explanation: "Similarity is learned from usage."}
+  - id: q14-3
+    type: short
+    text: "What is the name of the table that maps each token to its vector, found at the start of every LLM?"
+    concepts: [embeddings]
+    sources: [7]
+    answers: ["embedding", "embeddings", "an embedding", "embedding table"]

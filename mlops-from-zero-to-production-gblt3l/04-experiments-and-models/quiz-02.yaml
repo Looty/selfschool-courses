@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: q14
+title: "Check: model registry"
+questions:
+  - id: q14-1
+    type: trace
+    text: "Follow the registry for a model named fraud. After each step, what is the latest version number, and which version does the champion alias point to? Write none if there is no alias."
+    concepts: [model-registry, aliases]
+    sources: [4]
+    code: |
+      1. register_model(name="fraud")         # first registration
+      2. set alias champion -> version 1
+      3. register_model(name="fraud")         # a new trained model
+      4. move alias champion -> version 2
+    variables: [latest, champion]
+    steps:
+      - {label: "after step 1", values: {latest: 1, champion: ["none", "no alias"]}, given: [latest]}
+      - {label: "after step 2", values: {latest: 1, champion: 1}}
+      - {label: "after step 3", values: {latest: 2, champion: 1}}
+      - {label: "after step 4", values: {latest: 2, champion: 2}}
+    explanation: "The first registration under a name is version 1 and each later one increments. Registering a new version does not move the alias; the champion keeps pointing to version 1 until you reassign it in step 4."
+  - id: q14-2
+    type: mcq
+    text: "Serving code loads models:/fraud@champion. How do you roll back to the previous model?"
+    concepts: [model-registry, aliases, rollback]
+    sources: [4]
+    options:
+      - {text: "Move the champion alias back to the previous version", correct: true, explanation: "An alias is a mutable pointer, so reassigning it changes which model serves traffic without touching serving code."}
+      - {text: "Edit the serving code to load a different version number", correct: false, explanation: "That works but defeats the purpose of an alias."}
+      - {text: "Delete the registered model and retrain", correct: false, explanation: "Deleting loses lineage and is not needed for a rollback."}
+      - {text: "Register the old model as version 1 again", correct: false, explanation: "Each registration increments the version, and the alias would still not move."}
+  - id: q14-3
+    type: match
+    text: "Match each registry term to its meaning."
+    concepts: [model-registry]
+    sources: [4]
+    pairs:
+      - {left: "Registered model", right: "A named entry that holds versions, aliases, tags and metadata", explanation: "The first registration under a name becomes version 1."}
+      - {left: "Alias", right: "A mutable, named pointer to a model version", explanation: "Referenced as models:/<name>@<alias>."}
+      - {left: "Tag", right: "A key-value label on a model or version", explanation: "For example validation_status with the value approved."}
+      - {left: "Lineage", right: "The link from a version to the run or notebook that produced it", explanation: "Lets you trace a deployed model back to how it was made."}
+  - id: q14-4
+    type: open
+    text: "Why is moving an alias a production change, and how would you control it?"
+    concepts: [model-registry, aliases, change-management]
+    sources: [4, 1]
+    rubric: |
+      - Says that moving the alias changes which model serves live traffic.
+      - Proposes controlling it like a code deployment, for example through review, automated validation checks before the move, and a record of who moved it and when.

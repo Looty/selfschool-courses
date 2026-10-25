@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q12
+title: "Check: training-serving skew"
+questions:
+  - id: q12-1
+    type: spot
+    text: "Training and serving compute the same feature in two places. Which line makes the serving value disagree with training?"
+    concepts: [training-serving-skew, code-reuse]
+    sources: [13]
+    code: |
+      # training pipeline (batch)
+      df["age_days"] = (df["event_ts"] - df["signup_ts"]).dt.days
+      # serving path (a separate, hand-written copy)
+      features["age_days"] = (now - user.signup_ts).seconds // 86400
+      prediction = model.predict([features])
+    correct: [4]
+    explanation: "In Python a time difference's seconds attribute is only the remainder below one day, so this gives the wrong value for accounts older than a day. Training uses whole days. Rule #32: reuse one implementation of the transformation in both pipelines."
+  - id: q12-2
+    type: match
+    text: "Match each rule to what it says."
+    concepts: [rules-of-ml, training-serving-skew]
+    sources: [13]
+    pairs:
+      - {left: "Rule #29", right: "Log the features used at serving time and reuse them for training", explanation: "Training on what serving actually saw removes a class of discrepancies."}
+      - {left: "Rule #31", right: "A table joined at training and at serving time may have changed in between", explanation: "Log features at serving time, or snapshot slowly changing tables."}
+      - {left: "Rule #32", right: "Reuse code between the training and serving pipelines", explanation: "Shared transformation code removes a major source of skew."}
+      - {left: "Rule #33", right: "Evaluate on data newer than the training data", explanation: "Expect some drop in performance, but not a severe one."}
+    distractors:
+      - "Use a bigger model to hide the difference"
+  - id: q12-3
+    type: sort
+    text: "At Rule #37's three measurement points, what does a large gap usually point to?"
+    concepts: [training-serving-skew, measurement]
+    sources: [13]
+    buckets: ["Overfitting", "Normal drift of the world", "An engineering error"]
+    items:
+      - {text: "Training data versus holdout data", bucket: "Overfitting", explanation: "Both are from the same period, so the gap measures how much the model fits training specifics."}
+      - {text: "Holdout data versus next-day data", bucket: "Normal drift of the world", explanation: "The next day was not in training, so a small drop is expected as the world moves on."}
+      - {text: "Next-day data versus live serving", bucket: "An engineering error", explanation: "This compares the same period through the training pipeline and the live system, so a large difference is usually a bug."}
+  - id: q12-4
+    type: mcq
+    text: "Which of these are listed as causes of distribution skew between training and serving data? Select all that apply."
+    concepts: [training-serving-skew, sampling]
+    sources: [19]
+    options:
+      - {text: "Training on a different corpus than the serving data", correct: true, explanation: "For example, to compensate for scarce initial data."}
+      - {text: "Faulty sampling that keeps only a subsample of serving data", correct: true, explanation: "The training data then does not reflect what serving sees."}
+      - {text: "Downsampling without appropriate upweighting", correct: true, explanation: "Without weights the downsampled classes appear more or less common than they are."}
+      - {text: "Using version control for the training code", correct: false, explanation: "Version control is not a cause of skew."}
+  - id: q12-5
+    type: open
+    text: "Describe how you would set up a measurement of training-serving skew for a production model."
+    concepts: [training-serving-skew, measurement]
+    sources: [13]
+    rubric: |
+      - Mentions logging features at serving time so they can be compared or reused.
+      - Mentions comparing performance at three points: training against holdout, holdout against next-day data, and next-day data against live serving.
+      - Says that a large gap between next-day and live results usually indicates an engineering error and should alert.

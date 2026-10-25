@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: q65
+title: "Check: Constitutional AI"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q65-1
+    type: fill
+    text: "Put the two phases of Constitutional AI in order."
+    concepts: [constitutional-ai, rlaif]
+    sources: [50]
+    template: |
+      {{1}}, then {{2}}, then {{3}}, then {{4}}.
+    chips:
+      - {text: "the model critiques and revises its own responses", slot: 1, explanation: "Using the written principles."}
+      - {text: "the model is fine-tuned on the revised responses", slot: 2, explanation: "End of the supervised phase."}
+      - {text: "an AI judge picks the better of two sampled responses, training a preference model", slot: 3, explanation: "The AI-feedback step."}
+      - {text: "RL against the preference model", slot: 4, explanation: "RLAIF."}
+  - id: q65-2
+    type: match
+    text: "Match each method to its source of preference data."
+    concepts: [rlhf, dpo, rlaif]
+    sources: [4, 14, 50]
+    pairs:
+      - {left: "RLHF", right: "Human rankings of outputs", explanation: "Labelers compare outputs."}
+      - {left: "DPO", right: "Human preference pairs used directly in the loss", explanation: "No separate reward model."}
+      - {left: "Constitutional AI", right: "An AI judge following written principles", explanation: "RLAIF."}
+    distractors:
+      - "A rule-based keyword filter"
+  - id: q65-3
+    type: open
+    text: "A constitution makes a model's values explicit. Why does that not remove the question 'whose values?'"
+    concepts: [values, alignment]
+    sources: [50, 4]
+    rubric: |
+      - Says that someone still chooses and writes the principles, so they reflect a particular group's judgement.
+      - Says that making them explicit and editable helps scrutiny, but does not by itself make them neutral or universal.

@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q42
+title: "Check: lab 9"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q42-1
+    type: mcq
+    text: "In lab 9, which variable was changed between runs?"
+    concepts: [scaling-laws, experiments]
+    sources: [2]
+    options:
+      - {text: "Model size (the vector size n_embd).", correct: true, explanation: "Data and the number of steps were held fixed."}
+      - {text: "The amount of training data.", correct: false, explanation: "Data was constant."}
+      - {text: "The random seed.", correct: false, explanation: "The seed was fixed so only size varied."}
+  - id: q42-2
+    type: mcq
+    text: "Why can't three data points prove a scaling law?"
+    concepts: [scaling-laws, evidence]
+    sources: [2]
+    options:
+      - {text: "The paper's trends span more than seven orders of magnitude, while the lab spans about one and fixes steps and data.", correct: true, explanation: "Three points show direction only."}
+      - {text: "Scaling laws do not apply to small models.", correct: false, explanation: "They may apply; the lab simply cannot show it."}
+      - {text: "Loss cannot be measured on small models.", correct: false, explanation: "It was measured."}
+  - id: q42-3
+    type: open
+    text: "State the lab's result, and describe one change to the experiment that would make it a fairer test of the Chinchilla advice."
+    concepts: [scaling-laws, chinchilla]
+    sources: [2, 8]
+    rubric: |
+      - States that larger models reached lower held-out loss for the same number of steps (for example 2.431, 2.253, 2.025).
+      - Suggests letting the amount of training (steps/data) grow with model size, as the Chinchilla paper argues, instead of holding it fixed.

@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: q15
+title: "Check: packaging, lineage and model cards"
+questions:
+  - id: q15-1
+    type: match
+    text: "Match each part of an MLflow model package to its role."
+    concepts: [mlflow-models, packaging]
+    sources: [33]
+    pairs:
+      - {left: "MLmodel file", right: "A YAML file at the model root that lists flavors and metadata", explanation: "The flavors section is required."}
+      - {left: "Flavor", right: "A convention that tells a tool how to interpret the model files", explanation: "One model can have several flavors."}
+      - {left: "Signature", right: "The expected input and output schema", explanation: "Lets MLflow check incoming data against the schema."}
+      - {left: "python_function (pyfunc)", right: "The generic Python interface any MLflow Python model should load as", explanation: "Tools that only need predictions can work with models from any library."}
+    distractors:
+      - "A secret key used to sign deployments"
+  - id: q15-2
+    type: sort
+    text: "Which of these would a pipeline run's metadata record, and which would it not?"
+    concepts: [metadata, lineage]
+    sources: [1]
+    buckets: ["Recorded in run metadata", "Not part of the list"]
+    items:
+      - {text: "Pipeline and component versions", bucket: "Recorded in run metadata", explanation: "Google's metadata list starts with the versions of the pipeline and its components."}
+      - {text: "Pointer to the previous trained model", bucket: "Recorded in run metadata", explanation: "It allows a rollback."}
+      - {text: "Evaluation metrics for the training and test sets", bucket: "Recorded in run metadata", explanation: "Metrics are recorded for each run."}
+      - {text: "The learner's personal opinion of the model", bucket: "Not part of the list", explanation: "Not recorded as run metadata."}
+  - id: q15-3
+    type: mcq
+    text: "What does a model card describe?"
+    concepts: [model-cards, documentation]
+    sources: [16]
+    options:
+      - {text: "Benchmarked performance across conditions and groups, intended use contexts and the evaluation procedures", correct: true, explanation: "That is the paper's description of what model cards report."}
+      - {text: "Only the training code of the model", correct: false, explanation: "A card documents the model's behaviour, not its source code."}
+      - {text: "The hardware price of training the model", correct: false, explanation: "Cost is not part of the paper's description."}
+      - {text: "The deployment schedule", correct: false, explanation: "A card describes the model, not its release plan."}
+  - id: q15-4
+    type: short
+    text: "Which command starts a local REST server for an MLflow model, with an /invocations endpoint?"
+    concepts: [mlflow-models, serving]
+    sources: [33]
+    answers: ["mlflow models serve", "mlflow models serve -m", "mlflow models serve -m <model_uri>"]
+  - id: q15-5
+    type: open
+    text: "From a deployed model version, how would you find out which data and code produced it? Name the links in the chain."
+    concepts: [lineage, metadata]
+    sources: [1, 33]
+    rubric: |
+      - Says that the registry version links to the run (lineage, or the run_id in the MLmodel metadata).
+      - Says that the run's recorded metadata points to the code or pipeline version and to the data artifacts used.

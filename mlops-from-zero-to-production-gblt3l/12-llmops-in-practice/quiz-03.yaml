@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q47
+title: "Check: evals and graders"
+questions:
+  - id: q47-1
+    type: match
+    text: "Match each criterion to a grading method from the page's examples."
+    concepts: [evals, graders]
+    sources: [62]
+    pairs:
+      - {left: "Task fidelity on labelled tweets", right: "Exact match with normalised strings", explanation: "Code-based grading."}
+      - {left: "Consistency across paraphrased questions", right: "Cosine similarity of embeddings", explanation: "Sentence-BERT in the example."}
+      - {left: "Relevance and coherence of summaries", right: "ROUGE-L F1", explanation: "Longest common subsequence against references."}
+      - {left: "Tone of customer-service replies", right: "LLM-based Likert scale", explanation: "A grader model rates 1 to 5."}
+    distractors:
+      - "Manual review of every reply"
+  - id: q47-2
+    type: mcq
+    text: "What does the page recommend for the model that grades LLM outputs?"
+    concepts: [evals, llm-judge]
+    sources: [62]
+    options:
+      - {text: "Use a different model than the one that generated the output", correct: true, explanation: "The page recommends a different model as grader."}
+      - {text: "Use the same model so its style matches", correct: false, explanation: "The page recommends the opposite."}
+      - {text: "Never use a model as grader", correct: false, explanation: "LLM-based grading is one of the listed methods."}
+      - {text: "Use a model with fewer parameters than the generator", correct: false, explanation: "Not stated."}
+  - id: q47-3
+    type: sort
+    text: "Which eval design principle does each statement express?"
+    concepts: [evals, design-principles]
+    sources: [62]
+    buckets: ["Task-specific", "Automate when possible", "Volume over quality"]
+    items:
+      - {text: "Include sarcasm and mixed-sentiment tweets in the test set", bucket: "Task-specific", explanation: "Edge cases mirror the real distribution."}
+      - {text: "Use multiple choice or string match so grading runs without people", bucket: "Automate when possible", explanation: "Automatically gradable formats."}
+      - {text: "Prefer thousands of auto-graded cases to a few hand-graded ones", bucket: "Volume over quality", explanation: "The page prefers many somewhat lower-signal questions."}
+      - {text: "Add very long and irrelevant inputs", bucket: "Task-specific", explanation: "Listed edge cases."}
+  - id: q47-4
+    type: fill
+    text: "Complete the sentence about an MLflow GenAI evaluation."
+    concepts: [evals, mlflow]
+    sources: [63]
+    template: |
+      An evaluation combines a {{1}}, one or more {{2}}, and a predict function that generates outputs.
+    chips:
+      - {text: "dataset", slot: 1, explanation: "Holds test cases and expected outputs."}
+      - {text: "scorers", slot: 2, explanation: "Built-in LLM judges or custom judges."}
+      - {text: "container", explanation: "Not part of the evaluation definition."}
+      - {text: "firewall", explanation: "Unrelated."}
+  - id: q47-5
+    type: open
+    text: "You adopt an LLM judge to grade 10,000 support answers a week. What checks would you put around the judge before trusting its scores?"
+    concepts: [evals, llm-judge, validation]
+    sources: [62, 63]
+    rubric: |
+      - Notes that a judge's output depends on the judge model and prompt, and that the MLflow overview does not discuss reliability.
+      - Hand-grades a sample and measures agreement between judge and humans.
+      - Uses a different model from the generator as grader.
+      - Re-checks agreement when the judge model or prompt changes and tracks it with the experiment.

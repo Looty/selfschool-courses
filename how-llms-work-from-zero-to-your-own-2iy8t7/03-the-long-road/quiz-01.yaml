@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: q11
+title: "Check: backpropagation and the second winter"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q11-1
+    type: mcq
+    text: "What does backpropagation compute?"
+    concepts: [backpropagation, gradient]
+    sources: [25]
+    options:
+      - {text: "The gradient of the loss with respect to each weight, working backward from the output layer.", correct: true, explanation: "It tells you how much the error changes if each weight moves a little."}
+      - {text: "The final answer of the network for a given input.", correct: false, explanation: "That is the forward pass, not backpropagation."}
+      - {text: "The best training data to use next.", correct: false, explanation: "It says nothing about data selection."}
+  - id: q11-2
+    type: sort
+    text: "Which approach was hurt by the second AI winter, and which kept quietly improving?"
+    concepts: [ai-winter, expert-systems]
+    sources: [26]
+    buckets: ["Hurt by the winter", "Kept improving"]
+    items:
+      - {text: "Expert systems built from hand-written rules", bucket: "Hurt by the winter", explanation: "They were brittle and costly to maintain."}
+      - {text: "LISP machines (special hardware)", bucket: "Hurt by the winter", explanation: "Cheaper workstations ended their market in 1987."}
+      - {text: "Learning from data with neural networks", bucket: "Kept improving", explanation: "Learning methods advanced on small tasks until data and computers caught up."}
+  - id: q11-3
+    type: short
+    text: "Whose rule from 1676 does backpropagation rely on, the chain rule's author?"
+    concepts: [chain-rule]
+    sources: [25]
+    answers: ["leibniz", "gottfried leibniz", "gottfried wilhelm leibniz"]
+  - id: q11-4
+    type: open
+    text: "Explain in your own words why backpropagation was needed to train networks with several layers."
+    concepts: [backpropagation]
+    sources: [25]
+    rubric: |
+      - Says that the error is only visible at the output, while weights in earlier layers affect it indirectly.
+      - Says that backpropagation passes derivatives backward layer by layer to compute how each weight affects the error.

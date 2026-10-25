@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q60
+title: "Check: capstone"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q60-1
+    type: open
+    text: "Write your assessment of your trained model: what it does well, what it does badly, and one thing you would change next, using your own loss and samples."
+    concepts: [evaluation, capstone]
+    sources: [8, 2]
+    rubric: |
+      - Names two specific things the model does well, citing features of its sample text.
+      - Names at least one specific failure, citing the sample text or the numbers.
+      - Compares the loss with the bigram and lab 8, and proposes a next change justified by the scaling and Chinchilla ideas (more steps, more data, or a bigger model).
+  - id: q60-2
+    type: mcq
+    text: "Compared with lab 8 (1.93), the capstone's held-out loss of 1.545 came mainly from:"
+    concepts: [scaling-laws, capstone]
+    sources: [2]
+    options:
+      - {text: "A larger model, a longer context and more training steps.", correct: true, explanation: "Layers, vector size, context length and steps all went up."}
+      - {text: "Different training data.", correct: false, explanation: "The same Shakespeare text was used."}
+      - {text: "A different loss function.", correct: false, explanation: "The loss was the same cross-entropy."}
+  - id: q60-3
+    type: short
+    text: "In the capstone, which sampling setting did you vary to get tidier or more inventive text?"
+    concepts: [temperature]
+    sources: [17]
+    answers: ["temperature", "the temperature"]

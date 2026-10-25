@@ -1,0 +1,67 @@
+schemaVersion: 1
+id: q42
+title: "Check: training Jobs"
+questions:
+  - id: q42-1
+    type: match
+    text: "Match each Job configuration to what it does."
+    concepts: [kubernetes-jobs]
+    sources: [56]
+    pairs:
+      - {left: "completions and parallelism both unset", right: "One Pod, restarted only if it fails", explanation: "Both default to 1."}
+      - {left: "completions: 8, parallelism: 2", right: "Run until 8 Pods succeed, two at a time", explanation: "A fixed completion count."}
+      - {left: "completions unset, parallelism: 4", right: "A work queue; when any Pod succeeds no new Pods are created", explanation: "Pods coordinate among themselves."}
+      - {left: "completionMode: Indexed", right: "Each Pod gets an index in JOB_COMPLETION_INDEX", explanation: "Index runs from 0 to completions minus 1."}
+    distractors:
+      - "Pods are never retried"
+  - id: q42-2
+    type: trace
+    text: "A Job has backoffLimit set to its default and restartPolicy Never. A Pod fails repeatedly. Fill in the back-off delay the Job controller waits before each new attempt (in seconds, capped at ten minutes)."
+    concepts: [kubernetes-jobs, backoff]
+    sources: [56]
+    code: |
+      1. First retry
+      2. Second retry
+      3. Third retry
+    variables: [delay_seconds]
+    steps:
+      - {label: "Before", values: {delay_seconds: 0}, given: [delay_seconds]}
+      - {label: "First retry", values: {delay_seconds: 10}}
+      - {label: "Second retry", values: {delay_seconds: 20}}
+      - {label: "Third retry", values: {delay_seconds: 40}}
+    explanation: "The page gives the exponential back-off as 10s, 20s, 40s and so on, capped at ten minutes."
+  - id: q42-3
+    type: mcq
+    text: "What is the default backoffLimit of a Job when no per-index limit is specified?"
+    concepts: [kubernetes-jobs]
+    sources: [56]
+    options:
+      - {text: "6", correct: true, explanation: "The page states the default is 6."}
+      - {text: "1", correct: false, explanation: "That is the default for completions and parallelism."}
+      - {text: "0, meaning no retries", correct: false, explanation: "A Job retries by default."}
+      - {text: "Unlimited", correct: false, explanation: "Only with per-index limits does it default to a very large value."}
+  - id: q42-4
+    type: spot
+    text: "This Job template is meant for training. Which line is invalid for a Job Pod template?"
+    concepts: [kubernetes-jobs, restart-policy]
+    sources: [56]
+    code: |
+      spec:
+        template:
+          spec:
+            containers: [{name: train, image: "registry.example/train:1"}]
+            restartPolicy: Always
+        backoffLimit: 3
+    correct: [5]
+    explanation: "A Job's Pod template must use restartPolicy Never or OnFailure; Always is for long-running workloads."
+  - id: q42-5
+    type: open
+    text: "You need to train 8 models, one per region, in parallel on GPUs, and a re-run of a shard must not corrupt results. Describe the Job settings and what your script must do."
+    concepts: [kubernetes-jobs, indexed-jobs, idempotency]
+    sources: [55, 56]
+    rubric: |
+      - Uses completionMode Indexed with completions 8 and a chosen parallelism.
+      - Reads JOB_COMPLETION_INDEX to select the region shard.
+      - Requests a GPU in resources.limits and selects the accelerator type with a label or affinity.
+      - Makes the shard repeatable (writes outputs to a path or version keyed by index) because more than one Pod can start for the same index.
+      - Chooses restartPolicy Never or OnFailure and a low backoffLimit.

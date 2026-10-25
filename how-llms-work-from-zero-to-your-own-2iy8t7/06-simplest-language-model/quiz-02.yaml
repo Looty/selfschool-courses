@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q25
+title: "Check: sampling and temperature"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q25-1
+    type: sort
+    text: "Which setting suits which task?"
+    concepts: [temperature, decoding]
+    sources: [30]
+    buckets: ["Low temperature or greedy", "Higher temperature"]
+    items:
+      - {text: "Translating a sentence", bucket: "Low temperature or greedy", explanation: "Input-grounded tasks work well with greedy search."}
+      - {text: "Brainstorming story ideas", bucket: "Higher temperature", explanation: "Creative tasks benefit from more varied choices."}
+      - {text: "Extracting a fact from a document", bucket: "Low temperature or greedy", explanation: "Careful tasks need predictable output."}
+  - id: q25-2
+    type: mcq
+    text: "A model gives next-token probabilities 0.6, 0.3 and 0.1. How does a low temperature (say 0.5) change them before sampling?"
+    concepts: [temperature]
+    sources: [30]
+    options:
+      - {text: "It makes the likely token even likelier and the unlikely ones rarer.", correct: true, explanation: "Raising probabilities to the power 1/T with T < 1 sharpens the distribution."}
+      - {text: "It makes all three equally likely.", correct: false, explanation: "That is what very high temperature approaches."}
+      - {text: "It removes the least likely token from the vocabulary.", correct: false, explanation: "Low temperature only reweights; nothing is removed."}
+  - id: q25-3
+    type: short
+    text: "What do we call the decoding rule that always picks the single most likely token?"
+    concepts: [greedy-decoding]
+    sources: [30]
+    answers: ["greedy", "greedy search", "greedy decoding"]

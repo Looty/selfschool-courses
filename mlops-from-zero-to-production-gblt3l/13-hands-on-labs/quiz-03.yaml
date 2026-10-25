@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q51
+title: "Check: Evidently lab"
+questions:
+  - id: q51-1
+    type: spot
+    text: "You want to compare production data with the reference. Which line mixes up the arguments?"
+    concepts: [evidently-lab, reference-data]
+    sources: [66]
+    code: |
+      prod = Dataset.from_pandas(pd.DataFrame(adult_prod), data_definition=schema)
+      ref = Dataset.from_pandas(pd.DataFrame(adult_ref), data_definition=schema)
+      report = Report([DataDriftPreset()])
+      my_eval = report.run(ref, prod)
+    correct: [4]
+    explanation: "In the quickstart the current data is the first argument and the reference is the second: report.run(eval_data_1, eval_data_2) with prod first."
+  - id: q51-2
+    type: match
+    text: "Match each Evidently element to its role in the lab."
+    concepts: [evidently-lab]
+    sources: [66]
+    pairs:
+      - {left: "DataDefinition", right: "Tells Evidently which columns are numerical and which are categorical", explanation: "Passed as the data definition to each Dataset."}
+      - {left: "DataDriftPreset", right: "Checks distribution changes across all columns", explanation: "Uses default tests unless customised."}
+      - {left: "DataSummaryPreset", right: "Summarises each column and can run auto-generated tests", explanation: "Tests are enabled with include_tests."}
+      - {left: "my_eval.json()", right: "Exports the result so a pipeline can parse it", explanation: "HTML and dict exports also exist."}
+    distractors:
+      - "Starts a monitoring server"
+  - id: q51-3
+    type: mcq
+    text: "The report flags the 'education' column as drifted. You also know the model's accuracy on recent labels is unchanged. What is the most reasonable next step?"
+    concepts: [evidently-lab, drift-vs-accuracy]
+    sources: [22, 66]
+    options:
+      - {text: "Investigate the change and watch quality signals; drift alone does not prove the model is worse", correct: true, explanation: "Data drift is a change in inputs. It is a reason to look, not automatically to retrain."}
+      - {text: "Retrain immediately every time any column drifts", correct: false, explanation: "That would retrain on noise and ignore the label evidence."}
+      - {text: "Ignore it because drift reports are unreliable", correct: false, explanation: "Drift is a useful early signal, especially without labels."}
+      - {text: "Delete the column", correct: false, explanation: "Removing a feature is a model change that needs its own justification."}
+  - id: q51-4
+    type: fill
+    text: "Complete the sentence about the quickstart's data."
+    concepts: [evidently-lab]
+    sources: [66]
+    template: |
+      The prod set includes {{1}} levels that are missing from the {{2}} set, which creates artificial drift for the demonstration.
+    chips:
+      - {text: "education", slot: 1, explanation: "The prod set contains education levels absent from the reference."}
+      - {text: "reference", slot: 2, explanation: "The reference is what the prod set is compared against."}
+      - {text: "age", explanation: "The example creates drift in education, not age."}
+      - {text: "test", explanation: "The quickstart uses a reference and a prod set."}
+  - id: q51-5
+    type: open
+    text: "State the result of your own run: which columns drifted, what share of columns that is, and what you would put into an alert rule (threshold and action)."
+    concepts: [evidently-lab, alerting]
+    sources: [22, 66]
+    rubric: |
+      - Names the columns flagged and gives the share of drifted columns from the report.
+      - Proposes an alert rule such as a share-of-drifted-columns threshold with a justification, and a sensible action (investigate, ticket or page).
+      - Notes that drift alone does not prove quality has dropped and that labels or proxy signals should be checked.

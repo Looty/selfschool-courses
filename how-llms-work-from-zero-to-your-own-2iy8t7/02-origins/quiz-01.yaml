@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q05
+title: "Check: Turing's question"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q05-1
+    type: mcq
+    text: "Why did Turing replace the question \"Can machines think?\" with the imitation game?"
+    concepts: [turing, imitation-game]
+    sources: [16]
+    options:
+      - {text: "Defining 'machine' and 'think' by ordinary usage is dangerous, so he asked a less ambiguous question.", correct: true, explanation: "The paper says exactly this: the original question depends on how people use the words."}
+      - {text: "Because he believed machines definitely could not think.", correct: false, explanation: "He did not rule it out; he changed the question."}
+      - {text: "Because computers in 1950 could already pass the test.", correct: false, explanation: "The paper proposes the test; it does not claim any machine passes it."}
+  - id: q05-2
+    type: short
+    text: "In what form do the players' answers reach the interrogator, so tone of voice gives no clue?"
+    concepts: [imitation-game]
+    sources: [16]
+    answers: ["written", "typed", "text", "written or typed", "typewritten"]
+  - id: q05-3
+    type: open
+    text: "How does Turing's move from an argument over definitions to a game connect to how language models are evaluated today?"
+    concepts: [evaluation, imitation-game]
+    sources: [16]
+    rubric: |
+      - Says that the game turns a question about definitions into an experiment that can be run and counted.
+      - Says that modern evaluation likewise judges a model by its behaviour on test questions rather than by inspecting what happens inside.

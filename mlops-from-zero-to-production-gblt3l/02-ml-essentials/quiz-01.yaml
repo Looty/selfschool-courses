@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: q05
+title: "Check: training, loss and metrics"
+questions:
+  - id: q05-1
+    type: mcq
+    text: "Only 1% of the examples in a dataset are positive. A model always predicts negative. What accuracy does it get?"
+    concepts: [accuracy, class-imbalance]
+    sources: [29]
+    options:
+      - {text: "99%", correct: true, explanation: "It is right on every negative example, which is 99% of the data, yet it never finds a positive."}
+      - {text: "1%", correct: false, explanation: "That is the share of positives, which the model never predicts."}
+      - {text: "50%", correct: false, explanation: "50% would be chance on balanced data. This data is not balanced."}
+      - {text: "0%", correct: false, explanation: "The model is correct on all the negatives, so accuracy is high even though the model is useless."}
+  - id: q05-2
+    type: match
+    text: "Match each classification metric to the question it answers."
+    concepts: [precision-recall, metrics]
+    sources: [29]
+    pairs:
+      - {left: "Accuracy", right: "How many predictions were correct?", explanation: "(TP + TN) over all examples."}
+      - {left: "Recall", right: "Of the real positives, how many did we find?", explanation: "TP / (TP + FN)."}
+      - {left: "Precision", right: "Of the predicted positives, how many were real?", explanation: "TP / (TP + FP)."}
+      - {left: "False positive rate", right: "Of the real negatives, how many raised a false alarm?", explanation: "FP / (FP + TN), also called probability of false alarm."}
+    distractors:
+      - "How low is the training loss?"
+  - id: q05-3
+    type: mcq
+    text: "Which pattern in a generalisation curve points to overfitting?"
+    concepts: [overfitting, loss-curves]
+    sources: [17]
+    options:
+      - {text: "Training loss keeps falling or levels off while validation loss starts to rise", correct: true, explanation: "The curves start similar and then diverge: the model fits the training set at the cost of new data."}
+      - {text: "Training and validation loss both fall together", correct: false, explanation: "That is the shape of a model that is generalising well so far."}
+      - {text: "Both losses stay flat at a high value", correct: false, explanation: "That looks like underfitting: the model does poorly even on the training data."}
+      - {text: "Validation loss is exactly zero", correct: false, explanation: "A suspiciously perfect result suggests a problem with the data split, not overfitting."}
+  - id: q05-4
+    type: short
+    text: "What is the goal of training, in terms of loss?"
+    concepts: [loss, training]
+    sources: [28]
+    answers: ["minimize loss", "minimise loss", "minimize", "minimise", "lower the loss", "reduce loss", "make loss as small as possible"]
+  - id: q05-5
+    type: open
+    text: "You raise a classifier's decision threshold. What happens to precision and recall, and why might you do it?"
+    concepts: [precision-recall, threshold]
+    sources: [29]
+    rubric: |
+      - Says that raising the threshold makes the model more conservative, so false positives fall and precision rises.
+      - Says that recall falls because false negatives increase.
+      - Gives a reason tied to the cost of errors, for example when false alarms are more costly than missed positives.

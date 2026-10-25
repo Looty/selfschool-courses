@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q01
+title: "Check: the problem with words"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q01-1
+    type: mcq
+    text: "What question does a language model try to answer?"
+    concepts: [language-model, next-token]
+    sources: [21]
+    options:
+      - {text: "Given some text, how likely is each possible next piece of text?", correct: true, explanation: "Predicting the next token is the core task; many uses are phrased as continuing text."}
+      - {text: "Which rule in a rulebook applies to this sentence?", correct: false, explanation: "That describes a rules-based system, the approach language models replaced."}
+      - {text: "What does this word mean in the dictionary?", correct: false, explanation: "A language model does not look up dictionary definitions; it works with learned numbers."}
+  - id: q01-2
+    type: short
+    text: "What do we call the small chunks of text, each turned into an integer, that a model actually works on?"
+    concepts: [token]
+    sources: [21]
+    answers: ["tokens", "token"]
+  - id: q01-3
+    type: open
+    text: "In your own words, why are hand-written rules a poor way to handle language?"
+    concepts: [ambiguity, rules-vs-learning]
+    sources: [21]
+    rubric: |
+      - Says that the same idea can be expressed in many ways, or the same words can mean different things (ambiguity).
+      - Says that meaning depends on the surrounding context.
+      - Says that rules work for narrow cases but break outside them.

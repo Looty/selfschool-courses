@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q04
+title: "Check: lab 1"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q04-1
+    type: mcq
+    text: "Greedy decoding often produced repeated phrases in the lab. Why?"
+    concepts: [greedy-decoding, sampling]
+    sources: [30]
+    options:
+      - {text: "Always choosing the single most likely next token can fall into a loop.", correct: true, explanation: "Once a phrase makes itself the most likely continuation, greedy keeps choosing it."}
+      - {text: "The model ran out of memory.", correct: false, explanation: "The repetition is a property of the decoding rule, not of memory."}
+      - {text: "The temperature was too high.", correct: false, explanation: "Greedy decoding does not use temperature at all."}
+  - id: q04-2
+    type: short
+    text: "Which generate() setting limits how many new tokens are produced (the default is only about 20)?"
+    concepts: [generate]
+    sources: [30]
+    answers: ["max_new_tokens", "max new tokens"]
+  - id: q04-3
+    type: open
+    text: "After running the lab on your own prompts, describe one answer that sounded right but was wrong, and explain what in lesson 3 accounts for it."
+    concepts: [hallucination, hands-on]
+    sources: [29]
+    rubric: |
+      - Describes a specific output from the learner's own run that was fluent but incorrect or unreliable.
+      - Connects it to the fact that the model is trained to produce likely text and does not check facts, or to biases in its training data.

@@ -1,0 +1,50 @@
+schemaVersion: 1
+id: q23
+title: "Check: release strategies"
+questions:
+  - id: q23-1
+    type: trace
+    text: "Follow the traffic split of the sklearn-iris service. After each step, what percentage of traffic goes to revision 1 and to revision 2?"
+    concepts: [canary, kserve, rollback]
+    sources: [40]
+    code: |
+      1. Revision 1 is deployed and ready
+      2. Update the model, set canaryTrafficPercent: 10   (creates revision 2)
+      3. Promote: remove canaryTrafficPercent, apply
+      4. Roll back: set canaryTrafficPercent: 0 on the current model, apply
+    variables: [revision1, revision2]
+    steps:
+      - {label: "after step 1", values: {revision1: 100, revision2: 0}, given: [revision2]}
+      - {label: "after step 2", values: {revision1: 90, revision2: 10}}
+      - {label: "after step 3", values: {revision1: 0, revision2: 100}}
+      - {label: "after step 4", values: {revision1: 100, revision2: 0}}
+    explanation: "The first revision gets all traffic. A canary of 10% splits it 90/10. Removing the field promotes revision 2 to 100%, and revision 1 scales down to zero pods. Setting canaryTrafficPercent to 0 on the current model pins the previous model, revision 1, back to 100%."
+  - id: q23-2
+    type: match
+    text: "Match each strategy to what it does."
+    concepts: [release-strategies]
+    sources: [1, 14]
+    pairs:
+      - {left: "Shadow", right: "The new model sees live requests but its answers are not used", explanation: "No user impact; you compare behaviour."}
+      - {left: "Canary", right: "A small share of live traffic is served by the new model", explanation: "Limits the blast radius while you verify health."}
+      - {left: "A/B test", right: "Two models serve different groups to compare them", explanation: "Decides which is better on a chosen measure."}
+      - {left: "Rollback", right: "Traffic goes back to the previous model", explanation: "In KServe, setting canaryTrafficPercent to 0 pins the previous model."}
+  - id: q23-3
+    type: mcq
+    text: "In KServe, how do you promote a canary revision to receive all traffic?"
+    concepts: [kserve, canary]
+    sources: [40]
+    options:
+      - {text: "Remove the canaryTrafficPercent field and apply the manifest again", correct: true, explanation: "The latest revision then receives 100% of traffic and the previous revision scales to zero."}
+      - {text: "Set canaryTrafficPercent to 0", correct: false, explanation: "Zero sends all traffic to the previous revision, which is a rollback."}
+      - {text: "Delete the InferenceService", correct: false, explanation: "That removes the service rather than promoting a revision."}
+      - {text: "Nothing; the canary promotes itself after a day", correct: false, explanation: "The documented example promotes by changing the manifest."}
+  - id: q23-4
+    type: open
+    text: "You are about to canary a new model at 10% traffic. What do you decide before starting, and why?"
+    concepts: [canary, release-strategies]
+    sources: [1, 40]
+    rubric: |
+      - Defines what healthy means in advance, for example error rate, latency, input and prediction distributions or a quality metric.
+      - Defines the rollout steps and the condition that triggers promotion or rollback.
+      - Explains that deciding beforehand prevents judging results after the fact and lets the rollback be fast and unambiguous.

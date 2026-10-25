@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: q02
+title: "Check: an LLM on one page"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q02-1
+    type: match
+    text: "Match each term to its meaning."
+    concepts: [training, inference, parameters]
+    sources: [21]
+    pairs:
+      - {left: "Training", right: "Adjusting parameters so predictions fit the examples", explanation: "Training is the learning phase."}
+      - {left: "Inference", right: "Using a trained model on new input", explanation: "Inference is using the model, not changing it."}
+      - {left: "Parameters", right: "The adjustable numbers inside the model", explanation: "Also called weights; training changes them."}
+    distractors:
+      - "The text you type to start a conversation"
+  - id: q02-2
+    type: mcq
+    text: "How does an LLM write a 200-word reply?"
+    concepts: [generation-loop]
+    sources: [21]
+    options:
+      - {text: "It predicts one token, appends it to the text, and repeats the step many times.", correct: true, explanation: "Generation is a loop of next-token prediction."}
+      - {text: "It looks up the answer in a stored database of replies.", correct: false, explanation: "An LLM does not look answers up; its knowledge is in its parameters."}
+      - {text: "It writes the whole reply at once in a single step.", correct: false, explanation: "Each pass produces one token."}
+  - id: q02-3
+    type: sort
+    text: "Which stage does each activity belong to?"
+    concepts: [pretraining, fine-tuning]
+    sources: [21]
+    buckets: ["Pretraining", "Fine-tuning"]
+    items:
+      - {text: "Predicting the next word across a huge body of text", bucket: "Pretraining", explanation: "This is the pretraining objective."}
+      - {text: "Teaching the model to follow user instructions", bucket: "Fine-tuning", explanation: "Instruction tuning is a later adjustment of an already pretrained model."}
+      - {text: "Learning general patterns of language from web-scale text", bucket: "Pretraining", explanation: "Pretraining supplies broad knowledge of language."}
+  - id: q02-4
+    type: open
+    text: "What is a context window, and why does it matter for a conversation with an LLM?"
+    concepts: [context-window]
+    sources: [21]
+    rubric: |
+      - Says that the context window is the span or number of tokens the model can consider at once.
+      - Says that anything outside the window cannot influence the next prediction, so a long conversation must fit inside it.

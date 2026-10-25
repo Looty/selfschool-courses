@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q15
+title: "Check: examples and loss"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q15-1
+    type: mcq
+    text: "In the model prediction = w × x + b, which are the 'knobs' that training adjusts?"
+    concepts: [weights, model-as-function]
+    sources: [32]
+    options:
+      - {text: "w and b", correct: true, explanation: "The weight and bias are the adjustable numbers."}
+      - {text: "x", correct: false, explanation: "x is the input; training does not change it."}
+      - {text: "The loss", correct: false, explanation: "The loss measures error; it is not a knob."}
+  - id: q15-2
+    type: fill
+    text: "Complete the definition of mean squared error."
+    concepts: [mse, loss]
+    sources: [32]
+    template: |
+      For each example, take {{1}} between prediction and truth, {{2}} it, then {{3}} over all examples.
+    chips:
+      - {text: "the difference", slot: 1, explanation: "Error is how far the prediction is from the truth."}
+      - {text: "square", slot: 2, explanation: "Squaring makes errors positive and punishes big misses."}
+      - {text: "average", slot: 3, explanation: "The 'mean' in mean squared error."}
+      - {text: "multiply", explanation: "Not part of the definition."}
+  - id: q15-3
+    type: open
+    text: "Why does turning 'how wrong is the model' into a single number make learning possible?"
+    concepts: [loss]
+    sources: [32, 34]
+    rubric: |
+      - Says that with one number you can compare settings and tell better from worse.
+      - Says that learning becomes a search: change the knobs in the direction that lowers the number.

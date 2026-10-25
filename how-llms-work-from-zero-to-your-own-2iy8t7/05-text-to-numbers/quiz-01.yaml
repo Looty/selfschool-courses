@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q20
+title: "Check: tokens"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q20-1
+    type: mcq
+    text: "Why do most LLMs use subword tokens rather than whole words?"
+    concepts: [subword, vocabulary]
+    sources: [6]
+    options:
+      - {text: "New and rare words are always unknown to a fixed word list, but can be spelled out from smaller units.", correct: true, explanation: "This is the open-vocabulary problem the subword approach addresses."}
+      - {text: "Subwords make the vocabulary infinite.", correct: false, explanation: "The vocabulary stays fixed; unknown words are built from known pieces."}
+      - {text: "Subwords are required by the Transformer.", correct: false, explanation: "They are a choice, not a requirement of the architecture."}
+  - id: q20-2
+    type: sort
+    text: "Which problem goes with which kind of token?"
+    concepts: [tokenization-tradeoffs]
+    sources: [6]
+    buckets: ["Whole words", "Single characters"]
+    items:
+      - {text: "A new brand name is not in the vocabulary", bucket: "Whole words", explanation: "A fixed word list cannot contain every new word."}
+      - {text: "Every sentence becomes a very long sequence", bucket: "Single characters", explanation: "One step per letter fills the context window quickly."}
+      - {text: "A typo makes the word unknown", bucket: "Whole words", explanation: "The mistyped word is not in the list."}
+  - id: q20-3
+    type: short
+    text: "In GPT-2's tokenizer, which character marks a token that starts with a space?"
+    concepts: [token]
+    sources: [21]
+    answers: ["Ġ", "G with a dot", "Ġ (G with a dot)"]

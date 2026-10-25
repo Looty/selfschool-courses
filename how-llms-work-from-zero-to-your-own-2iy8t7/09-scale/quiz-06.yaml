@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q63
+title: "Check: emergent abilities"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q63-1
+    type: mcq
+    text: "How did Wei et al. define an emergent ability?"
+    concepts: [emergent-abilities]
+    sources: [54]
+    options:
+      - {text: "One that is not present in smaller models but is present in larger models.", correct: true, explanation: "That is why it cannot be forecast by extrapolating smaller models."}
+      - {text: "One that every model has regardless of size.", correct: false, explanation: "Emergence is about appearing only with scale."}
+      - {text: "One that only appears after fine-tuning.", correct: false, explanation: "It is defined by model scale."}
+  - id: q63-2
+    type: mcq
+    text: "A model gets each digit of a 5-digit sum right 90% of the time, independently. Roughly how often does it get the whole sum exactly right?"
+    concepts: [metric-choice, exact-match]
+    sources: [55]
+    options:
+      - {text: "About 59% (0.9 to the fifth power).", correct: true, explanation: "0.9 × 0.9 × 0.9 × 0.9 × 0.9 is about 0.59."}
+      - {text: "90%", correct: false, explanation: "That is the per-digit rate; all five must be right at once."}
+      - {text: "About 99%", correct: false, explanation: "Errors compound, so the whole-answer rate is lower."}
+  - id: q63-3
+    type: open
+    text: "Explain the 'mirage' argument and what you would ask for before believing a claim that a model suddenly gained a skill."
+    concepts: [emergent-abilities, metric-choice]
+    sources: [55]
+    rubric: |
+      - Says that apparent emergence can come from nonlinear or discontinuous metrics (such as exact match) turning smooth improvement into a sudden jump.
+      - Says that you should look at a continuous measure (such as partial credit or per-step accuracy) and see whether it also jumps.

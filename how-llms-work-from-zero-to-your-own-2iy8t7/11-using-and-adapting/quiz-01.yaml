@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q48
+title: "Check: prompting"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q48-1
+    type: mcq
+    text: "What does 'in-context learning' mean?"
+    concepts: [in-context-learning, few-shot]
+    sources: [3]
+    options:
+      - {text: "The model performs a task from examples in the prompt, with no change to its weights.", correct: true, explanation: "Tasks and demonstrations are specified purely through text."}
+      - {text: "The model is retrained on the examples.", correct: false, explanation: "No gradient updates happen."}
+      - {text: "The model stores the examples permanently.", correct: false, explanation: "Nothing persists once the examples leave the context window."}
+  - id: q48-2
+    type: sort
+    text: "Which part of a prompt does each line belong to?"
+    concepts: [prompt-structure]
+    sources: [3]
+    buckets: ["Task or role", "Example", "Output format"]
+    items:
+      - {text: "You classify support tickets as BILLING, BUG or OTHER.", bucket: "Task or role", explanation: "States what the model should do."}
+      - {text: "Ticket: \"The export button does nothing.\" -> BUG", bucket: "Example", explanation: "A demonstration of input and desired output."}
+      - {text: "Reply with one word.", bucket: "Output format", explanation: "Fixes the shape of the answer."}
+  - id: q48-3
+    type: open
+    text: "Why should you treat prompts like code?"
+    concepts: [prompt-engineering]
+    sources: [3, 30]
+    rubric: |
+      - Says that small wording changes can change results, so prompts are fragile.
+      - Says that prompts should be versioned and tested against fixed examples.

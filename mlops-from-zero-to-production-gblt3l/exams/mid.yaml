@@ -1,0 +1,21 @@
+schemaVersion: 1
+id: mid
+title: Mid-course exam
+duration_minutes: 30
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 15
+domains:
+  - id: foundations
+    title: Foundations and ML essentials
+    weight: 25
+    chapters: [01-why-mlops, 02-ml-essentials]
+  - id: data-and-features
+    title: Data and features
+    weight: 35
+    chapters: [03-data-and-features]
+  - id: experiments-and-models
+    title: Experiments and models
+    weight: 40
+    chapters: [04-experiments-and-models]

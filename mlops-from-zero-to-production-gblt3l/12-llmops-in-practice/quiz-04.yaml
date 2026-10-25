@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: q48
+title: "Check: tracing, monitoring and security"
+questions:
+  - id: q48-1
+    type: sort
+    text: "Which production signal is a capacity symptom, and which is a quality signal?"
+    concepts: [llm-monitoring]
+    sources: [26]
+    buckets: ["Capacity symptom", "Quality signal"]
+    items:
+      - {text: "A rise in 429 errors", bucket: "Capacity symptom", explanation: "Throttling means demand exceeds quota or throughput."}
+      - {text: "Quota usage approaching its limit", bucket: "Capacity symptom", explanation: "The guide advises watching quota for cost and performance."}
+      - {text: "A falling share of thumbs-up feedback", bucket: "Quality signal", explanation: "User feedback is a quality proxy."}
+      - {text: "A rise in outputs flagged by content safety", bucket: "Quality signal", explanation: "Content safety is a quality and risk signal."}
+  - id: q48-2
+    type: match
+    text: "Match each LLM-specific monitoring item to the guide's reason for it."
+    concepts: [llm-monitoring]
+    sources: [26, 63]
+    pairs:
+      - {left: "Token usage", right: "Used for billing, throttling and quotas", explanation: "Tokens are the unit of cost and limits."}
+      - {left: "Latency per step in a trace", right: "Finds bottlenecks in the application", explanation: "MLflow Tracing records latency at each step."}
+      - {left: "Feedback attached to a trace", right: "Links user judgement to the exact request", explanation: "Stored with metadata such as user and timestamp."}
+      - {left: "Content safety", right: "Detects harmful or disallowed outputs", explanation: "Listed as a monitoring addition for generative AI."}
+    distractors:
+      - "Detects schema changes in training data"
+  - id: q48-3
+    type: mcq
+    text: "What is known about the OWASP Top 10 for LLM Applications 2025 from the sources used in this lesson?"
+    concepts: [owasp, source-limits]
+    sources: [67, 68]
+    options:
+      - {text: "The ten item names were taken from a vendor's page because the official page fetched did not list them; no descriptions were read", correct: true, explanation: "LLM01 Prompt Injection to LLM10 Unbounded Consumption come from the restatement."}
+      - {text: "The full list and descriptions were read from the official page", correct: false, explanation: "The official page fetched did not contain them."}
+      - {text: "It is the same document as the OWASP Machine Learning Security Top Ten", correct: false, explanation: "They are separate documents."}
+      - {text: "It lists exactly the attacks of lesson 30", correct: false, explanation: "The ML list covers classical model attacks."}
+  - id: q48-4
+    type: short
+    text: "What do you add to a logged request so that feedback arriving later can be joined to it?"
+    concepts: [llm-monitoring, logging]
+    sources: [63]
+    answers: ["an identifier", "an id", "identifier", "request id", "trace id", "a trace id"]
+  - id: q48-5
+    type: open
+    text: "Design the logging and monitoring for a RAG help-centre assistant: what you record per request, which production alerts you would set, and one security consideration for the logs."
+    concepts: [llm-monitoring, tracing, security]
+    sources: [26, 63, 67, 68]
+    rubric: |
+      - Records question, retrieved passages, prompt or prompt version, model version, response, token counts, latency and an identifier for later feedback.
+      - Sets alerts on symptoms such as 429 errors, latency and a drop in feedback or a rise in flagged content, and watches quota.
+      - Applies pre-release scorers to a sample of production traces and justifies the sampling rate by cost.
+      - Notes that logs contain what users typed, so they need data-protection controls, and mentions reading the OWASP LLM list for threat modelling.

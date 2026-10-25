@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: q49
+title: "Check: MLflow lab"
+questions:
+  - id: q49-1
+    type: fill
+    text: "Complete the commands of the quickstart."
+    concepts: [mlflow-lab, commands]
+    sources: [64]
+    template: |
+      Install with pip install {{1}}; start the UI with mlflow {{2}} --port 5000; log a model run inside mlflow.{{3}}_run().
+    chips:
+      - {text: "mlflow", slot: 1, explanation: "The package name on PyPI."}
+      - {text: "server", slot: 2, explanation: "mlflow server starts the tracking server and UI."}
+      - {text: "start", slot: 3, explanation: "mlflow.start_run() opens a run."}
+      - {text: "stop", explanation: "Runs are ended automatically by the with block."}
+      - {text: "ui-only", explanation: "Not an MLflow command."}
+  - id: q49-2
+    type: spot
+    text: "You want to log the trained model from a manual run. Which line is in the wrong place?"
+    concepts: [mlflow-lab, manual-logging]
+    sources: [64]
+    code: |
+      with mlflow.start_run():
+          lr = LogisticRegression(**params)
+          model_info = mlflow.sklearn.log_model(sk_model=lr, name="iris_model")
+          lr.fit(X_train, y_train)
+    correct: [3]
+    explanation: "The quickstart fits the model first and logs it afterwards. Logging before `fit` would save an untrained model."
+  - id: q49-3
+    type: mcq
+    text: "You compare two runs in the UI and one is better. What does the quickstart's tracking log for you, and what must you add yourself for full reproducibility?"
+    concepts: [mlflow-lab, reproducibility]
+    sources: [64]
+    options:
+      - {text: "It logs parameters, metrics and the model; you add code and data versions as tags yourself", correct: true, explanation: "The quickstart does not state that it records the code or data version."}
+      - {text: "It logs everything including the dataset and Git commit automatically, in every case", correct: false, explanation: "The page does not say so."}
+      - {text: "It logs nothing unless you use the manual API", correct: false, explanation: "Autologging logs parameters and metrics."}
+      - {text: "It logs only the final model file", correct: false, explanation: "Parameters and metrics are also logged."}
+  - id: q49-4
+    type: short
+    text: "Which function loads a logged model through the generic python_function interface?"
+    concepts: [mlflow-lab, pyfunc]
+    sources: [64]
+    answers: ["mlflow.pyfunc.load_model", "pyfunc.load_model", "mlflow.pyfunc.load_model(model_uri)"]
+  - id: q49-5
+    type: open
+    text: "Describe in your own words what you saw in the MLflow UI after the lab: which two runs you compared, what differed in their parameters and metrics, and what you would record next to make the better run reproducible."
+    concepts: [mlflow-lab, experiment-tracking, reproducibility]
+    sources: [64]
+    rubric: |
+      - Names two specific runs and the parameter that differed (for example max_iter).
+      - States the metric values and which run was better.
+      - Proposes recording the code version and the data version (for example as tags), and the environment.

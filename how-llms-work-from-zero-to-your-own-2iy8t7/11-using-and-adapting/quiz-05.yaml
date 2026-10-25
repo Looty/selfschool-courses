@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q52
+title: "Check: RAG"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q52-1
+    type: fill
+    text: "Put the three RAG steps in order."
+    concepts: [rag]
+    sources: [38]
+    template: |
+      {{1}}, then {{2}}, then {{3}}.
+    chips:
+      - {text: "retrieve passages similar to the question", slot: 1, explanation: "Search the outside store by vector similarity."}
+      - {text: "paste them into the prompt", slot: 2, explanation: "Augment the prompt with the retrieved text."}
+      - {text: "generate an answer from that text", slot: 3, explanation: "The model answers using the supplied passages."}
+      - {text: "retrain the model on the passages", explanation: "RAG does not change the weights."}
+  - id: q52-2
+    type: mcq
+    text: "When would you choose RAG over fine-tuning?"
+    concepts: [rag, fine-tuning]
+    sources: [38]
+    options:
+      - {text: "When the facts change often or must be cited, since you update the documents rather than the model.", correct: true, explanation: "RAG keeps knowledge in an updatable, citable store."}
+      - {text: "When you want to change the model's writing style permanently.", correct: false, explanation: "Style and behaviour suit fine-tuning."}
+      - {text: "When you have no documents.", correct: false, explanation: "RAG needs documents to retrieve."}
+  - id: q52-3
+    type: open
+    text: "Name one limit of RAG and say how it can still produce a hallucination."
+    concepts: [rag, limitations]
+    sources: [38, 21]
+    rubric: |
+      - Names a limit, such as quality depending on retrieval or passages needing to fit in the context window.
+      - Says that if the right passage is not retrieved, the model may answer from its memory and state something false.

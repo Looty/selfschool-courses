@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: how-llms-work-from-zero-to-your-own-2iy8t7
+title: "How LLMs Work: From Zero to Your Own"
+short_intro: "Where language models came from, why they work, and how to build and train a tiny one yourself."
+description: |
+  A plain-words course on large language models for engineers who are new to machine learning. It starts with
+  the problem of making computers handle words, follows the idea from Turing and the Dartmouth workshop through
+  ELIZA, the perceptron, backpropagation, LSTMs and word vectors, then builds up the machinery one piece at a
+  time: learning from examples, tokens, the simplest possible language model (counting pairs of letters),
+  attention, the Transformer and GPT. After that it covers scale, how a text predictor becomes an assistant
+  (instruction tuning, RLHF, DPO), prompting, LoRA, tools and agents, reasoning models, evaluation and risks.
+
+  Eleven labs run offline on an ordinary laptop CPU, and the capstone trains a small GPT of your own.
+
+  Who it is for: software engineers who can read Python and have not studied machine learning. No maths beyond
+  school algebra is assumed; every term is defined where it first appears and again in a glossary at the end of
+  each lesson. Every factual claim cites a source read during research (see sources.md); where the sources are
+  thin, a "Heads up" box says so.
+level: Beginner
+hue: teal
+monogram: LM
+tags: [llm, language-models, transformers, machine-learning, history]
+budget_minutes: 780
+chapters:
+  - dir: 01-what-is-an-llm
+    title: What is an LLM, and why care
+  - dir: 02-origins
+    title: "Origins: the 1940s to the 1980s"
+  - dir: 03-the-long-road
+    title: "The long road: 1986 to 2013"
+  - dir: 04-learning-the-minimum
+    title: Learning, the minimum you need
+  - dir: 05-text-to-numbers
+    title: Text to numbers
+  - dir: 06-simplest-language-model
+    title: The simplest language model
+  - dir: 07-attention
+    title: Attention
+  - dir: 08-transformer-and-gpt
+    title: The Transformer and GPT
+  - dir: 09-scale
+    title: Scale
+  - dir: 10-predictor-to-assistant
+    title: From predictor to assistant
+  - dir: 11-using-and-adapting
+    title: Using and adapting models
+  - dir: 12-tools-agents-reasoning
+    title: Tools, agents and reasoning
+  - dir: 13-judging-risks-next
+    title: Judging, risks and what comes next
+exams:
+  - {id: mid, file: exams/mid.yaml, after: 06-simplest-language-model}
+  - {id: final, file: exams/final.yaml}

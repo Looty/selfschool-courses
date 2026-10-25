@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: q17
+title: "Check: lab 3"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q17-1
+    type: trace
+    text: "A model predicts y = w × x with w starting at 0, learning rate 0.1, and the single training example x = 1, y = 2. The slope of the squared error for w is 2 × (w × x − y) × x. Fill in w after each step."
+    concepts: [gradient-descent, learning-rate]
+    sources: [32]
+    code: |
+      for step in range(3):
+          slope = 2 * (w * 1 - 2) * 1
+          w = w - 0.1 * slope
+    variables: [slope, w]
+    steps:
+      - {label: "start", values: {slope: "n/a", w: 0}, given: [slope, w]}
+      - {label: "step 1", values: {slope: "-4", w: "0.4"}}
+      - {label: "step 2", values: {slope: "-3.2", w: "0.72"}}
+      - {label: "step 3", values: {slope: "-2.56", w: "0.976"}}
+    explanation: "Each step moves w against the slope: 0 - 0.1 × (-4) = 0.4, then 0.4 - 0.1 × (-3.2) = 0.72, then 0.72 - 0.1 × (-2.56) = 0.976. The slope shrinks as w approaches the right answer, 2."
+  - id: q17-2
+    type: mcq
+    text: "In the lab, a learning rate of 1.2 made the loss explode. Why?"
+    concepts: [learning-rate, divergence]
+    sources: [32]
+    options:
+      - {text: "Each step overshoots the minimum by more than it corrects, so the error grows.", correct: true, explanation: "Too large a step lands higher on the other side of the bowl."}
+      - {text: "The data was too noisy.", correct: false, explanation: "The same data converged with rate 0.3."}
+      - {text: "The model had too many parameters.", correct: false, explanation: "It had two, same as the successful runs."}
+  - id: q17-3
+    type: open
+    text: "Describe what you saw with learning rates 0.01, 0.3 and 1.2, and which you would pick."
+    concepts: [learning-rate]
+    sources: [32]
+    rubric: |
+      - Says that 0.01 was slow and had not converged after 1000 steps.
+      - Says that 0.3 converged close to the true line.
+      - Says that 1.2 diverged (the loss grew), so 0.3 is the one to pick.

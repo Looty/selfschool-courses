@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: final
+title: Final exam
+duration_minutes: 60
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 30
+domains:
+  - id: foundations
+    title: Why MLOps and ML essentials
+    weight: 10
+    chapters: [01-why-mlops, 02-ml-essentials]
+  - id: data-and-features
+    title: Data and features
+    weight: 10
+    chapters: [03-data-and-features]
+  - id: experiments-and-models
+    title: Experiments and models
+    weight: 10
+    chapters: [04-experiments-and-models]
+  - id: pipelines-and-automation
+    title: Pipelines and automation
+    weight: 10
+    chapters: [05-pipelines-and-automation]
+  - id: serving-and-deployment
+    title: Serving and deployment
+    weight: 10
+    chapters: [06-serving-and-deployment]
+  - id: monitoring-and-maintenance
+    title: Monitoring and maintenance
+    weight: 10
+    chapters: [07-monitoring-and-maintenance]
+  - id: governance-and-genai
+    title: Governance, GenAI and putting it together
+    weight: 9
+    chapters: [08-governance-genai-roadmap]
+  - id: orchestration
+    title: Orchestration with Airflow
+    weight: 8
+    chapters: [09-orchestration-with-airflow]
+  - id: cloud-platforms
+    title: Cloud ML platforms
+    weight: 7
+    chapters: [10-cloud-ml-platforms]
+  - id: ml-on-kubernetes
+    title: ML on Kubernetes
+    weight: 8
+    chapters: [11-ml-on-kubernetes]
+  - id: llmops
+    title: LLMOps in practice
+    weight: 8
+    chapters: [12-llmops-in-practice]

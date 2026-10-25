@@ -1,0 +1,21 @@
+schemaVersion: 1
+id: mid
+title: Mid-course exam
+duration_minutes: 40
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 16
+domains:
+  - id: orientation
+    title: What an LLM is and where it came from
+    weight: 30
+    chapters: [01-what-is-an-llm, 02-origins, 03-the-long-road]
+  - id: learning
+    title: Learning and loss
+    weight: 25
+    chapters: [04-learning-the-minimum]
+  - id: text-and-models
+    title: Tokens, embeddings and the simplest language model
+    weight: 45
+    chapters: [05-text-to-numbers, 06-simplest-language-model]

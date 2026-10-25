@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: q24
+title: "Check: performance"
+questions:
+  - id: q24-1
+    type: mcq
+    text: "What does raising max_queue_delay_microseconds in Triton's dynamic batcher do?"
+    concepts: [dynamic-batching, latency-throughput]
+    sources: [41]
+    options:
+      - {text: "Lets the batcher hold requests longer so more can join a batch, raising throughput at some cost in latency", correct: true, explanation: "No request waits longer than the configured value."}
+      - {text: "Lowers latency by sending every request alone", correct: false, explanation: "Waiting longer for batch-mates is the opposite of sending each request alone."}
+      - {text: "Increases the number of GPUs used", correct: false, explanation: "Instance groups control how many model instances run, not the batcher delay."}
+      - {text: "Disables batching", correct: false, explanation: "The delay is a tuning parameter of batching, not a switch."}
+  - id: q24-2
+    type: match
+    text: "Match each setting to what it controls."
+    concepts: [triton, concurrency]
+    sources: [25, 41]
+    pairs:
+      - {left: "dynamic_batching", right: "Combines incoming requests into batches on the server", explanation: "Typically raises throughput for stateless models."}
+      - {left: "max_queue_delay_microseconds", right: "How long a request may wait for a batch to fill", explanation: "A partial batch is sent when the delay expires."}
+      - {left: "instance_group", right: "How many execution instances of a model run in parallel", explanation: "By default one instance per available GPU."}
+      - {left: "preferred_batch_size", right: "Batch sizes the batcher should try to build", explanation: "The documentation says most models should not set it."}
+  - id: q24-3
+    type: short
+    text: "With 4 replicas at 80% average CPU and a 50% target, how many replicas does the HPA formula ask for?"
+    concepts: [hpa, autoscaling]
+    sources: [42]
+    answers: ["7", "seven"]
+  - id: q24-4
+    type: open
+    text: "Outline a load test for a model service before a release. Say what you vary, what you measure, and where you keep the result."
+    concepts: [load-testing, latency-throughput]
+    sources: [1, 41]
+    rubric: |
+      - Starts from a latency budget and replays realistic inputs at increasing rates.
+      - Measures latency (for example percentiles), throughput (QPS) and errors.
+      - Changes one setting at a time, such as batch delay, instance count or replicas.
+      - Records the results with the model version, for example in the experiment tracker, and repeats after changes.

@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: q20
+title: "Check: continuous training"
+questions:
+  - id: q20-1
+    type: sort
+    text: "Which kind of signal does each retraining trigger depend on?"
+    concepts: [continuous-training, triggers]
+    sources: [1]
+    buckets: ["Time or data availability", "Monitoring"]
+    items:
+      - {text: "Retrain weekly when new labelled data is available", bucket: "Time or data availability", explanation: "A schedule needs no live measurement of the model."}
+      - {text: "Retrain when new training data arrives", bucket: "Time or data availability", explanation: "Triggered by data availability."}
+      - {text: "Retrain when the model's performance degrades", bucket: "Monitoring", explanation: "It needs live monitoring of performance."}
+      - {text: "Retrain when the data distribution shifts significantly", bucket: "Monitoring", explanation: "It needs monitoring of the data distribution to detect drift."}
+  - id: q20-2
+    type: mcq
+    text: "According to Google's guide, which property is unique to ML systems?"
+    concepts: [continuous-training]
+    sources: [1]
+    options:
+      - {text: "Continuous training: automatically retraining and serving models", correct: true, explanation: "CI and CD exist in ordinary software; CT is the ML-specific addition."}
+      - {text: "Version control", correct: false, explanation: "Used throughout software engineering."}
+      - {text: "Container images", correct: false, explanation: "General infrastructure practice."}
+      - {text: "Unit testing", correct: false, explanation: "General software practice, though extended for ML."}
+  - id: q20-3
+    type: match
+    text: "Match each trigger to its description."
+    concepts: [continuous-training, triggers]
+    sources: [1]
+    pairs:
+      - {left: "On demand", right: "A person starts an ad hoc run", explanation: "Manual execution of the pipeline."}
+      - {left: "On a schedule", right: "Runs daily, weekly or monthly when labelled data is systematically available", explanation: "Time-based."}
+      - {left: "On performance degradation", right: "Starts when the live model gets worse", explanation: "Depends on monitoring."}
+      - {left: "On significant data distribution change", right: "Starts on concept drift", explanation: "The online data has changed significantly from the training data."}
+  - id: q20-4
+    type: open
+    text: "A team retrains automatically whenever new data arrives, and the data is collected only on cases the current model flagged. What risk is this, and what could they do about it?"
+    concepts: [feedback-loops, continuous-training]
+    sources: [2]
+    rubric: |
+      - Identifies a feedback loop: the model influences its own future training data, so retraining can reinforce its own behaviour.
+      - Suggests a mitigation such as randomisation or isolating part of the data from the model's influence.

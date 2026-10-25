@@ -1,0 +1,60 @@
+schemaVersion: 1
+id: q17
+title: "Check: ML pipelines as DAGs"
+questions:
+  - id: q17-1
+    type: spot
+    text: "Changing data/clean.csv does not make DVC re-run the train stage. Which line is the problem?"
+    concepts: [dvc, pipelines, dependencies]
+    sources: [6]
+    code: |
+      stages:
+        train:
+          cmd: python src/train.py
+          deps:
+            - src/train.py
+          params:
+            - learning_rate
+          outs:
+            - models/model.pkl
+    correct: [5]
+    explanation: "DVC invalidates a stage when the hash of one of its listed dependencies changes. The stage reads data/clean.csv but only src/train.py is listed under deps, so a change to the data is invisible to it."
+  - id: q17-2
+    type: match
+    text: "Match each item to what it does."
+    concepts: [dvc, kubeflow, pipelines]
+    sources: [6, 20, 35, 37]
+    pairs:
+      - {left: "dvc.yaml", right: "Defines stages with their commands, dependencies, parameters and outputs", explanation: "The stages form a DAG built from dependencies and outputs."}
+      - {left: "dvc repro", right: "Runs the stages that need to run, in graph order", explanation: "Stages whose dependencies and parameters are unchanged are skipped."}
+      - {left: "@dsl.component", right: "Turns a Python function into a Kubeflow component", explanation: "The function needs type annotations and must be hermetic."}
+      - {left: "A compiled KFP pipeline", right: "YAML submitted to a KFP-conformant backend", explanation: "Such as the open-source KFP backend or Vertex AI Pipelines."}
+  - id: q17-3
+    type: mcq
+    text: "In DVC, what decides the order stages run in?"
+    concepts: [dvc, dag]
+    sources: [6]
+    options:
+      - {text: "The graph built from dependencies and outputs", correct: true, explanation: "A stage runs after the stages whose outputs it depends on, whatever order they appear in the file."}
+      - {text: "The order of the stages in dvc.yaml", correct: false, explanation: "File order is not what DVC uses."}
+      - {text: "Alphabetical order of the stage names", correct: false, explanation: "Names do not control execution order."}
+      - {text: "The time each stage last ran", correct: false, explanation: "Timestamps are not used; DVC compares hashes."}
+  - id: q17-4
+    type: mcq
+    text: "Which restrictions does the Kubeflow documentation state for lightweight Python components? Select all that apply."
+    concepts: [kubeflow, components]
+    sources: [35]
+    options:
+      - {text: "The function may not reference symbols defined outside its body", correct: true, explanation: "The hermetic requirement; imports and constants go inside the function."}
+      - {text: "Inputs and outputs need type annotations", correct: true, explanation: "Parameters use types such as int, float, str, bool, Dict and List."}
+      - {text: "Containerized Python components are recommended when you specify packages_to_install", correct: true, explanation: "It avoids installing dependencies at runtime."}
+      - {text: "Components must be written in Java", correct: false, explanation: "Python components are written in Python."}
+  - id: q17-5
+    type: open
+    text: "Compare how DVC and Kubeflow Pipelines each decide where and how a step runs, and name one situation that favours each."
+    concepts: [dvc, kubeflow, pipelines]
+    sources: [6, 20]
+    rubric: |
+      - Says that DVC runs shell commands defined as stages in dvc.yaml and skips stages whose dependencies and parameters are unchanged.
+      - Says that Kubeflow Pipelines runs each component in a container on Kubernetes-based infrastructure from a compiled pipeline.
+      - Names a sensible situation for each, such as a repository-local reproducible pipeline for DVC and scalable, containerised workflows on Kubernetes for Kubeflow.

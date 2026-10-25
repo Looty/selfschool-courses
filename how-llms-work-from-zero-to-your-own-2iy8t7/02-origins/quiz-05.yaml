@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q09
+title: "Check: lab 2"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q09-1
+    type: sort
+    text: "Which part of the mini ELIZA does each step belong to?"
+    concepts: [eliza, rules-based]
+    sources: [22]
+    buckets: ["Finding the pattern", "Building the reply"]
+    items:
+      - {text: "A regular expression captures the words after 'I am'", bucket: "Finding the pattern", explanation: "Decomposition splits the sentence into fragments."}
+      - {text: "Swapping 'my' for 'your'", bucket: "Building the reply", explanation: "Reflection prepares the fragment so the reply reads naturally."}
+      - {text: "Dropping the fragment into a template", bucket: "Building the reply", explanation: "Reassembly builds the reply."}
+      - {text: "Checking whether the sentence mentions 'mother'", bucket: "Finding the pattern", explanation: "Keyword matching selects the rule."}
+  - id: q09-2
+    type: mcq
+    text: "The user types a question about facts: \"who wrote Hamlet\". What does the mini ELIZA do?"
+    concepts: [rules-based, limits]
+    sources: [22]
+    options:
+      - {text: "It uses a fallback reply, because no rule matches and it has no knowledge.", correct: true, explanation: "It only has patterns and templates; it cannot answer factual questions."}
+      - {text: "It answers 'Shakespeare'.", correct: false, explanation: "The script contains no facts."}
+      - {text: "It learns the answer from the question.", correct: false, explanation: "The program does no learning."}
+  - id: q09-3
+    type: open
+    text: "Why does the keyword-rule approach not scale to open-ended conversation, and what does a language model do instead?"
+    concepts: [rules-vs-learning]
+    sources: [22]
+    rubric: |
+      - Says that each new situation needs a new hand-written rule, and there are endlessly many.
+      - Says that a language model instead learns patterns from large amounts of text and predicts the next token.

@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: q08
+title: "Check: reproducibility"
+questions:
+  - id: q08-1
+    type: mcq
+    text: "Which of these does PyTorch's documentation say about reproducibility?"
+    concepts: [reproducibility, pytorch]
+    sources: [30]
+    options:
+      - {text: "Completely reproducible results are not guaranteed across releases, commits or platforms", correct: true, explanation: "CPU and GPU runs may also differ with identical seeds."}
+      - {text: "Setting torch.manual_seed guarantees identical results on any hardware", correct: false, explanation: "The seed controls the generators but the notes warn that results can still differ across releases and platforms."}
+      - {text: "Reproducibility is never possible", correct: false, explanation: "The notes describe settings that make runs deterministic where possible."}
+      - {text: "Only CPU runs need seeding", correct: false, explanation: "torch.manual_seed seeds both CPU and CUDA generators."}
+  - id: q08-2
+    type: mcq
+    text: "Which of these help make a PyTorch run deterministic? Select all that apply."
+    concepts: [reproducibility, seeds]
+    sources: [30]
+    options:
+      - {text: "torch.manual_seed(0) at the start of the application", correct: true, explanation: "It seeds the CPU and CUDA generators."}
+      - {text: "torch.use_deterministic_algorithms()", correct: true, explanation: "It selects deterministic implementations and raises an error for nondeterministic operations without a deterministic alternative."}
+      - {text: "A seeded generator and worker_init_fn for the DataLoader", correct: true, explanation: "DataLoader reseeds its workers, so a worker_init_fn and a generator keep data order reproducible."}
+      - {text: "torch.backends.cudnn.benchmark = True", correct: false, explanation: "Setting benchmark to True can speed things up when reproducibility is not needed. False makes the algorithm choice deterministic."}
+  - id: q08-3
+    type: match
+    text: "Match each record to what it lets you reproduce."
+    concepts: [reproducibility, versioning]
+    sources: [5, 7, 27]
+    pairs:
+      - {left: "A .dvc file versioned in Git", right: "The exact data version for a revision", explanation: "DVC stores a hash in the .dvc file; git checkout plus dvc checkout restores the matching data."}
+      - {left: "An MLflow run", right: "Parameters, metrics and output artifacts of one training execution", explanation: "Runs are grouped into experiments and can be compared."}
+      - {left: "An integer random_state in scikit-learn", right: "The same result on every fit or split call", explanation: "None or a RandomState instance gives different results each call."}
+  - id: q08-4
+    type: open
+    text: "List what you would record so that a colleague could reproduce a model next quarter, and say which part you cannot guarantee."
+    concepts: [reproducibility]
+    sources: [2, 5, 7, 30]
+    rubric: |
+      - Names the data version and the code version (commit).
+      - Names parameters, metrics and artifacts, for example through experiment tracking, plus seeds and environment or library versions.
+      - Says that bit-for-bit reproduction is not guaranteed across releases, hardware or platforms, or that nondeterminism remains.

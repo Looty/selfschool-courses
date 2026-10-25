@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: q02
+title: "Check: hidden technical debt"
+questions:
+  - id: q02-1
+    type: mcq
+    text: "What does the CACE principle in the technical-debt paper say?"
+    concepts: [technical-debt, cace]
+    sources: [2]
+    options:
+      - {text: "Changing anything changes everything", correct: true, explanation: "Changing one input's distribution or one feature can shift the weights and usefulness of all the others."}
+      - {text: "Code and data are always equal", correct: false, explanation: "That is not the principle. CACE is about entanglement between inputs, not equality of code and data."}
+      - {text: "Cache all computed embeddings", correct: false, explanation: "CACE is a name for entanglement, not a caching recommendation."}
+      - {text: "Check, audit, correct, escalate", correct: false, explanation: "That is not from the paper. CACE stands for a statement about entanglement."}
+  - id: q02-2
+    type: match
+    text: "Match each kind of debt to what it describes."
+    concepts: [technical-debt]
+    sources: [2]
+    pairs:
+      - {left: "Undeclared consumers", right: "Systems silently use a model's output, so changing it is risky", explanation: "The paper calls this visibility debt."}
+      - {left: "Pipeline jungle", right: "Data preparation grown into a tangle of scrapes, joins and intermediate files", explanation: "Hard to test and debug; holistic design is the mitigation."}
+      - {left: "Dead experimental code path", right: "An old experiment kept as a branch in production code", explanation: "They accumulate and make interactions untestable."}
+      - {left: "Correction cascade", right: "A small model learned on top of another model for a slightly different problem", explanation: "It creates a hidden dependency on the first model."}
+    distractors:
+      - "A dataset that was labelled twice"
+  - id: q02-3
+    type: hotspot
+    text: "Click the part of the system that is the model code itself."
+    concepts: [ml-system-parts]
+    sources: [2]
+    image: resources/ml-system.svg
+    alt: "Nine boxes around a small box labelled Model code. Around it: data validation, feature store, metadata store, pipeline orchestrator, model validation, model registry, prediction service and monitoring."
+    regions:
+      - {name: "Model code", correct: true, shape: rect, x: 43, y: 45, w: 14, h: 10, explanation: "The model code is the small box in the middle. The point of the figure is how much surrounds it."}
+      - {name: "Pipeline orchestrator", shape: rect, x: 4, y: 38.3, w: 28, h: 23.3, explanation: "The orchestrator runs the steps; it is part of the system around the model code."}
+      - {name: "Feature store", shape: rect, x: 36, y: 5, w: 28, h: 16.7, explanation: "A repository of features used by training and serving; it is not the model code."}
+      - {name: "Monitoring", shape: rect, x: 68, y: 78.3, w: 28, h: 16.7, explanation: "Monitoring watches the running system. It surrounds the model code."}
+  - id: q02-4
+    type: mcq
+    text: "Which of these does the paper suggest for reducing the cost of data dependencies? Select all that apply."
+    concepts: [data-dependencies, technical-debt]
+    sources: [2]
+    options:
+      - {text: "Leave-one-feature-out evaluations to find features that add little", correct: true, explanation: "These expose underutilized dependencies that can be removed."}
+      - {text: "Frozen, versioned copies of unstable input signals", correct: true, explanation: "Versioning protects against silent upstream changes, at the cost of staleness."}
+      - {text: "A feature management system with annotations and automated dependency checks", correct: true, explanation: "It lets tooling resolve dependency trees, so migration and deletion become safer."}
+      - {text: "Adding every available feature to improve accuracy", correct: false, explanation: "The opposite: bundled and ε-features add fragility for little value."}
+  - id: q02-5
+    type: short
+    text: "What does the paper call the debt from undeclared consumers of a model's output?"
+    concepts: [undeclared-consumers]
+    sources: [2]
+    answers: ["visibility debt", "visibility"]

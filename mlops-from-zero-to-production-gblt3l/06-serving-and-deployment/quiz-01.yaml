@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: q21
+title: "Check: serving patterns"
+questions:
+  - id: q21-1
+    type: sort
+    text: "Which serving form fits each situation best?"
+    concepts: [serving-patterns]
+    sources: [1]
+    buckets: ["Online service", "Batch prediction", "Embedded model"]
+    items:
+      - {text: "A user waits for a recommendation while a page loads", bucket: "Online service", explanation: "An answer is needed now, per request."}
+      - {text: "Scoring every customer overnight and storing the results", bucket: "Batch prediction", explanation: "Predictions can be computed ahead of time in a scheduled job."}
+      - {text: "A model that must run on a phone without a network connection", bucket: "Embedded model", explanation: "The model ships inside the application on the device."}
+      - {text: "A monthly churn score for the sales team's report", bucket: "Batch prediction", explanation: "Scheduled bulk scoring suits periodic reports."}
+  - id: q21-2
+    type: match
+    text: "Match each MLflow serving feature to what it does."
+    concepts: [mlflow-models, serving]
+    sources: [33]
+    pairs:
+      - {left: "mlflow models serve", right: "Starts a REST server that exposes the model on /invocations", explanation: "Online prediction over HTTP."}
+      - {left: "mlflow.pyfunc.spark_udf", right: "Turns the model into a Spark UDF for distributed scoring", explanation: "Batch scoring on Spark."}
+      - {left: "mlflow.pyfunc.load_model", right: "Loads the model for scoring in Python", explanation: "It assumes dependencies are already installed and does not install them."}
+      - {left: "mlflow.models.predict", right: "Runs the model in an isolated environment to validate dependencies and input", explanation: "A check before deployment."}
+  - id: q21-3
+    type: mcq
+    text: "A team uses one model online and in a nightly batch job. What is the main risk to design against?"
+    concepts: [serving-patterns, training-serving-skew]
+    sources: [13]
+    options:
+      - {text: "The two paths computing features differently and giving different answers", correct: true, explanation: "Shared feature computation (Rule #32, reuse code) prevents divergence between pipelines."}
+      - {text: "The model file being too small", correct: false, explanation: "Size is not the risk described here."}
+      - {text: "Batch jobs being unable to read a model packaged for REST", correct: false, explanation: "A standard package such as an MLflow model can be used by both."}
+      - {text: "There being no risk if the model is the same", correct: false, explanation: "The same model with different feature code still produces different predictions."}
+  - id: q21-4
+    type: open
+    text: "For a nightly scoring job and for a real-time API serving the same model, list one different operational concern for each."
+    concepts: [serving-patterns]
+    sources: [1]
+    rubric: |
+      - For the batch job, names a concern such as validating the input data before the run, scheduling, or the freshness of stored predictions.
+      - For the real-time API, names a concern such as latency, availability, scaling, load testing or API compatibility.

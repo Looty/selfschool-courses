@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q54
+title: "Check: ReAct"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q54-1
+    type: match
+    text: "Match each line type in a ReAct transcript to who writes it and what it is."
+    concepts: [react]
+    sources: [13]
+    pairs:
+      - {left: "Thought", right: "Written by the model: its reasoning in text", explanation: "Reasoning trace."}
+      - {left: "Action", right: "Written by the model: a tool call in a fixed format", explanation: "The program parses and runs it."}
+      - {left: "Observation", right: "Written by the program: the tool's result", explanation: "Fed back into the conversation."}
+    distractors:
+      - "Written by the user before the conversation"
+  - id: q54-2
+    type: mcq
+    text: "What did ReAct show on HotpotQA and FEVER?"
+    concepts: [react, hallucination]
+    sources: [13]
+    options:
+      - {text: "Using a simple Wikipedia API reduced hallucination and error propagation compared with chain-of-thought alone.", correct: true, explanation: "Reasoning plus acting beat reasoning alone."}
+      - {text: "Models should never use tools.", correct: false, explanation: "The paper found tools helped."}
+      - {text: "Reasoning traces were unnecessary.", correct: false, explanation: "The interleaving of reasoning and acting was the point."}
+  - id: q54-3
+    type: open
+    text: "Why is evaluating an agent harder than evaluating a single answer?"
+    concepts: [agents, evaluation]
+    sources: [13]
+    rubric: |
+      - Says that an agent takes many steps and an early mistake can spoil everything after it (errors compound).
+      - Says that you need to evaluate whole trajectories (the sequence of thoughts and actions), not only the final answer.

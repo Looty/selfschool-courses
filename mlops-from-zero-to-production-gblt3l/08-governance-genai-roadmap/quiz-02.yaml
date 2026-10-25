@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: q30
+title: "Check: accountability, documentation and security"
+questions:
+  - id: q30-1
+    type: match
+    text: "Match each audit question to the record that answers it."
+    concepts: [accountability, lineage]
+    sources: [1, 16, 33]
+    pairs:
+      - {left: "Which data was the model trained on?", right: "A data version tracked next to the code", explanation: "For example a .dvc file versioned in Git."}
+      - {left: "Which run and environment produced this model?", right: "The run ID and environment files stored with the packaged model", explanation: "The MLmodel file records the producing run."}
+      - {left: "What is the model meant for and how does it perform across groups?", right: "The model card", explanation: "Intended use, evaluation procedures and benchmarked performance across conditions."}
+      - {left: "Which model version was live and how do we go back?", right: "Registry versions and the pointer to the previous model", explanation: "Run metadata includes a pointer to the previous trained model."}
+    distractors:
+      - "The developer's chat history"
+  - id: q30-2
+    type: mcq
+    text: "How does Google's guide structure deployment approval across environments?"
+    concepts: [approval, release-path]
+    sources: [1]
+    options:
+      - {text: "Automatic to test, semi-automatic to preproduction after reviewer approval, manual to production after several successful preproduction runs", correct: true, explanation: "Automation decreases and human control increases as the risk grows."}
+      - {text: "Fully manual everywhere", correct: false, explanation: "That is the Level 0 pattern the pipeline is meant to replace."}
+      - {text: "Fully automatic everywhere, with no approvals", correct: false, explanation: "The guide keeps a manual production step."}
+      - {text: "Approval only after an incident", correct: false, explanation: "Approvals are part of the release path, not an after-the-fact step."}
+  - id: q30-3
+    type: sort
+    text: "Which ML-specific attack does each description fit?"
+    concepts: [ml-security]
+    sources: [47]
+    buckets: ["Input manipulation (ML01)", "Data poisoning (ML02)"]
+    items:
+      - {text: "An attacker alters the data fed to a live model so it makes wrong predictions", bucket: "Input manipulation (ML01)", explanation: "Attackers alter input data to misdirect the model."}
+      - {text: "An attacker inserts mislabelled records into the training data store", bucket: "Data poisoning (ML02)", explanation: "Tampering with training data."}
+      - {text: "An attacker crafts inputs that evade a model-based detector", bucket: "Input manipulation (ML01)", explanation: "An adversarial-input example of manipulating inputs."}
+  - id: q30-4
+    type: open
+    text: "A regulator asks you to explain a model decision from six months ago. List the records you would need and where each comes from in an MLOps setup."
+    concepts: [accountability, auditability]
+    sources: [1, 16, 33]
+    rubric: |
+      - Names the model version that was live at the time (registry history) and how it was produced (run, parameters, code version).
+      - Names the data version and the validation or evaluation results.
+      - Names the approval record and the model card with intended use and limitations.

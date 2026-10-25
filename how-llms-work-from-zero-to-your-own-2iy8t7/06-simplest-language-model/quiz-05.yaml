@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: q28
+title: "Check: the bigram as a network"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q28-1
+    type: mcq
+    text: "What does softmax do?"
+    concepts: [softmax, logits]
+    sources: [20]
+    options:
+      - {text: "Turns raw scores into positive numbers that sum to 1, so they can be read as probabilities.", correct: true, explanation: "That is its job in a language model's output layer."}
+      - {text: "Picks the highest score and discards the rest.", correct: false, explanation: "Softmax keeps every score, as a probability."}
+      - {text: "Adds noise to the scores.", correct: false, explanation: "Randomness comes from sampling, not from softmax."}
+  - id: q28-2
+    type: fill
+    text: "Put the training loop for the neural bigram in order."
+    concepts: [training-loop, gradient-descent]
+    sources: [32, 34]
+    template: |
+      {{1}}, then {{2}}, then {{3}}, then {{4}}.
+    chips:
+      - {text: "look up the row and apply softmax", slot: 1, explanation: "Get probabilities for the next character."}
+      - {text: "compute the cross-entropy loss", slot: 2, explanation: "Score the probability given to the true next character."}
+      - {text: "compute gradients by backpropagation", slot: 3, explanation: "Find how each number affects the loss."}
+      - {text: "step each number against its gradient", slot: 4, explanation: "Gradient descent update."}
+      - {text: "count the next characters", explanation: "That is the counting model, not the neural one."}
+  - id: q28-3
+    type: open
+    text: "If the neural bigram learns about the same thing as counting, why move to learnable networks at all?"
+    concepts: [scaling, context]
+    sources: [33]
+    rubric: |
+      - Says that counting needs exponentially more rows as context grows.
+      - Says that a learned function of the context can use more context with far fewer parameters, which is the step towards the Transformer.

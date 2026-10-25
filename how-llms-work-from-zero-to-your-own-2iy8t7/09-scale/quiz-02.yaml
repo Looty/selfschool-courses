@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q39
+title: "Check: scaling laws"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q39-1
+    type: mcq
+    text: "What shape does the relationship between loss and scale have, according to Kaplan et al.?"
+    concepts: [scaling-laws, power-law]
+    sources: [2]
+    options:
+      - {text: "A power law, holding across more than seven orders of magnitude.", correct: true, explanation: "Loss falls smoothly with model size, data and compute."}
+      - {text: "A sudden jump at a particular size.", correct: false, explanation: "They found smooth trends in the range tested."}
+      - {text: "No relationship; architecture alone decides loss.", correct: false, explanation: "They found architecture details matter little within a wide range."}
+  - id: q39-2
+    type: mcq
+    text: "Why are smooth scaling curves useful for planning?"
+    concepts: [scaling-laws, planning]
+    sources: [2]
+    options:
+      - {text: "You can fit the trend on small runs and predict the loss of a much bigger model before paying for it.", correct: true, explanation: "Predictability made large investments rational."}
+      - {text: "They guarantee a bigger model is always better at every task.", correct: false, explanation: "They describe loss, not every ability, and show diminishing returns."}
+      - {text: "They remove the need for training data.", correct: false, explanation: "Dataset size is one of the axes."}
+  - id: q39-3
+    type: open
+    text: "What did Kaplan et al. recommend about how to spend a fixed compute budget, and what did they say about network width and depth?"
+    concepts: [scaling-laws, compute-budget]
+    sources: [2]
+    rubric: |
+      - Says that the most compute-efficient training uses very large models on a modest amount of data, stopping well before convergence.
+      - Says that architectural details such as width or depth have minimal effect within a wide range.

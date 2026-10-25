@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q49
+title: "Check: chain-of-thought"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q49-1
+    type: mcq
+    text: "What is chain-of-thought prompting?"
+    concepts: [chain-of-thought]
+    sources: [12]
+    options:
+      - {text: "Including examples with step-by-step reasoning so the model writes out intermediate steps before answering.", correct: true, explanation: "No fine-tuning is needed."}
+      - {text: "Fine-tuning the model on math textbooks.", correct: false, explanation: "The method is a prompting technique."}
+      - {text: "Asking the same question many times and averaging.", correct: false, explanation: "That is a different technique."}
+  - id: q49-2
+    type: mcq
+    text: "According to the paper, for which models did chain-of-thought help most?"
+    concepts: [chain-of-thought, emergence]
+    sources: [12]
+    options:
+      - {text: "Sufficiently large language models: the ability emerges with scale.", correct: true, explanation: "The paper says reasoning abilities emerge in large models."}
+      - {text: "All models equally.", correct: false, explanation: "The effect depended on scale."}
+      - {text: "Only models fine-tuned on math.", correct: false, explanation: "No fine-tuning was used."}
+  - id: q49-3
+    type: open
+    text: "A model writes convincing step-by-step reasoning and gives a wrong answer. What does that tell you about trusting explanations, and what should you check?"
+    concepts: [chain-of-thought, evaluation]
+    sources: [12]
+    rubric: |
+      - Says that fluent or plausible steps do not guarantee correct reasoning or a correct answer.
+      - Says to check the final answer (and the steps) independently instead of trusting how convincing they sound.

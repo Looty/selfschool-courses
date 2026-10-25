@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: q10
+title: "Check: the perceptron and the first winter"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q10-1
+    type: mcq
+    text: "What could a single-layer perceptron NOT learn?"
+    concepts: [perceptron, xor]
+    sources: [24]
+    options:
+      - {text: "XOR, because it is not linearly separable.", correct: true, explanation: "A single layer can only separate classes with a straight line."}
+      - {text: "AND, because it needs two inputs.", correct: false, explanation: "AND is linearly separable and can be learned."}
+      - {text: "Any pattern at all.", correct: false, explanation: "It can learn linearly separable patterns."}
+  - id: q10-2
+    type: mcq
+    text: "Which statement about the 1969 book Perceptrons is accurate?"
+    concepts: [perceptron, miscitation]
+    sources: [24]
+    options:
+      - {text: "It showed single-layer perceptrons cannot learn XOR; claims that it proved multilayer networks have the same limit are a miscitation.", correct: true, explanation: "The source says exactly this."}
+      - {text: "It proved multilayer networks could never learn XOR.", correct: false, explanation: "This is the common miscitation."}
+      - {text: "It was the cause of every AI winter.", correct: false, explanation: "It contributed to a decline in neural-network research, not to every winter."}
+  - id: q10-3
+    type: sort
+    text: "Which factor belongs to which cause of the first AI winter?"
+    concepts: [ai-winter]
+    sources: [26]
+    buckets: ["UK", "US (DARPA)"]
+    items:
+      - {text: "The 1973 Lighthill report", bucket: "UK", explanation: "Commissioned by the UK Parliament."}
+      - {text: "The 1969 Mansfield Amendment", bucket: "US (DARPA)", explanation: "Required DARPA to fund mission-oriented work."}
+      - {text: "Cancelled speech-understanding contract at Carnegie Mellon", bucket: "US (DARPA)", explanation: "DARPA cancelled it in 1974."}
+  - id: q10-4
+    type: open
+    text: "What is an AI winter, and why should you be careful about treating the first one as proof that research stopped?"
+    concepts: [ai-winter]
+    sources: [26]
+    rubric: |
+      - Defines an AI winter as a period of reduced funding and interest after hype outran results.
+      - Notes that a historian disputes the first one was a true winter because researcher numbers kept growing.

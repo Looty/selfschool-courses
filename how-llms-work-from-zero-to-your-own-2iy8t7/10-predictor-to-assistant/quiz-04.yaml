@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q46
+title: "Check: lab 10"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q46-1
+    type: mcq
+    text: "In the lab the DPO loss started at 0.693. What is that value?"
+    concepts: [dpo, loss]
+    sources: [14]
+    options:
+      - {text: "The loss of a coin toss: the policy does not yet favour preferred replies over rejected ones.", correct: true, explanation: "log 2 is about 0.693; with equal scores the margin is zero."}
+      - {text: "The accuracy of the policy.", correct: false, explanation: "It is a loss, not an accuracy."}
+      - {text: "The learning rate.", correct: false, explanation: "The learning rate was 0.1."}
+  - id: q46-2
+    type: sort
+    text: "Which statement is a limitation of the toy demo and which a feature of real DPO?"
+    concepts: [dpo, limitations]
+    sources: [14]
+    buckets: ["Limitation of the toy", "Feature of real DPO"]
+    items:
+      - {text: "Preferences are perfectly consistent", bucket: "Limitation of the toy", explanation: "Real data is noisy and contradictory."}
+      - {text: "A frozen reference model limits drift", bucket: "Feature of real DPO", explanation: "The loss is relative to the reference."}
+      - {text: "The policy chooses among four canned replies", bucket: "Limitation of the toy", explanation: "A real model generates free text."}
+  - id: q46-3
+    type: open
+    text: "After adding contradictory pair (rude beats clear), describe what you observed and what it says about the quality of preference data."
+    concepts: [preference-data, dpo]
+    sources: [14]
+    rubric: |
+      - Describes an observed change, such as the policy no longer putting all probability on one reply, or slower or conflicted learning.
+      - Concludes that inconsistent or noisy preference data weakens or confuses the training signal.

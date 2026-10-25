@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q43
+title: "Check: from predictor to assistant"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q43-1
+    type: mcq
+    text: "Why might a pretrained model answer 'Write a poem about spring' with a list of other poem requests?"
+    concepts: [pretraining, instruction-tuning]
+    sources: [4]
+    options:
+      - {text: "It is trained to continue text, and such lists exist in its training data; it is not trying to help.", correct: true, explanation: "Pretraining rewards plausible continuation, not helpfulness."}
+      - {text: "It does not understand English.", correct: false, explanation: "The issue is the objective, not language ability."}
+      - {text: "The temperature was set too low.", correct: false, explanation: "Temperature is not the cause."}
+  - id: q43-2
+    type: mcq
+    text: "What does instruction tuning change about the model?"
+    concepts: [instruction-tuning]
+    sources: [21, 4]
+    options:
+      - {text: "It continues training on (prompt, ideal response) pairs so the model learns the format of helpful answers.", correct: true, explanation: "Same loss, curated data."}
+      - {text: "It replaces the Transformer with a rule system.", correct: false, explanation: "The architecture stays the same."}
+      - {text: "It teaches the model most of its factual knowledge.", correct: false, explanation: "Facts mostly come from pretraining."}
+  - id: q43-3
+    type: short
+    text: "What is the name of the first step in the InstructGPT recipe, where labelers write desired behaviour and the model is trained on it?"
+    concepts: [sft]
+    sources: [4]
+    answers: ["supervised fine-tuning", "sft", "supervised learning", "fine-tuning on demonstrations"]

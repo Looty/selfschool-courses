@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: q03
+title: "Check: the ML lifecycle"
+questions:
+  - id: q03-1
+    type: fill
+    text: "Put the second half of the ML lifecycle in order."
+    concepts: [ml-lifecycle]
+    sources: [1]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+      {{6}}
+    chips:
+      - {text: "Data preparation", slot: 1, explanation: "Cleaning, splitting and feature engineering come before any training."}
+      - {text: "Model training", slot: 2, explanation: "Algorithms and hyperparameter tuning produce a trained model from the prepared data."}
+      - {text: "Model evaluation", slot: 3, explanation: "The trained model is scored on a holdout test set to get quality metrics."}
+      - {text: "Model validation", slot: 4, explanation: "The metrics are checked against a baseline to decide whether the model is adequate for deployment."}
+      - {text: "Model serving", slot: 5, explanation: "Only a validated model is deployed."}
+      - {text: "Model monitoring", slot: 6, explanation: "Watching the served model's performance decides whether to start a new iteration."}
+      - {text: "Data extraction", explanation: "This is the first step of the lifecycle, so it does not belong after preparation."}
+  - id: q03-2
+    type: mcq
+    text: "What is the difference between model evaluation and model validation?"
+    concepts: [evaluation, validation]
+    sources: [1]
+    options:
+      - {text: "Evaluation produces quality metrics on a holdout test set; validation decides whether the model beats a baseline and may be deployed", correct: true, explanation: "Evaluation measures, validation decides."}
+      - {text: "Evaluation happens in production; validation happens in notebooks", correct: false, explanation: "Both happen before serving. Production behaviour is the job of monitoring."}
+      - {text: "They are two names for the same step", correct: false, explanation: "The guide lists them as separate steps with different outputs."}
+      - {text: "Validation trains the model; evaluation serves it", correct: false, explanation: "Training and serving are their own steps."}
+  - id: q03-3
+    type: match
+    text: "Match each way of serving a model to its form."
+    concepts: [serving]
+    sources: [1]
+    pairs:
+      - {left: "Online predictions", right: "A microservice with a REST API", explanation: "Requests get answers one by one as they arrive."}
+      - {left: "On a phone or edge device", right: "An embedded model", explanation: "The model ships inside the application on the device."}
+      - {left: "Scoring a large dataset on a schedule", right: "Part of a batch prediction system", explanation: "Predictions are produced in bulk, not per request."}
+  - id: q03-4
+    type: open
+    text: "Explain in your own words how model monitoring closes the loop of the ML lifecycle."
+    concepts: [monitoring, feedback-loop]
+    sources: [1, 14]
+    rubric: |
+      - Says that monitoring watches the served model's predictive performance in production.
+      - Says that degradation or changes in the data can trigger a new iteration, such as retraining.
+      - Says that production data can feed back into new training datasets.

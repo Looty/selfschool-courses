@@ -1,0 +1,50 @@
+schemaVersion: 1
+id: q10
+title: "Check: data validation"
+questions:
+  - id: q10-1
+    type: sort
+    text: "How should a Level 1 pipeline react to each finding?"
+    concepts: [data-validation, schema-skew, data-skew]
+    sources: [1]
+    buckets: ["Stop the pipeline and investigate", "Trigger retraining"]
+    items:
+      - {text: "A feature the model needs is missing from the new data", bucket: "Stop the pipeline and investigate", explanation: "Unexpected, missing or wrongly valued features are schema skews."}
+      - {text: "A feature arrives with an unexpected type", bucket: "Stop the pipeline and investigate", explanation: "A type mismatch against the schema is a schema skew, so training should not proceed."}
+      - {text: "The statistical distribution of a feature has shifted", bucket: "Trigger retraining", explanation: "A data value skew, a shift in statistical properties, is a signal to retrain."}
+  - id: q10-2
+    type: match
+    text: "Match each term to its meaning in TFDV."
+    concepts: [data-validation, training-serving-skew, drift]
+    sources: [19]
+    pairs:
+      - {left: "Training-serving skew", right: "Feature distributions in training data differ from serving data", explanation: "Often caused by a different training corpus or faulty sampling."}
+      - {left: "Drift", right: "Distribution change between consecutive spans of data", explanation: "For example day N against day N+1."}
+      - {left: "Schema", right: "The expectations for types, categorical values and feature presence", explanation: "Can be inferred from statistics, then reviewed and versioned."}
+    distractors:
+      - "The number of rows in a dataset"
+  - id: q10-3
+    type: mcq
+    text: "TFDV infers a schema from your training statistics. What should you do with it?"
+    concepts: [schema-inference]
+    sources: [19]
+    options:
+      - {text: "Review and adjust it, version it, and push it into the pipeline explicitly", correct: true, explanation: "The inferred schema is best-effort and captures only basic properties."}
+      - {text: "Trust it completely, since it is generated from real data", correct: false, explanation: "It only captures basic properties and may encode problems that are present in the data."}
+      - {text: "Discard it and validate by eye", correct: false, explanation: "The schema is useful as a starting point for automated checks."}
+      - {text: "Regenerate it from serving data at every run", correct: false, explanation: "That would stop the schema from acting as an expectation, because it would always match the latest data."}
+  - id: q10-4
+    type: short
+    text: "Which distance does TFDV use to measure drift for categorical features?"
+    concepts: [drift]
+    sources: [19]
+    answers: ["L-infinity", "L-infinity distance", "L infinity", "Linfinity", "L∞"]
+  - id: q10-5
+    type: open
+    text: "Explain the difference between training-serving skew and drift, and give one cause of skew."
+    concepts: [training-serving-skew, drift]
+    sources: [19]
+    rubric: |
+      - Says that skew compares the distribution of training data with serving data.
+      - Says that drift compares consecutive spans of data over time, such as day N and day N+1.
+      - Gives a cause of skew, such as training on a different corpus than the one served, or faulty sampling or downsampling without upweighting.

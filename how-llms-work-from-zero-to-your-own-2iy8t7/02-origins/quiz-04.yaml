@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q08
+title: "Check: ELIZA"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q08-1
+    type: mcq
+    text: "How did ELIZA produce its replies?"
+    concepts: [eliza, rules-based]
+    sources: [22]
+    options:
+      - {text: "It matched keywords, split the sentence with decomposition rules and filled templates with reassembly rules.", correct: true, explanation: "That is the mechanism the sources describe."}
+      - {text: "It predicted the next word from statistics of a large corpus.", correct: false, explanation: "That describes a language model, which ELIZA was not."}
+      - {text: "It looked up facts in a large knowledge base.", correct: false, explanation: "Weizenbaum chose the therapist setting precisely to avoid needing such a database."}
+  - id: q08-2
+    type: short
+    text: "What is the name for people's tendency to attribute understanding or feelings to a fluent program like ELIZA?"
+    concepts: [eliza-effect]
+    sources: [22]
+    answers: ["eliza effect", "the eliza effect"]
+  - id: q08-3
+    type: open
+    text: "ELIZA understood nothing, yet people confided in it. What lesson should that teach you when you judge a modern chatbot?"
+    concepts: [eliza-effect, evaluation]
+    sources: [22]
+    rubric: |
+      - Says that fluent or human-sounding replies do not show understanding.
+      - Says that it is safer to judge what a system does (accuracy, behaviour on tests) than how human it sounds.

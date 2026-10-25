@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q37
+title: "Check: SageMaker pipelines"
+questions:
+  - id: q37-1
+    type: match
+    text: "Match each step in the documentation's example pipeline to its type."
+    concepts: [sagemaker-pipelines, step-types]
+    sources: [52]
+    pairs:
+      - {left: "AbaloneProcess", right: "Processing", explanation: "Runs the preprocessing script."}
+      - {left: "AbaloneTrain", right: "Training", explanation: "Configures hyperparameters and trains the model."}
+      - {left: "AbaloneMSECond", right: "Condition", explanation: "Checks the mean-square error against a limit and stops the run if it fails."}
+      - {left: "AbaloneRegisterModel", right: "RegisterModel", explanation: "Adds the model to the registry as a versioned model package group."}
+    distractors:
+      - "Transform"
+  - id: q37-2
+    type: mcq
+    text: "How is the order of steps in a SageMaker pipeline determined?"
+    concepts: [sagemaker-pipelines, dag]
+    sources: [52]
+    options:
+      - {text: "By data dependencies: a step's output property is passed as input to another step", correct: true, explanation: "The DAG structure follows what consumes what."}
+      - {text: "By the order the steps are listed in the SDK call", correct: false, explanation: "The page says the structure comes from dependencies."}
+      - {text: "By alphabetical step name", correct: false, explanation: "Names carry no ordering."}
+      - {text: "By a cron expression on each step", correct: false, explanation: "Scheduling applies to pipeline runs, not to the order of steps."}
+  - id: q37-3
+    type: sort
+    text: "Which course idea does each SageMaker pipeline feature correspond to?"
+    concepts: [sagemaker-pipelines, release-gate]
+    sources: [52]
+    buckets: ["Release gate", "Registry hand-off"]
+    items:
+      - {text: "Condition step comparing the mean-square error to a limit", bucket: "Release gate", explanation: "The run stops if the criteria are not met."}
+      - {text: "RegisterModel step", bucket: "Registry hand-off", explanation: "Registers a versioned model package group."}
+      - {text: "The pipeline run stops after a failed condition", bucket: "Release gate", explanation: "A model that misses the bar is never registered."}
+      - {text: "A new model version appears in the SageMaker Model Registry", bucket: "Registry hand-off", explanation: "This is the registry side of the loop."}
+  - id: q37-4
+    type: fill
+    text: "Complete the sentence about the example pipeline's evaluation step."
+    concepts: [sagemaker-pipelines, data-dependency]
+    sources: [52]
+    template: |
+      The evaluation step uses the {{1}} dataset produced by the {{2}} step, which is the page's example of a data dependency.
+    chips:
+      - {text: "test", slot: 1, explanation: "The evaluation step consumes the test dataset output."}
+      - {text: "processing", slot: 2, explanation: "AbaloneProcess is a Processing step that splits the data."}
+      - {text: "training", explanation: "The training step produces a model, not the test dataset."}
+      - {text: "registry", explanation: "The registry stores models, not datasets."}
+  - id: q37-5
+    type: open
+    text: "Sketch a SageMaker-style pipeline for a churn model using the step types from this lesson. State where your release gate sits and what happens when it fails."
+    concepts: [sagemaker-pipelines, release-gate]
+    sources: [52]
+    rubric: |
+      - Orders Processing, Training, evaluation (Processing), Condition and RegisterModel steps by data dependencies.
+      - Puts the Condition step after evaluation and before registration, with a metric threshold.
+      - States that a failed condition stops the run and nothing is registered or deployed.
+      - May add a quality or drift check step, noting the lesson did not read its details.

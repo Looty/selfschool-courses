@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q37
+title: "Check: generating text"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q37-1
+    type: fill
+    text: "Put one pass of the generation loop in order."
+    concepts: [generation-loop]
+    sources: [30]
+    template: |
+      {{1}}, then {{2}}, then {{3}}, then {{4}}.
+    chips:
+      - {text: "keep only the last tokens that fit in the window", slot: 1, explanation: "Anything older is invisible to the model."}
+      - {text: "run the model and take the scores for the final position", slot: 2, explanation: "Only the last position predicts what comes next."}
+      - {text: "apply temperature and softmax, then sample one token", slot: 3, explanation: "Turns scores into a chosen token."}
+      - {text: "append the token and repeat", slot: 4, explanation: "The output becomes part of the next input."}
+  - id: q37-2
+    type: mcq
+    text: "How does a hosted model know when to stop writing?"
+    concepts: [eos-token]
+    sources: [30]
+    options:
+      - {text: "It emits a special end-of-sequence token, or a length limit is reached.", correct: true, explanation: "Both are described in the Hugging Face documentation."}
+      - {text: "It counts the words and stops at 100.", correct: false, explanation: "There is no fixed word count; stopping uses the end token or a limit you set."}
+      - {text: "It stops when the user presses a key.", correct: false, explanation: "Generation is a loop inside the program, not a keypress."}
+  - id: q37-3
+    type: open
+    text: "Why is writing a long answer slower than reading a long prompt, even on fast hardware?"
+    concepts: [autoregressive, parallelism]
+    sources: [30]
+    rubric: |
+      - Says that each new token needs a pass through the model and cannot start until the previous token is chosen (sequential).
+      - Says that the prompt's tokens can be processed together in parallel, unlike generated tokens.

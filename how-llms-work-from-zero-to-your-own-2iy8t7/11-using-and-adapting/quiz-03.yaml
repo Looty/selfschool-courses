@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q50
+title: "Check: fine-tuning and LoRA"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q50-1
+    type: mcq
+    text: "A weight matrix W is 1000 × 1000. LoRA with rank 4 learns A (4 × 1000) and B (1000 × 4). How many numbers are trained instead of the 1,000,000 in W?"
+    concepts: [lora, parameter-count]
+    sources: [10]
+    options:
+      - {text: "8,000", correct: true, explanation: "4 × 1000 + 1000 × 4 = 8,000."}
+      - {text: "4,000", correct: false, explanation: "That counts only one of the two matrices."}
+      - {text: "1,000,000", correct: false, explanation: "That is the full matrix; LoRA avoids training it."}
+  - id: q50-2
+    type: sort
+    text: "For each situation, is prompting or fine-tuning the better first move?"
+    concepts: [fine-tuning, prompting]
+    sources: [10]
+    buckets: ["Prompting first", "Consider fine-tuning"]
+    items:
+      - {text: "You have one task and want to try it right now", bucket: "Prompting first", explanation: "Instant, free of training, reversible."}
+      - {text: "You need an exact style on millions of requests, cheaply, with a smaller model", bucket: "Consider fine-tuning", explanation: "Behaviour that a prompt cannot hold consistently."}
+      - {text: "You want the model to know this week's product prices", bucket: "Prompting first", explanation: "Changing facts belong in the prompt, not in the weights."}
+  - id: q50-3
+    type: open
+    text: "Name two advantages of LoRA over full fine-tuning, and explain why it adds no inference delay."
+    concepts: [lora]
+    sources: [10]
+    rubric: |
+      - Names two advantages, such as far fewer trainable parameters, less GPU memory, or small files per task.
+      - Says that the learned low-rank change can be merged into the base weights, so inference needs no extra computation.

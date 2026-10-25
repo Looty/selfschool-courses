@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q38
+title: "Check: GPT-1 to GPT-3"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q38-1
+    type: match
+    text: "Match each model to a fact."
+    concepts: [gpt-family]
+    sources: [28, 3]
+    pairs:
+      - {left: "GPT-2", right: "1.5 billion parameters, released in stages in 2019", explanation: "Announced in February 2019 and released in full in November."}
+      - {left: "GPT-3", right: "175 billion parameters, available through an API", explanation: "Described in the 2020 paper."}
+      - {left: "WebText", right: "GPT-2's training set built from Reddit-linked pages", explanation: "About 40 GB of text, Wikipedia removed."}
+    distractors:
+      - "Trained only on Wikipedia"
+  - id: q38-2
+    type: mcq
+    text: "What does 'staged release' of GPT-2 mean?"
+    concepts: [staged-release]
+    sources: [28]
+    options:
+      - {text: "Smaller versions were released first and the full model later, after monitoring for misuse.", correct: true, explanation: "A 774M version came in August and the full model in November 2019."}
+      - {text: "The model was released in stages of training.", correct: false, explanation: "It refers to publishing, not training."}
+      - {text: "It was released only to universities.", correct: false, explanation: "Limited access went to selected press outlets first."}
+  - id: q38-3
+    type: open
+    text: "The GPT-3 paper lists limits as well as results. Give two limits from the lesson."
+    concepts: [gpt3, limitations, contamination]
+    sources: [3]
+    rubric: |
+      - Mentions that few-shot learning still struggled on some datasets.
+      - Mentions that training on large web corpora raised methodological concerns (such as test data appearing in training).

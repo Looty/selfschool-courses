@@ -1,0 +1,64 @@
+schemaVersion: 1
+id: q50
+title: "Check: DVC lab"
+questions:
+  - id: q50-1
+    type: sort
+    text: "Where does each item live after dvc add and git commit?"
+    concepts: [dvc-lab, data-versioning]
+    sources: [65]
+    buckets: ["In Git", "In the DVC cache and remote"]
+    items:
+      - {text: "data/data.xml.dvc", bucket: "In Git", explanation: "The small metadata file is committed."}
+      - {text: "data/.gitignore", bucket: "In Git", explanation: "Keeps the data file itself out of Git."}
+      - {text: "The contents of data/data.xml", bucket: "In the DVC cache and remote", explanation: "The data goes into the cache and is pushed to the remote."}
+  - id: q50-2
+    type: trace
+    text: "Follow the lab's version switch. Track what the workspace data version is after each command."
+    concepts: [dvc-lab, switching-versions]
+    sources: [65]
+    code: |
+      1. Commit v1 of data.xml.dvc
+      2. Modify data.xml, dvc add, commit v2
+      3. git checkout HEAD~1 data/data.xml.dvc
+      4. dvc checkout
+    variables: [dvc_file_version, workspace_data_version]
+    steps:
+      - {label: "After 1", values: {dvc_file_version: "v1", workspace_data_version: "v1"}, given: [dvc_file_version, workspace_data_version]}
+      - {label: "After 2", values: {dvc_file_version: "v2", workspace_data_version: "v2"}}
+      - {label: "After 3", values: {dvc_file_version: "v1", workspace_data_version: "v2"}}
+      - {label: "After 4", values: {dvc_file_version: "v1", workspace_data_version: "v1"}}
+    explanation: "git checkout changes the .dvc file only; the data in the workspace stays at v2 until dvc checkout syncs it to match."
+  - id: q50-3
+    type: mcq
+    text: "Why does reverting to the previous data version not need a dvc push?"
+    concepts: [dvc-lab, remotes]
+    sources: [65]
+    options:
+      - {text: "The original version is already stored in the cache and remote", correct: true, explanation: "The guide says a push isn't needed after reverting."}
+      - {text: "Because dvc checkout uploads the data automatically", correct: false, explanation: "checkout restores the workspace; it does not upload."}
+      - {text: "Because Git stores the data", correct: false, explanation: "Git stores only the .dvc file."}
+      - {text: "Because the remote is deleted on revert", correct: false, explanation: "Nothing is deleted."}
+  - id: q50-4
+    type: spot
+    text: "This dvc.yaml should rerun train when the learning rate changes but not when an unrelated parameter changes. Which line prevents the pipeline from knowing train depends on the cleaned data?"
+    concepts: [dvc-lab, dvc-pipelines]
+    sources: [6]
+    code: |
+      stages:
+        train:
+          cmd: python src/train.py
+          deps: [src/train.py]
+          params: [learning_rate]
+          outs: [models/model.pkl]
+    correct: [4]
+    explanation: "The deps list omits data/clean.csv, so DVC cannot link train to the prepare stage's output or detect changes in it."
+  - id: q50-5
+    type: open
+    text: "After running the lab, explain in your own words what is stored where (Git, cache, remote) and how you would let a colleague get exactly your data version."
+    concepts: [dvc-lab, data-versioning, collaboration]
+    sources: [65]
+    rubric: |
+      - States that Git holds the .dvc metadata file and the .gitignore, not the data.
+      - States that the data is in the DVC cache locally and in the remote after dvc push.
+      - Explains that the colleague clones or pulls the repository at your commit and runs dvc pull to download the matching data.

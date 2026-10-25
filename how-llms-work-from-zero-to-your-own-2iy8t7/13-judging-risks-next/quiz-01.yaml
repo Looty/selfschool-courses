@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q57
+title: "Check: judging a model"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q57-1
+    type: mcq
+    text: "What was HELM's main contribution, according to its authors?"
+    concepts: [helm, evaluation]
+    sources: [36]
+    options:
+      - {text: "Evaluating many models on many scenarios and seven metrics under the same conditions, instead of narrow benchmarks.", correct: true, explanation: "30 models, 42 scenarios, and metrics beyond accuracy."}
+      - {text: "Creating a single number that ranks all models.", correct: false, explanation: "HELM argues against a single score."}
+      - {text: "Training a larger model.", correct: false, explanation: "It is an evaluation project."}
+  - id: q57-2
+    type: sort
+    text: "Which problem does each situation illustrate?"
+    concepts: [evaluation-traps]
+    sources: [3]
+    buckets: ["Contamination", "Prompt sensitivity", "Averages hide failures"]
+    items:
+      - {text: "The test questions were in the web text the model trained on", bucket: "Contamination", explanation: "Scores are inflated."}
+      - {text: "Rewording the instruction changes the score a lot", bucket: "Prompt sensitivity", explanation: "Compare models with identical prompts."}
+      - {text: "A model does well overall but fails on one customer group", bucket: "Averages hide failures", explanation: "Check slices, not only averages."}
+  - id: q57-3
+    type: open
+    text: "Describe how you would evaluate a model for a specific application you care about, in 4 or 5 steps."
+    concepts: [evaluation, test-set]
+    sources: [36]
+    rubric: |
+      - Collects a realistic test set of inputs, including awkward cases.
+      - Defines the desired answer or a scoring rubric for each.
+      - Runs candidates under identical settings and scores them (with some human checking), re-running when anything changes.

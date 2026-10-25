@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: q25
+title: "Check: what to monitor"
+questions:
+  - id: q25-1
+    type: sort
+    text: "Which layer does each signal belong to?"
+    concepts: [monitoring-layers]
+    sources: [1, 2, 43]
+    buckets: ["Service", "Data", "Model"]
+    items:
+      - {text: "p99 request latency of the prediction API", bucket: "Service", explanation: "Latency is one of the golden signals."}
+      - {text: "GPU saturation on the serving nodes", bucket: "Service", explanation: "Saturation concerns the most constrained resource of the service."}
+      - {text: "The mean and missing-value rate of an input feature", bucket: "Data", explanation: "Summary statistics of the data profile are tracked to spot changes."}
+      - {text: "The upstream table's delivery has stopped", bucket: "Data", explanation: "Upstream producers are monitored and held to service-level objectives."}
+      - {text: "Precision on labelled production examples", bucket: "Model", explanation: "Predictive performance of the model in production."}
+  - id: q25-2
+    type: match
+    text: "Match each golden signal to its definition."
+    concepts: [golden-signals]
+    sources: [43]
+    pairs:
+      - {left: "Latency", right: "The time it takes to service a request", explanation: "Track successful and failed requests separately."}
+      - {left: "Traffic", right: "The demand placed on the system, such as requests per second", explanation: "Measured with a system-specific high-level metric."}
+      - {left: "Errors", right: "The rate of requests that fail, explicitly, implicitly or by policy", explanation: "A 200 response with wrong content is an implicit error."}
+      - {left: "Saturation", right: "How full the service is, focused on its most constrained resource", explanation: "Rising latency often signals saturation early."}
+  - id: q25-3
+    type: mcq
+    text: "According to the SRE chapter, what should a page be about?"
+    concepts: [alerting, symptoms-vs-causes]
+    sources: [43]
+    options:
+      - {text: "An urgent, actionable, user-visible symptom", correct: true, explanation: "Causes mainly serve as debugging aids; pages focus on symptoms."}
+      - {text: "Anything that seems a bit weird", correct: false, explanation: "The chapter says alerts should never fire simply because something seems a bit weird."}
+      - {text: "Every internal cause, such as one refused database connection", correct: false, explanation: "Causes are useful for debugging but do not all deserve pages."}
+      - {text: "Only conditions a robot can fix", correct: false, explanation: "Each page should require human judgement; routine robotic fixes should be automated."}
+  - id: q25-4
+    type: open
+    text: "Why can a prediction service return HTTP 200 on every request and still be failing? Name one signal from each of two layers that would show it."
+    concepts: [monitoring-layers, implicit-errors]
+    sources: [1, 2, 43]
+    rubric: |
+      - Says that a well-formed response can carry a wrong or degraded prediction (an implicit error), so service health does not show model quality.
+      - Names a data-layer signal, such as input feature statistics or upstream freshness.
+      - Names a model-layer signal, such as predictive performance on labelled examples, or the distribution of predictions compared with observed labels.

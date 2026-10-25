@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q34
+title: "Check: the Transformer block"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q34-1
+    type: match
+    text: "Match each part of a block to its job."
+    concepts: [transformer-block]
+    sources: [1]
+    pairs:
+      - {left: "Self-attention", right: "Mixes information between tokens", explanation: "Each token looks at earlier tokens."}
+      - {left: "Feed-forward network", right: "Transforms each token's vector on its own", explanation: "Applied to every position separately."}
+      - {left: "Residual connection", right: "Adds the input back to the output", explanation: "So the layer only learns a correction."}
+      - {left: "Layer normalisation", right: "Keeps the numbers in a stable range", explanation: "Helps training stay stable."}
+    distractors:
+      - "Chooses the next token"
+  - id: q34-2
+    type: mcq
+    text: "What was the central design choice of the 2017 Transformer?"
+    concepts: [transformer, attention-only]
+    sources: [1]
+    options:
+      - {text: "It relied entirely on attention, with no recurrence or convolution.", correct: true, explanation: "This made it more parallelisable and faster to train."}
+      - {text: "It added more LSTM layers.", correct: false, explanation: "It dropped recurrence."}
+      - {text: "It replaced words with images.", correct: false, explanation: "It worked on text sequences."}
+  - id: q34-3
+    type: open
+    text: "Explain the difference in role between self-attention and the feed-forward layer inside a block."
+    concepts: [transformer-block, feed-forward]
+    sources: [1, 33]
+    rubric: |
+      - Says that attention moves information between tokens (positions).
+      - Says that the feed-forward layer processes each token's vector separately, in place, with a non-linear network.

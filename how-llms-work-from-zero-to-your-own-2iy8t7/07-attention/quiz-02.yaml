@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q30
+title: "Check: attention"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q30-1
+    type: mcq
+    text: "What does 'soft' mean in soft attention?"
+    concepts: [attention, soft-attention]
+    sources: [5]
+    options:
+      - {text: "Weight is spread across several source words instead of choosing exactly one.", correct: true, explanation: "Smooth weights keep everything trainable by gradient descent."}
+      - {text: "The attention is applied gently so the model trains slowly.", correct: false, explanation: "Softness concerns the weights, not the speed."}
+      - {text: "The model ignores most of the source.", correct: false, explanation: "It may weight some words more, but all take part."}
+  - id: q30-2
+    type: fill
+    text: "Complete the description of one attention step."
+    concepts: [attention]
+    sources: [5]
+    template: |
+      Score each source word for {{1}}, turn the scores into {{2}} that add up to 1, then take a {{3}} of the source vectors.
+    chips:
+      - {text: "relevance to the word being written", slot: 1, explanation: "Different output words need different input words."}
+      - {text: "weights", slot: 2, explanation: "Softmax produces these."}
+      - {text: "weighted average", slot: 3, explanation: "That average is the fresh summary for this output word."}
+      - {text: "random sample", explanation: "Soft attention is a weighted mix, not a random pick."}
+  - id: q30-3
+    type: open
+    text: "How did attention address the bottleneck of lesson 29, and what did the learned alignments show?"
+    concepts: [attention, alignment]
+    sources: [5]
+    rubric: |
+      - Says that the decoder looks back at vectors for all source words and builds a fresh weighted summary for each output word instead of using one fixed vector.
+      - Says that the learned alignments agreed well with human intuition about which words correspond.

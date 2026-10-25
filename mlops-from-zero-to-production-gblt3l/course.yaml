@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: mlops-from-zero-to-production-gblt3l
+title: MLOps from Zero to Production
+short_intro: "Run machine learning in production the way you run services: versioned, tested, automated and monitored."
+description: |
+  A practical, tool-aware path through MLOps for engineers who already know DevOps. It covers why ML systems
+  are harder to operate than ordinary software, the minimum ML you need as an operator, data and feature
+  management, experiment tracking and model registries, CI/CD and continuous training, serving and release
+  strategies, monitoring and drift, and governance, including what changes for generative AI. It then goes
+  deeper: orchestration with Airflow, managed cloud platforms (SageMaker and Azure ML), ML on Kubernetes (GPUs,
+  Jobs, Kueue, KubeRay), LLM applications in practice (RAG, evaluations, tracing, security), and three hands-on
+  labs (MLflow, DVC, Evidently) and a capstone design.
+
+  Who it is for: software and DevOps engineers with a few years of experience and a computer science background,
+  new to ML in production. Assumes Git, containers, CI and Kubernetes basics. Every factual claim cites a source
+  read during research (see sources.md).
+level: Intermediate
+hue: orange
+monogram: MO
+tags: [mlops, machine-learning, devops, production]
+budget_minutes: 720
+chapters:
+  - dir: 01-why-mlops
+    title: Why MLOps
+  - dir: 02-ml-essentials
+    title: ML essentials for operators
+  - dir: 03-data-and-features
+    title: Data and features
+  - dir: 04-experiments-and-models
+    title: Experiments and models
+  - dir: 05-pipelines-and-automation
+    title: Pipelines and automation
+  - dir: 06-serving-and-deployment
+    title: Serving and deployment
+  - dir: 07-monitoring-and-maintenance
+    title: Monitoring and maintenance
+  - dir: 08-governance-genai-roadmap
+    title: Governance, GenAI and putting it together
+  - dir: 09-orchestration-with-airflow
+    title: Orchestration with Airflow
+  - dir: 10-cloud-ml-platforms
+    title: Cloud ML platforms
+  - dir: 11-ml-on-kubernetes
+    title: ML on Kubernetes
+  - dir: 12-llmops-in-practice
+    title: LLMOps in practice
+  - dir: 13-hands-on-labs
+    title: Hands-on labs and capstone
+exams:
+  - {id: mid, file: exams/mid.yaml, after: 04-experiments-and-models}
+  - {id: final, file: exams/final.yaml}

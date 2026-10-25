@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q51
+title: "Check: lab 11"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q51-1
+    type: mcq
+    text: "Why is the LoRA matrix B initialised to zeros?"
+    concepts: [lora, initialisation]
+    sources: [10]
+    options:
+      - {text: "So the model starts out exactly as the pretrained one, and training adds a correction from there.", correct: true, explanation: "B·A is zero at the start."}
+      - {text: "To save memory.", correct: false, explanation: "Initial values do not change the memory used."}
+      - {text: "Because zeros train faster.", correct: false, explanation: "The reason is to start from the base model's behaviour."}
+  - id: q51-2
+    type: spot
+    text: "Click the line where the original weights are frozen."
+    concepts: [lora, code-reading]
+    sources: [10]
+    code: |
+      self.base = base
+      for p in self.base.parameters():
+          p.requires_grad = False
+      self.A = nn.Parameter(torch.randn(rank, base.in_features) * 0.01)
+    correct: [3]
+    explanation: "Setting requires_grad to False stops gradient descent from changing the base layer's weights; only A and B stay trainable."
+  - id: q51-3
+    type: open
+    text: "The LoRA loss on the all-caps task (2.32) stayed well above the 1.93 the model reached on normal text. Explain why, and when LoRA works best."
+    concepts: [lora, limitations]
+    sources: [10]
+    rubric: |
+      - Says that only the attention matrices were adapted while the embedding table and feed-forward layers stayed frozen, so the model could not learn new representations for the unfamiliar characters.
+      - Says that LoRA works best when the new task is close to what the base model already knows.

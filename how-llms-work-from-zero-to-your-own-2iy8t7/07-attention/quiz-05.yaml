@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q33
+title: "Check: heads and layers"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q33-1
+    type: mcq
+    text: "What does multi-head attention add over a single attention?"
+    concepts: [multi-head-attention]
+    sources: [20]
+    options:
+      - {text: "Several attentions with their own learned matrices run in parallel, each looking at the sentence in a different way.", correct: true, explanation: "The outputs are combined into one."}
+      - {text: "It repeats the same attention several times for accuracy.", correct: false, explanation: "Each head has its own matrices, so heads can differ."}
+      - {text: "It removes the need for softmax.", correct: false, explanation: "Each head still uses softmax."}
+  - id: q33-2
+    type: short
+    text: "What is the name for one independent attention computation inside multi-head attention?"
+    concepts: [attention-head]
+    sources: [20]
+    answers: ["head", "an attention head", "attention head", "a head"]
+  - id: q33-3
+    type: open
+    text: "Why do Transformers stack many blocks, and what do you honestly not know about what each one does?"
+    concepts: [stacking-layers, interpretability]
+    sources: [1, 20]
+    rubric: |
+      - Says that later blocks build on the already-mixed output of earlier ones, letting information flow over several steps.
+      - Says that what individual heads or layers learn is not established by the course's sources and is an open research question.

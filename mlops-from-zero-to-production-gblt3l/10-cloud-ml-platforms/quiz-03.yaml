@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: q39
+title: "Check: Azure Machine Learning"
+questions:
+  - id: q39-1
+    type: mcq
+    text: "What do you need to provide to deploy an MLflow model as an Azure ML endpoint, compared with other models?"
+    concepts: [azure-ml, mlflow-models]
+    sources: [54]
+    options:
+      - {text: "No entry script and no environment; the MLflow format already carries them", correct: true, explanation: "The article says MLflow models don't need either for the deployment."}
+      - {text: "Both an entry script and an environment, as for every model", correct: false, explanation: "That applies to other models; MLflow models are the exception."}
+      - {text: "Only a GPU quota", correct: false, explanation: "Hardware is part of target configuration, not the packaging contract."}
+      - {text: "A Kubernetes cluster", correct: false, explanation: "Managed online endpoints exist; AKS is one option."}
+  - id: q39-2
+    type: match
+    text: "Match each Azure ML endpoint type or feature to its purpose."
+    concepts: [azure-ml, endpoints]
+    sources: [54]
+    pairs:
+      - {left: "Batch endpoint", right: "Batch scoring", explanation: "For scoring large sets rather than answering requests."}
+      - {left: "Online endpoint", right: "Real-time scoring", explanation: "Can be local, managed or on AKS."}
+      - {left: "Controlled rollout", right: "Routing traffic percentages between deployments of an endpoint", explanation: "Supports A/B tests and switching between deployments."}
+      - {left: "Event Grid", right: "Notifying and automating on lifecycle events such as registration or drift", explanation: "Key events are published to it."}
+    distractors:
+      - "Packaging the model as ONNX automatically"
+  - id: q39-3
+    type: sort
+    text: "Which statements about the Azure ML model registry are stated in the article, and which are not?"
+    concepts: [azure-ml, model-registry, source-limits]
+    sources: [54]
+    buckets: ["Stated in the article", "Not stated in the article"]
+    items:
+      - {text: "Registering with an existing name increments the version number", bucket: "Stated in the article", explanation: "Models are identified by name and version."}
+      - {text: "A registered model used in an active deployment cannot be deleted", bucket: "Stated in the article", explanation: "Listed as an important restriction."}
+      - {text: "The price per registered model", bucket: "Not stated in the article", explanation: "The article has no pricing."}
+      - {text: "A published benchmark showing ONNX doubles speed", bucket: "Not stated in the article", explanation: "It only says conversion typically can double performance, with no data."}
+  - id: q39-4
+    type: short
+    text: "Which format does the article say you can convert a model to in order to try to improve performance?"
+    concepts: [azure-ml, onnx]
+    sources: [54]
+    answers: ["ONNX", "onnx", "Open Neural Network Exchange"]
+  - id: q39-5
+    type: open
+    text: "The article says ONNX conversion 'typically can double performance'. Explain how you would treat that claim and what you would measure before adopting it."
+    concepts: [vendor-claims, performance]
+    sources: [54]
+    rubric: |
+      - Notes that the article gives no benchmark, model or hardware, so the claim is not evidence for your system.
+      - Proposes measuring latency and throughput of the original and the converted model on your own model and hardware, with a load test.
+      - Checks that accuracy or outputs are unchanged after conversion.
+      - Decides based on the measured gain against the cost of maintaining a conversion step.

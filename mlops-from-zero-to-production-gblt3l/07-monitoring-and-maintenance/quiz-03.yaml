@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: q27
+title: "Check: monitoring without labels"
+questions:
+  - id: q27-1
+    type: sort
+    text: "Is each situation data drift, concept drift, or both?"
+    concepts: [data-drift, concept-drift]
+    sources: [44]
+    buckets: ["Data drift", "Concept drift"]
+    items:
+      - {text: "The distribution of a feature in incoming requests has shifted", bucket: "Data drift", explanation: "A change in the distributions of the incoming data."}
+      - {text: "Applicants look the same as before but the risk of default has changed with the economy", bucket: "Concept drift", explanation: "The relationship between inputs and the target changed without the inputs changing."}
+      - {text: "The model's learned input-output relationship no longer holds, so accuracy falls unless it is retrained", bucket: "Concept drift", explanation: "That is the definition of concept drift."}
+      - {text: "The share of missing values in a column has doubled", bucket: "Data drift", explanation: "A change in the incoming data distribution."}
+  - id: q27-2
+    type: match
+    text: "Match each proxy signal to what it monitors."
+    concepts: [proxy-signals, monitoring]
+    sources: [44, 2]
+    pairs:
+      - {left: "Prediction drift", right: "The distribution of model outputs across periods", explanation: "Predicted classes or probabilities compared over time."}
+      - {left: "Input data drift", right: "The distributions of the features, often as a share of drifted features", explanation: "Avoids watching each column alone."}
+      - {left: "Prediction bias", right: "Predicted label distribution versus observed label distribution", explanation: "Necessary but not sufficient, since a null model can pass it."}
+      - {left: "Domain heuristic", right: "A business signal such as a falling click share on a recommendation block", explanation: "Specific to the product."}
+  - id: q27-3
+    type: mcq
+    text: "Why does a loan-approval model that only sees outcomes for loans it approved make monitoring harder?"
+    concepts: [feedback-loops, monitoring]
+    sources: [2]
+    options:
+      - {text: "Its own decisions shape the data it learns and is evaluated on, which biases quality estimates", correct: true, explanation: "A model can influence its own future training data; randomisation or isolating part of the data can help."}
+      - {text: "Approved loans are always repaid", correct: false, explanation: "Nothing says that; the problem is what data the model gets to see."}
+      - {text: "Labels are never available", correct: false, explanation: "The labels exist for approved loans; the selection is the issue."}
+      - {text: "It makes the service slower", correct: false, explanation: "The concern is bias in the data, not latency."}
+  - id: q27-4
+    type: open
+    text: "Labels for your model arrive 90 days late. Describe what you monitor now, and what you log so you can measure real quality later."
+    concepts: [delayed-labels, monitoring]
+    sources: [44, 14]
+    rubric: |
+      - Names proxy signals to monitor in the meantime, such as prediction drift, input data drift or a domain heuristic.
+      - Says to log the inputs and the model's outputs with an identifier that can be joined to the outcome when it arrives.
+      - Says that proxies show change but do not replace measuring quality against real outcomes.

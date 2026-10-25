@@ -1,0 +1,66 @@
+schemaVersion: 1
+id: q36
+title: "Check: retries and timeouts"
+questions:
+  - id: q36-1
+    type: mcq
+    text: "A training task fails because the dataset failed schema validation. Which exception makes sense, and why?"
+    concepts: [airflow-retries, fail-fast]
+    sources: [51]
+    options:
+      - {text: "AirflowFailException, because the same input would fail every retry and retries would waste compute", correct: true, explanation: "It fails the task without using remaining retries."}
+      - {text: "AirflowSkipException, because a bad dataset means the task can be ignored", correct: false, explanation: "Skip marks the task skipped, which can silently hide the bad data from downstream tasks."}
+      - {text: "AirflowTaskTimeout, because validation took too long", correct: false, explanation: "A timeout is about duration, and the cause here is not duration."}
+      - {text: "No exception; let the default retries run", correct: false, explanation: "The default retries would re-run a task that cannot succeed."}
+  - id: q36-2
+    type: match
+    text: "Match each task state to what it means."
+    concepts: [airflow-task-states]
+    sources: [51]
+    pairs:
+      - {left: "upstream_failed", right: "A task that did not run because a task before it failed", explanation: "Open the first failed task to find the cause."}
+      - {left: "up_for_retry", right: "A failed task waiting to be tried again", explanation: "It will run again while retries remain."}
+      - {left: "deferred", right: "A task handed to the triggerer to wait asynchronously", explanation: "Runs in the triggerer's event loop."}
+      - {left: "skipped", right: "A task bypassed, for example by branching", explanation: "Branching marks unchosen paths as skipped."}
+    distractors:
+      - "A task still waiting for a worker slot"
+  - id: q36-3
+    type: sort
+    text: "Which timeout behaviour belongs to which setting?"
+    concepts: [airflow-timeouts]
+    sources: [51]
+    buckets: ["execution_timeout", "Sensor timeout"]
+    items:
+      - {text: "Limits each single execution of the task", bucket: "execution_timeout", explanation: "Applies per execution."}
+      - {text: "A breach raises AirflowTaskTimeout, which can be retried", bucket: "execution_timeout", explanation: "Retries are allowed."}
+      - {text: "Limits total time until the sensor succeeds (reschedule mode)", bucket: "Sensor timeout", explanation: "It spans checks."}
+      - {text: "A breach raises AirflowSensorTimeout without retrying", bucket: "Sensor timeout", explanation: "Retries do not reset it."}
+  - id: q36-4
+    type: short
+    text: "What is the name now used for a task stuck in running after its worker died?"
+    concepts: [airflow-heartbeat]
+    sources: [51]
+    answers: ["heartbeat timeout", "heartbeat timeouts", "a heartbeat timeout"]
+  - id: q36-5
+    type: spot
+    text: "This retry configuration for a GPU training task is meant to retry flaky infrastructure but not wasteful failures. Which line defeats that?"
+    concepts: [airflow-retries, ml-training-jobs]
+    sources: [51]
+    code: |
+      train = PythonOperator(
+          task_id="train",
+          retries=5,
+          execution_timeout=None,
+      )
+    correct: [4]
+    explanation: "With no execution timeout a hung training run holds its GPUs indefinitely; set a timeout that is a multiple of the normal duration so that it is retried or fails."
+  - id: q36-6
+    type: open
+    text: "A GPU training task keeps ending in the running state and is then marked failed after its pod was killed. Using what you learned, describe how you would find the cause and make the Dag robust."
+    concepts: [airflow-heartbeat, failure-handling]
+    sources: [49, 51]
+    rubric: |
+      - Recognises the symptom as a heartbeat timeout after the worker died, with out-of-memory kills or node moves as likely causes.
+      - Checks the pod events and memory limit and raises or fixes the limit instead of only increasing retries.
+      - Sets an execution_timeout and a sensible retry count; uses AirflowFailException for failures that will repeat.
+      - Mentions a downstream notification or cleanup task with an appropriate trigger rule.

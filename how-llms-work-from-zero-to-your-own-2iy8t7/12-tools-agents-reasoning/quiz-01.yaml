@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q53
+title: "Check: tool use"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q53-1
+    type: mcq
+    text: "Who actually runs a tool when an LLM 'calls' it?"
+    concepts: [tool-use]
+    sources: [21]
+    options:
+      - {text: "A separate program that spots the call in the model's text, runs it and feeds back the result.", correct: true, explanation: "The model only writes text."}
+      - {text: "The model itself, from inside its weights.", correct: false, explanation: "A model produces tokens; it executes nothing."}
+      - {text: "The user, by hand.", correct: false, explanation: "The surrounding program does it automatically."}
+  - id: q53-2
+    type: sort
+    text: "For each task, would you give the model a tool or rely on the model alone?"
+    concepts: [tool-use]
+    sources: [13]
+    buckets: ["Use a tool", "Model alone is fine"]
+    items:
+      - {text: "Multiply two 7-digit numbers exactly", bucket: "Use a tool", explanation: "Exact arithmetic is unreliable for LLMs."}
+      - {text: "Today's exchange rate", bucket: "Use a tool", explanation: "Current facts are not in the weights."}
+      - {text: "Rewrite a paragraph in a friendlier tone", bucket: "Model alone is fine", explanation: "A language task the model handles well."}
+  - id: q53-3
+    type: open
+    text: "List two safety measures for a tool-calling loop and why each matters."
+    concepts: [tool-use, safety]
+    sources: [21, 13]
+    rubric: |
+      - Names a measure such as validating tool arguments, capping the number of turns, or limiting privileges, with a reason.
+      - Names a second measure with a reason (for example the model's output is untrusted, or injected text in tool results can hijack it).

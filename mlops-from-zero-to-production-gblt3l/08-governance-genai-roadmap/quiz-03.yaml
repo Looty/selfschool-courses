@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: q31
+title: "Check: LLMOps"
+questions:
+  - id: q31-1
+    type: sort
+    text: "For each GenAI pattern, does it mostly reuse existing MLOps practice or need new operations?"
+    concepts: [genaiops, fine-tuning, rag]
+    sources: [26]
+    buckets: ["Mostly reuses MLOps", "Needs extensions"]
+    items:
+      - {text: "Fine-tuning a foundation model", bucket: "Mostly reuses MLOps", explanation: "It follows processes similar to training traditional models."}
+      - {text: "Chunking documents and keeping a vector store fresh for RAG", bucket: "Needs extensions", explanation: "Chunking pipelines are not part of DataOps in traditional MLOps."}
+      - {text: "Managing system and user prompts and an orchestrator", bucket: "Needs extensions", explanation: "The prompt and the orchestration logic become part of what you govern."}
+      - {text: "Versioning data and keeping experiments reproducible", bucket: "Mostly reuses MLOps", explanation: "Reproducibility and data versioning matter for all the patterns."}
+  - id: q31-2
+    type: match
+    text: "Match each use case to the evaluation metrics the guide suggests."
+    concepts: [genaiops, evaluation]
+    sources: [26]
+    pairs:
+      - {left: "Translation", right: "BLEU", explanation: "The guide lists BLEU for translation."}
+      - {left: "Summarisation", right: "ROUGE, BLEU, BERTScore, METEOR", explanation: "A set of metrics for summaries."}
+      - {left: "Classification", right: "Precision, recall, accuracy, cross-entropy", explanation: "Familiar metrics from traditional ML."}
+      - {left: "RAG", right: "Groundedness, relevance, coherence, fluency", explanation: "Metrics for whether answers are based on the retrieved context."}
+  - id: q31-3
+    type: mcq
+    text: "Which monitoring concerns are specific to, or extended for, generative AI solutions? Select all that apply."
+    concepts: [genaiops, monitoring]
+    sources: [26]
+    options:
+      - {text: "Token usage and 429 errors", correct: true, explanation: "Tokens drive billing, throttling and quotas for hosted models."}
+      - {text: "Content safety", correct: true, explanation: "Moderating responses and detecting harmful content is a key area."}
+      - {text: "User feedback such as thumbs up or down on answers", correct: true, explanation: "Used to evaluate usefulness periodically."}
+      - {text: "Nothing beyond ordinary service monitoring", correct: false, explanation: "The guide adds several concerns on top of operational monitoring."}
+  - id: q31-4
+    type: open
+    text: "Your team already runs an MLOps pipeline and now wants to add a RAG chatbot. List three things you must add beyond the existing pipeline."
+    concepts: [genaiops, rag]
+    sources: [26]
+    rubric: |
+      - Names a data pipeline for chunking and indexing documents into a vector store, and keeping the index fresh.
+      - Names prompt and orchestrator versioning, testing and deployment.
+      - Names at least one new monitoring or governance concern, such as token usage and quotas, content safety, groundedness or relevance evaluation, or user feedback.

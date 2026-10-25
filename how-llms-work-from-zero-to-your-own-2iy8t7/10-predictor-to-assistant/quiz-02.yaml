@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q44
+title: "Check: RLHF"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q44-1
+    type: fill
+    text: "Put the three steps of RLHF in order."
+    concepts: [rlhf]
+    sources: [4, 21]
+    template: |
+      {{1}}, then {{2}}, then {{3}}.
+    chips:
+      - {text: "supervised fine-tuning on human demonstrations", slot: 1, explanation: "Labelers write desired behaviour; the model is trained on it."}
+      - {text: "train a reward model on human rankings of outputs", slot: 2, explanation: "It learns which responses people prefer."}
+      - {text: "tune the language model with RL against the reward model", slot: 3, explanation: "Generate, score, adjust."}
+      - {text: "retrain from scratch on more web text", explanation: "That is pretraining, not part of RLHF."}
+  - id: q44-2
+    type: mcq
+    text: "What did the InstructGPT paper find when humans compared a 1.3B InstructGPT with the 175B GPT-3?"
+    concepts: [instructgpt]
+    sources: [4]
+    options:
+      - {text: "Raters preferred the 1.3B InstructGPT, despite it having about 100 times fewer parameters.", correct: true, explanation: "Alignment mattered more than size for this measure."}
+      - {text: "GPT-3 was preferred in every case.", correct: false, explanation: "The opposite was reported."}
+      - {text: "They were rated equally.", correct: false, explanation: "The smaller aligned model was preferred."}
+  - id: q44-3
+    type: open
+    text: "Why does RLHF use rankings of answers rather than only ideal answers, and what is one risk of the resulting reward model?"
+    concepts: [rlhf, reward-model]
+    sources: [4]
+    rubric: |
+      - Says that ranking outputs is cheaper and easier than writing ideal answers.
+      - Names a risk, such as the reward model encoding the labelers' views, or the model gaming the learned score.

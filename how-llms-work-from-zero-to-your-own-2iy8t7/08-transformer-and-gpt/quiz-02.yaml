@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q35
+title: "Check: decoder-only GPT"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q35-1
+    type: sort
+    text: "Which description fits BERT and which fits GPT?"
+    concepts: [bert, gpt, encoder-decoder]
+    sources: [9, 21]
+    buckets: ["BERT", "GPT"]
+    items:
+      - {text: "Uses context from both left and right in every layer", bucket: "BERT", explanation: "Bidirectional pre-training."}
+      - {text: "Decoder-only; predicts the next token from the tokens to its left", bucket: "GPT", explanation: "Causal, left-to-right."}
+      - {text: "Fine-tuned with one extra output layer for each task", bucket: "BERT", explanation: "That was BERT's recipe."}
+      - {text: "Writes text by repeating next-token prediction", bucket: "GPT", explanation: "Generation uses the same loop as training."}
+  - id: q35-2
+    type: mcq
+    text: "Why does next-token prediction need no human-labelled data?"
+    concepts: [self-supervised]
+    sources: [21]
+    options:
+      - {text: "The right answer at each position is the next token of the text itself.", correct: true, explanation: "Any text supplies its own labels."}
+      - {text: "The model labels the data for itself using a dictionary.", correct: false, explanation: "No dictionary is involved."}
+      - {text: "Because the model is only tested, never trained.", correct: false, explanation: "It is trained on this very task."}
+  - id: q35-3
+    type: open
+    text: "What did the GPT-3 paper show about scaling a decoder-only model?"
+    concepts: [gpt3, few-shot]
+    sources: [3]
+    rubric: |
+      - Says that a 175-billion-parameter model performed many tasks from a few examples in the prompt without fine-tuning (few-shot).
+      - Says that scaling up improved this task-agnostic few-shot performance, approaching earlier fine-tuned results on some tasks.

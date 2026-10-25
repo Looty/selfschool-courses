@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: q26
+title: "Check: loss and perplexity"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q26-1
+    type: mcq
+    text: "A model gives probability 1.0 to the true next token at every position. What is its loss?"
+    concepts: [cross-entropy, loss]
+    sources: [34]
+    options:
+      - {text: "0", correct: true, explanation: "-log(1) = 0: no surprise at all."}
+      - {text: "1", correct: false, explanation: "-log(1) is 0, not 1."}
+      - {text: "Infinity", correct: false, explanation: "Loss grows toward infinity as the probability approaches 0, not 1."}
+  - id: q26-2
+    type: mcq
+    text: "A loss of 2.493 nats per character corresponds to a perplexity of about:"
+    concepts: [perplexity]
+    sources: [34]
+    options:
+      - {text: "12", correct: true, explanation: "exp(2.493) is about 12.1."}
+      - {text: "2.5", correct: false, explanation: "Perplexity is exp(loss), not the loss."}
+      - {text: "65", correct: false, explanation: "65 is the uniform-guess perplexity for 65 characters."}
+  - id: q26-3
+    type: short
+    text: "Name the metric equal to exp(loss), the effective number of equally likely options the model is torn between."
+    concepts: [perplexity]
+    sources: [34]
+    answers: ["perplexity"]
+  - id: q26-4
+    type: open
+    text: "Why is it unfair to compare a loss per character with a loss per token?"
+    concepts: [loss, tokenization-tradeoffs]
+    sources: [34]
+    rubric: |
+      - Says that a token usually contains more than one character, so a per-token prediction is harder and carries more information.
+      - Says that comparisons are only fair with the same tokenizer and the same held-out text.

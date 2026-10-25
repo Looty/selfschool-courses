@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: q04
+title: "Check: maturity levels"
+questions:
+  - id: q04-1
+    type: sort
+    text: "Which of Google's levels does each statement describe?"
+    concepts: [maturity-levels]
+    sources: [1]
+    buckets: ["Level 0: manual", "Level 1: pipeline automation", "Level 2: CI/CD automation"]
+    items:
+      - {text: "Every step runs by hand, often in notebooks", bucket: "Level 0: manual", explanation: "Manual, script-driven and interactive is the Level 0 profile."}
+      - {text: "A trained model artifact is handed from data scientists to engineers", bucket: "Level 0: manual", explanation: "This disconnect can cause training-serving skew."}
+      - {text: "Models retrain automatically on fresh data via triggers", bucket: "Level 1: pipeline automation", explanation: "Continuous training is the goal of Level 1."}
+      - {text: "The same pipeline runs in development, preproduction and production", bucket: "Level 1: pipeline automation", explanation: "Experimental-operational symmetry is a Level 1 characteristic."}
+      - {text: "Changes to the pipeline itself are built, tested and deployed automatically", bucket: "Level 2: CI/CD automation", explanation: "Level 1 still tests and deploys new pipelines manually; automating that is Level 2."}
+  - id: q04-2
+    type: match
+    text: "Match each Microsoft maturity level to its name."
+    concepts: [maturity-levels]
+    sources: [15]
+    pairs:
+      - {left: "Level 0", right: "No MLOps", explanation: "Builds, deployments and training are manual."}
+      - {left: "Level 1", right: "DevOps but no MLOps", explanation: "Application builds are automated, models are still handed over manually."}
+      - {left: "Level 2", right: "Automated training", explanation: "Training is managed and traceable, releases are manual."}
+      - {left: "Level 3", right: "Automated model deployment", explanation: "Releases are automatic, with traceability to the original data."}
+      - {left: "Level 4", right: "Full MLOps automated operations", explanation: "Monitoring signals can trigger retraining automatically."}
+  - id: q04-3
+    type: mcq
+    text: "What is the remaining challenge of Google's Level 1?"
+    concepts: [maturity-levels, ci-cd-ct]
+    sources: [1]
+    options:
+      - {text: "New pipelines and pipeline changes are still tested and deployed manually, which does not scale", correct: true, explanation: "Level 2 adds CI/CD for the pipeline itself to solve this."}
+      - {text: "Models can never be retrained automatically", correct: false, explanation: "Automatic retraining through triggers is exactly what Level 1 delivers."}
+      - {text: "There is no way to validate data", correct: false, explanation: "Data validation is one of the components Level 1 adds."}
+      - {text: "The prediction service cannot be deployed", correct: false, explanation: "Level 1 enables continuous delivery of the prediction service."}
+  - id: q04-4
+    type: open
+    text: "A team retrains its model every month by running a notebook, then hands the file to engineers who deploy it. Place the team on Google's levels and describe the first capability you would add."
+    concepts: [maturity-levels]
+    sources: [1]
+    rubric: |
+      - Places the team at Level 0, manual process.
+      - Proposes automating the steps as an orchestrated pipeline with triggers, which is the move to Level 1.
+      - Mentions at least one added Level 1 component, such as data validation, model validation, metadata management or a feature store.

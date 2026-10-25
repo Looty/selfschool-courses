@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: q46
+title: "Check: success criteria"
+questions:
+  - id: q46-1
+    type: sort
+    text: "Which criterion is well formed, and which needs rewriting?"
+    concepts: [success-criteria]
+    sources: [62]
+    buckets: ["Well formed", "Needs rewriting"]
+    items:
+      - {text: "F1 of at least 0.85 on the labelled test set", bucket: "Well formed", explanation: "Specific and measurable."}
+      - {text: "Fewer than 0.1% of 10,000 outputs flagged for toxicity", bucket: "Well formed", explanation: "The page's example of quantified safety."}
+      - {text: "The assistant should give good performance", bucket: "Needs rewriting", explanation: "Not specific or measurable."}
+      - {text: "Users should find the replies pleasant", bucket: "Needs rewriting", explanation: "Needs a rubric or scale to be measured consistently."}
+  - id: q46-2
+    type: match
+    text: "Match each property of a good criterion to its example from the page."
+    concepts: [success-criteria]
+    sources: [62]
+    pairs:
+      - {left: "Specific", right: "Accurate sentiment classification, not good performance", explanation: "Names the task."}
+      - {left: "Measurable", right: "Less than 0.1% of 10,000 outputs flagged for toxicity", explanation: "Even safety can be quantified."}
+      - {left: "Achievable", right: "Targets based on benchmarks, experiments or expert knowledge", explanation: "Realistic for current frontier models."}
+      - {left: "Relevant", right: "Citation accuracy matters more for a medical app than a casual chatbot", explanation: "Aligned with the application's purpose."}
+    distractors:
+      - "Only one metric per application"
+  - id: q46-3
+    type: mcq
+    text: "Why does the page's sentiment example set three criteria instead of one?"
+    concepts: [success-criteria, multi-criteria]
+    sources: [62]
+    options:
+      - {text: "Most use cases need quality, safety and latency evaluated together", correct: true, explanation: "The example: F1 at least 0.85, 99.5% non-toxic and 95% of responses under 200 ms."}
+      - {text: "Three criteria are required by the API", correct: false, explanation: "No such requirement."}
+      - {text: "Because F1 cannot be measured alone", correct: false, explanation: "F1 can be measured alone; it just does not capture the rest."}
+      - {text: "Because three is the minimum for statistical power", correct: false, explanation: "Not stated."}
+  - id: q46-4
+    type: short
+    text: "In the page's multi-criteria example, what share of responses must be under 200 ms?"
+    concepts: [success-criteria, latency]
+    sources: [62]
+    answers: ["95%", "95 percent", "95"]
+  - id: q46-5
+    type: open
+    text: "Write success criteria for a support-chatbot that answers from a help centre: choose at least three criteria, how each is measured and a threshold, and say where each threshold comes from."
+    concepts: [success-criteria, release-gate]
+    sources: [62]
+    rubric: |
+      - Chooses at least three distinct criteria (for example answer correctness, groundedness or citation accuracy, tone, safety, latency, cost).
+      - Gives a measure for each (a metric, grading method or rubric scale) and a numeric threshold.
+      - Says where each threshold comes from (baseline, prior experiment, policy or user need), reflecting the 'achievable' property.
+      - Describes combining them as a release bar in which all must pass.

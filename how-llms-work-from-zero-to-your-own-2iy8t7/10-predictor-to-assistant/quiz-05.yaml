@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q47
+title: "Check: what alignment does not fix"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q47-1
+    type: sort
+    text: "Which is something alignment tuning improved in InstructGPT, and which is something it did not remove?"
+    concepts: [alignment, limitations]
+    sources: [4, 21]
+    buckets: ["Improved", "Not removed"]
+    items:
+      - {text: "Truthfulness and toxicity", bucket: "Improved", explanation: "InstructGPT showed gains in truthfulness and reduced toxic output."}
+      - {text: "Simple mistakes", bucket: "Not removed", explanation: "The authors say it still makes simple mistakes."}
+      - {text: "Hallucination", bucket: "Not removed", explanation: "Listed among the limits of LLMs."}
+      - {text: "Following the format the user asked for", bucket: "Improved", explanation: "A main aim of instruction tuning and RLHF."}
+  - id: q47-2
+    type: mcq
+    text: "What is the safest pattern when accuracy matters?"
+    concepts: [grounding, verification]
+    sources: [4, 37]
+    options:
+      - {text: "Give the model the source text to answer from, and verify the claims that matter.", correct: true, explanation: "Alignment reduces some failures but does not make outputs reliable."}
+      - {text: "Trust the answer because the model is aligned.", correct: false, explanation: "Aligned models still make mistakes and hallucinate."}
+      - {text: "Ask the same question until it agrees with you.", correct: false, explanation: "That selects for agreement, not truth."}
+  - id: q47-3
+    type: open
+    text: "Whose judgment is built into an RLHF-tuned model, and why does that matter?"
+    concepts: [rlhf, values]
+    sources: [4]
+    rubric: |
+      - Says that it reflects the preferences and instructions of the human labelers who ranked outputs.
+      - Says that labelers are a small sample of people, so the model's idea of 'good' may not match everyone's.

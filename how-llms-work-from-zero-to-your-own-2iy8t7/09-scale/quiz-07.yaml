@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q64
+title: "Check: making models cheap to run"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q64-1
+    type: match
+    text: "Match each technique to what it saves."
+    concepts: [kv-cache, flashattention, moe, quantisation]
+    sources: [74, 62, 59, 67]
+    pairs:
+      - {left: "KV cache", right: "Recomputing keys and values for earlier tokens at every step", explanation: "Stored and reused, at the cost of memory."}
+      - {left: "FlashAttention", right: "Slow memory reads and writes during exact attention", explanation: "Tiling keeps data in fast on-chip memory."}
+      - {left: "Mixture of experts", right: "Computation per token, by activating only a few experts", explanation: "All experts must still be stored."}
+      - {left: "4-bit quantisation", right: "Memory used by the weights", explanation: "QLoRA fine-tuned a 65B model on one 48 GB GPU."}
+    distractors:
+      - "Training data"
+  - id: q64-2
+    type: mcq
+    text: "What is the cost of the KV cache?"
+    concepts: [kv-cache]
+    sources: [74]
+    options:
+      - {text: "Memory: it can occupy a significant share, especially for long contexts.", correct: true, explanation: "Offloaded and quantised caches trade speed for memory."}
+      - {text: "It makes the output less accurate.", correct: false, explanation: "It stores exact values; it does not change the output."}
+      - {text: "It makes every token slower.", correct: false, explanation: "It makes generation faster by avoiding recomputation."}
+  - id: q64-3
+    type: open
+    text: "FlashAttention computes exactly the same attention but runs faster. Explain how that is possible."
+    concepts: [flashattention]
+    sources: [62]
+    rubric: |
+      - Says that the bottleneck is moving data between slow high-bandwidth memory and fast on-chip memory, not only the arithmetic.
+      - Says that FlashAttention uses tiling to reduce the number of reads and writes while computing the exact result.

@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: q13
+title: "Check: experiment tracking"
+questions:
+  - id: q13-1
+    type: match
+    text: "Match each MLflow concept to what it is."
+    concepts: [mlflow, experiment-tracking]
+    sources: [5]
+    pairs:
+      - {left: "Run", right: "A single execution of data science code, such as one python train.py", explanation: "It stores metrics, parameters, timing and artifacts."}
+      - {left: "Experiment", right: "A group of runs and models for one task", explanation: "Created from the CLI, the API or the UI."}
+      - {left: "Backend store", right: "Persists run metadata such as parameters and metrics", explanation: "Can be file-based or a database such as PostgreSQL."}
+      - {left: "Artifact store", right: "Holds larger files such as model weights and images", explanation: "Defaults to a local mlruns directory; S3 and Azure Blob are options."}
+    distractors:
+      - "The container image used to serve a model"
+  - id: q13-2
+    type: fill
+    text: "Complete the code that logs a parameter and a metric in one run."
+    concepts: [mlflow, experiment-tracking]
+    sources: [5]
+    template: |
+      with mlflow.{{1}}():
+          mlflow.{{2}}("lr", 0.001)
+          mlflow.{{3}}("val_loss", val_loss)
+    chips:
+      - {text: "start_run", slot: 1, explanation: "Opens a run, and the logging calls inside belong to it."}
+      - {text: "log_param", slot: 2, explanation: "Records an input setting of the run."}
+      - {text: "log_metric", slot: 3, explanation: "Records a measured result of the run."}
+      - {text: "autolog", explanation: "autolog is called once before training and removes most explicit logging calls, so it does not fit here."}
+  - id: q13-3
+    type: mcq
+    text: "You run MLflow with no tracking server and no configuration. Where do runs go?"
+    concepts: [mlflow]
+    sources: [5]
+    options:
+      - {text: "A local mlruns directory", correct: true, explanation: "By default no server is needed and runs are logged to the local mlruns directory."}
+      - {text: "Amazon S3", correct: false, explanation: "S3 is a supported artifact store but has to be configured."}
+      - {text: "Nowhere; they are kept in memory only", correct: false, explanation: "Runs are persisted by default."}
+      - {text: "A PostgreSQL database in the cloud", correct: false, explanation: "A database backend is possible but is not the default."}
+  - id: q13-4
+    type: short
+    text: "Which single call enables automatic logging for supported libraries such as scikit-learn and PyTorch?"
+    concepts: [mlflow, autolog]
+    sources: [5]
+    answers: ["mlflow.autolog()", "mlflow.autolog", "autolog", "autolog()"]
+  - id: q13-5
+    type: open
+    text: "Your team grows from one person to five. What changes in how you run MLflow Tracking, and what must you protect?"
+    concepts: [mlflow, tracking-server]
+    sources: [5]
+    rubric: |
+      - Says that a shared tracking server with shared backend and artifact stores replaces local mlruns directories.
+      - Mentions that the backend store (metadata) and the artifact store (files) both hold data that must be kept and backed up, like any stateful service.

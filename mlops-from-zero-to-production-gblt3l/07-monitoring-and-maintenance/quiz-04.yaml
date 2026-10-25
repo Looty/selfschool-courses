@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: q28
+title: "Check: staleness, retraining and incidents"
+questions:
+  - id: q28-1
+    type: match
+    text: "Match each rule to what it says."
+    concepts: [rules-of-ml, monitoring]
+    sources: [13]
+    pairs:
+      - {left: "Rule #8", right: "Know the freshness requirements of your system", explanation: "Measure how much performance degrades as the model ages."}
+      - {left: "Rule #9", right: "Detect problems before exporting models", explanation: "Run sanity checks such as held-out performance before export."}
+      - {left: "Rule #10", right: "Watch for silent failures", explanation: "Stale upstream tables can degrade performance without errors."}
+      - {left: "Rule #11", right: "Give feature columns owners and documentation", explanation: "So someone knows what a feature is and who to ask when it breaks."}
+  - id: q28-2
+    type: sort
+    text: "Is each of these a retraining remedy or a remedy for when retraining is not feasible?"
+    concepts: [drift-response, retraining]
+    sources: [44]
+    buckets: ["Retraining option", "Other remedy"]
+    items:
+      - {text: "Train on recent data only", bucket: "Retraining option", explanation: "One of the ways to retrain."}
+      - {text: "Weight recent examples more heavily", bucket: "Retraining option", explanation: "Another retraining choice."}
+      - {text: "Fall back to a simple heuristic such as the most popular items", bucket: "Other remedy", explanation: "A process adjustment when retraining is not feasible."}
+      - {text: "Send low-confidence cases to a human reviewer", bucket: "Other remedy", explanation: "Human-in-the-loop review is one of the listed process adjustments."}
+      - {text: "Pause the model", bucket: "Other remedy", explanation: "A valid response when the model cannot be trusted and retraining is not possible yet."}
+  - id: q28-3
+    type: fill
+    text: "Put the incident steps in order."
+    concepts: [incident-response, rollback]
+    sources: [43, 44, 4, 40]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+    chips:
+      - {text: "Detect on a user-visible symptom", slot: 1, explanation: "Pages are tied to urgent, actionable, user-visible symptoms."}
+      - {text: "Stop the damage, for example roll back the alias or the canary", slot: 2, explanation: "If a recent release is suspected, rolling back comes before diagnosis."}
+      - {text: "Check the service, then the data, then the model", slot: 3, explanation: "Work through the three layers."}
+      - {text: "Choose a remedy: fix data, retrain, threshold, fallback or pause", slot: 4, explanation: "Retraining is only one of several remedies."}
+      - {text: "Record the lesson as a new check or alert", slot: 5, explanation: "So the pipeline catches it next time."}
+      - {text: "Retrain immediately and hope", explanation: "Retraining without diagnosis may not fix a data problem."}
+  - id: q28-4
+    type: open
+    text: "How would you decide how often to retrain a model? Use Rule #8."
+    concepts: [staleness, retraining-cadence]
+    sources: [13]
+    rubric: |
+      - Says to measure how much performance degrades as the model ages, for example by scoring an older model on newer data.
+      - Uses the measured decay to set the retraining cadence and how closely to monitor, retraining more often when decay is fast.

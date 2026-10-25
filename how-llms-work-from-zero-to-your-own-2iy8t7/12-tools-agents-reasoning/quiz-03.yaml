@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q55
+title: "Check: lab 12"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q55-1
+    type: spot
+    text: "Click the line that protects the calculator tool from running arbitrary text."
+    concepts: [tool-safety, code-reading]
+    sources: [13]
+    code: |
+      def calculator(expression):
+          if not re.fullmatch(r"[0-9+\-*/(). ]+", expression):
+              return "error: only numbers and + - * / ( ) are allowed"
+          return str(eval(expression))
+    correct: [2]
+    explanation: "The fullmatch check rejects anything that is not digits, spaces and arithmetic symbols before eval ever sees it."
+  - id: q55-2
+    type: mcq
+    text: "Why does the loop have a maximum of 5 turns?"
+    concepts: [agents, safety]
+    sources: [13]
+    options:
+      - {text: "Without a cap, a model that never gives a final answer would loop forever.", correct: true, explanation: "Always bound loops that depend on model output."}
+      - {text: "Because the calculator can only do 5 sums.", correct: false, explanation: "There is no such limit."}
+      - {text: "To make the output shorter.", correct: false, explanation: "The cap is a safety measure."}
+  - id: q55-3
+    type: open
+    text: "Which parts of the lab would stay the same if you swapped the stand-in for a real model, and which one changes?"
+    concepts: [agents, tool-use]
+    sources: [13]
+    rubric: |
+      - Says that only the fake_model function would change (replaced with a call to a real model).
+      - Says that parsing, tool execution, the observation feedback and the turn cap stay the same.

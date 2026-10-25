@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q33
+title: "Check: Airflow architecture"
+questions:
+  - id: q33-1
+    type: match
+    text: "Match each Airflow component to its job."
+    concepts: [airflow-architecture]
+    sources: [48]
+    pairs:
+      - {left: "Scheduler", right: "Triggers runs on schedule and submits ready tasks to the executor", explanation: "The executor is configured on the scheduler and runs inside its process."}
+      - {left: "Dag processor", right: "Parses Dag files and stores them serialized in the database", explanation: "Required in every Airflow 3 deployment, as a standalone process."}
+      - {left: "API server", right: "Serves the UI and REST API and receives task state reports", explanation: "Tasks report state here instead of reaching the database."}
+      - {left: "Metadata database", right: "Holds task, Dag and variable state", explanation: "Usually PostgreSQL or MySQL."}
+    distractors:
+      - "Runs deferred tasks in an asyncio loop"
+  - id: q33-2
+    type: sort
+    text: "Which of these does the architecture page list as required, and which as optional?"
+    concepts: [airflow-architecture]
+    sources: [48]
+    buckets: ["Required", "Optional"]
+    items:
+      - {text: "Scheduler", bucket: "Required", explanation: "Nothing is triggered without it."}
+      - {text: "Dag processor", bucket: "Required", explanation: "The page says it is required in all Airflow 3 deployments."}
+      - {text: "API server", bucket: "Required", explanation: "Serves the UI and the API tasks report to."}
+      - {text: "Metadata database", bucket: "Required", explanation: "Stores task and Dag state."}
+      - {text: "Triggerer", bucket: "Optional", explanation: "Only needed for deferred tasks."}
+      - {text: "Worker", bucket: "Optional", explanation: "Listed under optional components; it runs tasks as a process or a pod."}
+  - id: q33-3
+    type: mcq
+    text: "A task in Airflow 3 needs to report that it succeeded. How does it do that?"
+    concepts: [airflow-architecture, security]
+    sources: [48]
+    options:
+      - {text: "Through the API server, so task code needs no direct database access", correct: true, explanation: "Only the worker holds short-lived credentials and talks to the Execution API."}
+      - {text: "By writing straight to the metadata database", correct: false, explanation: "This is what Airflow 3 avoids."}
+      - {text: "By writing a file the scheduler polls", correct: false, explanation: "The page describes no file-based reporting."}
+      - {text: "By messaging the Dag processor", correct: false, explanation: "The Dag processor parses files; it does not receive task state."}
+  - id: q33-4
+    type: mcq
+    text: "Why does the page prefer a versioned Dag bundle backend such as Git over local disk?"
+    concepts: [airflow-deployment]
+    sources: [48]
+    options:
+      - {text: "With local disk the Dag processor and workers can briefly see different versions of a Dag file", correct: true, explanation: "A versioned bundle lets workers use the exact version the scheduler specified."}
+      - {text: "Git runs tasks faster than local disk", correct: false, explanation: "The page makes no speed claim."}
+      - {text: "Local disk cannot hold Python files", correct: false, explanation: "Local folder is the default bundle."}
+      - {text: "Only Git supports the KubernetesExecutor", correct: false, explanation: "The page ties executors to workers, not bundle backends."}
+  - id: q33-5
+    type: open
+    text: "Your team runs three nightly ML pipelines and wants one Airflow install on Kubernetes. Describe which components you would run, how you would deploy Dag files, and what you would size for."
+    concepts: [airflow-deployment, capacity]
+    sources: [48]
+    rubric: |
+      - Lists scheduler, Dag processor (as its own process), API server and a metadata database such as PostgreSQL.
+      - Uses workers such as the KubernetesExecutor pod model, and mentions the triggerer only if deferred tasks are used.
+      - Deploys Dag files from a versioned bundle such as Git.
+      - Sizes worker capacity for peak concurrent task instances and may use Pools to limit concurrency.

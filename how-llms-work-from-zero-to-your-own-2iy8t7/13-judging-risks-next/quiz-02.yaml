@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q58
+title: "Check: open weights and APIs"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q58-1
+    type: match
+    text: "Match each release pattern to an example."
+    concepts: [open-weights, api, staged-release]
+    sources: [11, 28, 21]
+    pairs:
+      - {left: "API only", right: "GPT-3 (2020)", explanation: "Available through an API."}
+      - {left: "Staged release", right: "GPT-2 (2019)", explanation: "774M version in August, full model in November."}
+      - {left: "Open weights", right: "LLaMA (2023)", explanation: "Models released to the research community."}
+    distractors:
+      - "ELIZA (1966)"
+  - id: q58-2
+    type: mcq
+    text: "Which claim about LLaMA did its authors make?"
+    concepts: [llama]
+    sources: [11]
+    options:
+      - {text: "State-of-the-art models can be trained using publicly available datasets only, and LLaMA-13B outperformed GPT-3 on most benchmarks.", correct: true, explanation: "Both are stated in the abstract."}
+      - {text: "LLaMA needs a bigger model than GPT-3 to match it.", correct: false, explanation: "13B beat 175B on most benchmarks."}
+      - {text: "LLaMA was available only through an API.", correct: false, explanation: "It was released to the research community."}
+  - id: q58-3
+    type: open
+    text: "Give one reason to choose an open-weight model and one reason to choose an API, for a real project."
+    concepts: [open-weights, api, trade-offs]
+    sources: [11, 21]
+    rubric: |
+      - Gives a reason for open weights, such as privacy, control, adaptation or stability, noting the cost of running it.
+      - Gives a reason for an API, such as no hardware, convenience or the strongest models, noting data leaves your machine or behaviour can change.

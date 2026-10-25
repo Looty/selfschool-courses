@@ -1,0 +1,29 @@
+schemaVersion: 1
+id: final
+title: Final exam
+duration_minutes: 60
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 24
+domains:
+  - id: foundations
+    title: Foundations, history and learning
+    weight: 15
+    chapters: [01-what-is-an-llm, 02-origins, 03-the-long-road, 04-learning-the-minimum]
+  - id: text-and-simple-models
+    title: Tokens, embeddings and the simplest model
+    weight: 15
+    chapters: [05-text-to-numbers, 06-simplest-language-model]
+  - id: attention-and-gpt
+    title: Attention, the Transformer and GPT
+    weight: 25
+    chapters: [07-attention, 08-transformer-and-gpt]
+  - id: scale-and-assistants
+    title: Scale and from predictor to assistant
+    weight: 20
+    chapters: [09-scale, 10-predictor-to-assistant]
+  - id: using-agents-judging
+    title: Using, adapting, agents and judging models
+    weight: 25
+    chapters: [11-using-and-adapting, 12-tools-agents-reasoning, 13-judging-risks-next]

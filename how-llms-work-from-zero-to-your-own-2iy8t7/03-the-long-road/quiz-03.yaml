@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q13
+title: "Check: a neural language model"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q13-1
+    type: mcq
+    text: "Why do plain n-gram counts struggle with language, according to Bengio et al.?"
+    concepts: [curse-of-dimensionality, n-gram]
+    sources: [15]
+    options:
+      - {text: "A test sequence of words usually differs from every training sequence, so counts alone cannot generalise.", correct: true, explanation: "This is the curse of dimensionality for language."}
+      - {text: "Computers cannot count fast enough.", correct: false, explanation: "The issue is data coverage, not counting speed."}
+      - {text: "N-gram models cannot use the previous word.", correct: false, explanation: "They do use previous words; the problem is unseen combinations."}
+  - id: q13-2
+    type: mcq
+    text: "How do similar word vectors help a model on a sentence it has never seen?"
+    concepts: [word-vectors, generalisation]
+    sources: [15]
+    options:
+      - {text: "Having seen a sentence with 'cat' lets it assign sensible probability to the same sentence with 'dog'.", correct: true, explanation: "Words with similar representations share what the model has learned."}
+      - {text: "It memorises every sentence in the corpus.", correct: false, explanation: "Memorising every sentence is exactly what cannot cover new sequences."}
+      - {text: "It ignores word order.", correct: false, explanation: "The paper's model uses the previous words to predict the next."}
+  - id: q13-3
+    type: open
+    text: "Which two things did the 2003 paper learn together, and how do they reappear in a modern LLM?"
+    concepts: [word-vectors, neural-lm]
+    sources: [15]
+    rubric: |
+      - Names the learned word representations (vectors) and the neural network that predicts the next word.
+      - Says that modern LLMs also turn tokens into learned vectors and use a neural network to predict the next token.

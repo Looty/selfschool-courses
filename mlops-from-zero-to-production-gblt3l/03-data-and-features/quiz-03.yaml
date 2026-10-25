@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: q11
+title: "Check: feature stores"
+questions:
+  - id: q11-1
+    type: match
+    text: "Match each Feast component to its role."
+    concepts: [feature-store, feast]
+    sources: [32, 8]
+    pairs:
+      - {left: "Offline store", right: "Persists batch data used to produce training datasets", explanation: "Feast runs queries against it but does not manage it directly."}
+      - {left: "Online store", right: "Holds the latest feature values for each entity", explanation: "Filled by materialisation or stream ingestion for low-latency inference."}
+      - {left: "Registry", right: "Stores the registered feature definitions", explanation: "Definitions are code in version-controlled repositories."}
+      - {left: "Feature server", right: "A REST API that serves feature values for an entity key", explanation: "Designed to scale horizontally."}
+    distractors:
+      - "Trains the model"
+  - id: q11-2
+    type: fill
+    text: "Put the Feast commands and calls of the quickstart workflow in order."
+    concepts: [feast, feature-store]
+    sources: [31]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "feast apply", slot: 1, explanation: "Registers the definitions and creates the infrastructure."}
+      - {text: "get_historical_features", slot: 2, explanation: "Builds a training dataset from the offline store with a point-in-time join."}
+      - {text: "feast materialize-incremental", slot: 3, explanation: "Loads the latest feature values into the online store."}
+      - {text: "get_online_features", slot: 4, explanation: "Reads the latest values for real-time inference."}
+      - {text: "feast ui", explanation: "An optional experimental web UI for browsing, not a step of the workflow."}
+  - id: q11-3
+    type: mcq
+    text: "Why does a point-in-time join prevent data leakage?"
+    concepts: [point-in-time-join, data-leakage]
+    sources: [9]
+    options:
+      - {text: "For each row it looks backwards from the row's timestamp, so no feature value from after the event is used", correct: true, explanation: "The model only sees what would have been known at prediction time."}
+      - {text: "It joins every row to the newest feature values", correct: false, explanation: "That is the leaky behaviour a point-in-time join avoids."}
+      - {text: "It deletes rows that have labels", correct: false, explanation: "Labels are needed for training and are kept."}
+      - {text: "It encrypts the features in the offline store", correct: false, explanation: "Encryption is unrelated to temporal leakage."}
+  - id: q11-4
+    type: short
+    text: "Which Feast setting on a feature view limits how far back a point-in-time join looks, measured from each row's timestamp?"
+    concepts: [point-in-time-join, ttl]
+    sources: [9]
+    answers: ["TTL", "ttl", "time to live", "time-to-live"]
+  - id: q11-5
+    type: open
+    text: "A colleague says the feature store is overkill because they already read features from a table at both training and serving time. Name one risk of their approach that a feature store addresses."
+    concepts: [feature-store, training-serving-skew]
+    sources: [1, 9, 13]
+    rubric: |
+      - Mentions that features computed or read differently in training and serving can cause training-serving skew, and that a feature store standardises definition and access for both.
+      - Or mentions that a plain join on the latest values leaks future information into training data, and that point-in-time correct joins prevent it.

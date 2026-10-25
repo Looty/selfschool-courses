@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: q16
+title: "Check: validating a model before it ships"
+questions:
+  - id: q16-1
+    type: sort
+    text: "Is each of these an offline or an online validation step?"
+    concepts: [model-validation, canary, ab-testing]
+    sources: [1]
+    buckets: ["Offline validation", "Online validation"]
+    items:
+      - {text: "Compare the new model's metrics on a test dataset with the production model", bucket: "Offline validation", explanation: "It needs only a test dataset, not live traffic."}
+      - {text: "Check performance is consistent across segments of the data", bucket: "Offline validation", explanation: "An average can hide a segment where the model fails."}
+      - {text: "Verify the model loads and the API returns the expected output for a known input", bucket: "Offline validation", explanation: "Infrastructure compatibility and API consistency are checked before deployment."}
+      - {text: "Run a canary deployment on a share of live traffic", bucket: "Online validation", explanation: "Live traffic is the point of online validation."}
+      - {text: "Run an A/B test against the current model", bucket: "Online validation", explanation: "Compares models on live traffic."}
+  - id: q16-2
+    type: mcq
+    text: "Which of these does Google's offline model validation include? Select all that apply."
+    concepts: [model-validation]
+    sources: [1]
+    options:
+      - {text: "Comparing the new model's metrics with the current production model or a baseline", correct: true, explanation: "A model should be at least as good as what it replaces."}
+      - {text: "Checking consistency of performance across data segments", correct: true, explanation: "To catch segments where the average hides failure."}
+      - {text: "Verifying infrastructure compatibility and API consistency", correct: true, explanation: "The model must run in the target environment and honour the prediction API."}
+      - {text: "Releasing the model to all users to see what happens", correct: false, explanation: "That skips validation; online validation uses a canary or an A/B test first."}
+  - id: q16-3
+    type: short
+    text: "How many tests and monitoring needs does the ML Test Score paper offer as a production-readiness roadmap?"
+    concepts: [ml-test-score]
+    sources: [3]
+    answers: ["28", "twenty-eight", "twenty eight"]
+  - id: q16-4
+    type: open
+    text: "Design an automated validation gate for a model: list what it checks and say why the thresholds must be written down."
+    concepts: [model-validation, release-gate]
+    sources: [1, 13]
+    rubric: |
+      - Includes a comparison with a baseline or the production model on a held-out test set.
+      - Includes a check of consistency across data segments or an infrastructure and API compatibility check.
+      - Says that thresholds must be explicit so the gate can run automatically in a pipeline without a person's judgement each time.

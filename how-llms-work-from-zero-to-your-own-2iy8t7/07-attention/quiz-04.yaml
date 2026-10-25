@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q32
+title: "Check: lab 7"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q32-1
+    type: spot
+    text: "Click the line that stops a token from seeing later tokens."
+    concepts: [causal-mask, code-reading]
+    sources: [20]
+    code: |
+      scores = Q @ K.T / np.sqrt(d)
+      mask = np.triu(np.ones_like(scores), k=1).astype(bool)
+      scores = np.where(mask, -np.inf, scores)
+      weights = softmax(scores)
+    correct: [3]
+    explanation: "Setting the masked scores to minus infinity makes softmax give those positions weight zero. Line 2 only builds the mask."
+  - id: q32-2
+    type: mcq
+    text: "In the printed weights table, why is the first row 1.00, 0.00, 0.00?"
+    concepts: [causal-mask]
+    sources: [20]
+    options:
+      - {text: "The first word can only look at itself, because the mask blocks later words.", correct: true, explanation: "Softmax over a single allowed score gives it weight 1."}
+      - {text: "The first word is always the most important.", correct: false, explanation: "Importance is not why; the mask is."}
+      - {text: "The random matrices were zero.", correct: false, explanation: "The matrices are random but non-zero."}
+  - id: q32-3
+    type: open
+    text: "Why does a GPT-style model need the causal mask? What would go wrong during training without it?"
+    concepts: [causal-mask, next-token]
+    sources: [20]
+    rubric: |
+      - Says that the model is trained to predict the next token, and without the mask each position could look at the answer (the later tokens).
+      - Says that it would then learn to copy rather than predict, and fail when generating text where later tokens do not exist yet.

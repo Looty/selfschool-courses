@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q16
+title: "Check: gradient descent"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q16-1
+    type: fill
+    text: "Put the four steps of gradient descent in order."
+    concepts: [gradient-descent]
+    sources: [32]
+    template: |
+      {{1}}, then {{2}}, then {{3}}, then {{4}}.
+    chips:
+      - {text: "compute the loss", slot: 1, explanation: "Start by measuring how wrong the current settings are."}
+      - {text: "find the direction that lowers the loss", slot: 2, explanation: "The gradient gives the downhill direction."}
+      - {text: "move the parameters a small step", slot: 3, explanation: "Step against the slope."}
+      - {text: "repeat until the loss stops falling", slot: 4, explanation: "Stop when the model has converged."}
+  - id: q16-2
+    type: mcq
+    text: "What happens if the learning rate is far too big?"
+    concepts: [learning-rate]
+    sources: [32]
+    options:
+      - {text: "Steps overshoot the bottom and the loss can bounce or grow instead of falling.", correct: true, explanation: "Big steps jump past the minimum."}
+      - {text: "Training becomes slower but always succeeds.", correct: false, explanation: "That describes a rate that is too small."}
+      - {text: "Nothing; the learning rate does not matter.", correct: false, explanation: "It is one of the most important settings."}
+  - id: q16-3
+    type: short
+    text: "What do we call the point where further steps no longer reduce the loss?"
+    concepts: [convergence]
+    sources: [32]
+    answers: ["convergence", "converged", "converge", "the model has converged"]

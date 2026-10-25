@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q22
+title: "Check: lab 5"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q22-1
+    type: mcq
+    text: "In the lab, the first merge was w + e, not l + o. Why?"
+    concepts: [bpe]
+    sources: [6]
+    options:
+      - {text: "The pair w,e occurred 6 times, more than l,o at 5, and BPE merges the most frequent pair first.", correct: true, explanation: "The merge order follows pair counts."}
+      - {text: "BPE merges pairs in alphabetical order.", correct: false, explanation: "Frequency decides, not the alphabet."}
+      - {text: "l and o never appear next to each other.", correct: false, explanation: "They did, and became the second merge."}
+  - id: q22-2
+    type: spot
+    text: "Click the line of the lab's merge loop that makes the tokenizer greedy about frequency."
+    concepts: [bpe, code-reading]
+    sources: [6]
+    code: |
+      pairs = Counter(zip(tokens, tokens[1:]))
+      (left, right), count = pairs.most_common(1)[0]
+      merges.append((left, right))
+      tokens = merge_everywhere(tokens, left, right)
+    correct: [2]
+    explanation: "most_common(1) picks the single most frequent adjacent pair; that is what makes the merge order follow frequency."
+  - id: q22-3
+    type: open
+    text: "After running the lab, explain what happened when you encoded the unseen word 'slowly', and why that matters."
+    concepts: [bpe, open-vocabulary]
+    sources: [6]
+    rubric: |
+      - Says that the word was split into smaller known pieces (including single characters) instead of failing.
+      - Says that this lets a tokenizer represent any text, avoiding the unknown-word problem.

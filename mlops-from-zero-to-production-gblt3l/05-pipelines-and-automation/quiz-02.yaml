@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: q18
+title: "Check: CI for ML"
+questions:
+  - id: q18-1
+    type: sort
+    text: "What does each CI test for an ML pipeline check?"
+    concepts: [ml-ci, testing]
+    sources: [1, 14]
+    buckets: ["Code and components", "Data", "Model"]
+    items:
+      - {text: "Unit tests for one-hot encoding in feature engineering", bucket: "Code and components", explanation: "Logic of feature engineering is code and is unit tested."}
+      - {text: "Integration tests between pipeline components", bucket: "Code and components", explanation: "Components must work together."}
+      - {text: "Validating the data schema", bucket: "Data", explanation: "CI for ML also tests and validates data and schemas."}
+      - {text: "Training loss decreases and the model can overfit a few sample records", bucket: "Model", explanation: "A convergence test for the training code and model."}
+      - {text: "Training produces no NaN values", bucket: "Model", explanation: "Guards against dividing by zero or manipulating very small or large values."}
+  - id: q18-2
+    type: match
+    text: "Match each CD4ML test category to its purpose."
+    concepts: [ml-ci, testing]
+    sources: [14]
+    pairs:
+      - {left: "Data validation", right: "Checks the data the pipeline consumes", explanation: "One of the test types CD4ML lists."}
+      - {left: "Contract tests", right: "Check integration between components", explanation: "Components agree on their interfaces."}
+      - {left: "Threshold tests", right: "Check that model quality meets a bar", explanation: "Model quality gates."}
+      - {left: "Slice tests", right: "Check bias and fairness across slices of the data", explanation: "Averages can hide a group the model fails."}
+  - id: q18-3
+    type: short
+    text: "Which CML command posts a report as a comment on a pull request?"
+    concepts: [cml, github-actions]
+    sources: [38]
+    answers: ["cml comment create", "cml comment create report.md"]
+  - id: q18-4
+    type: mcq
+    text: "Where should full training on production-sized data run, according to the lesson's guidance?"
+    concepts: [ml-ci, continuous-training]
+    sources: [1]
+    options:
+      - {text: "In the triggered training pipeline, with the resulting model validated before release", correct: true, explanation: "CI proves the pipeline works on small data; training and validation belong in the pipeline that runs on triggers."}
+      - {text: "In every pull request check", correct: false, explanation: "That makes review slow and expensive; CI should test the pipeline on small data."}
+      - {text: "Manually on a laptop", correct: false, explanation: "That is the Level 0 pattern the pipeline is meant to replace."}
+      - {text: "Nowhere; models are never retrained", correct: false, explanation: "Continuous training is a defining ML practice."}
+  - id: q18-5
+    type: open
+    text: "Draft the CI checks you would run on every pull request in an ML repository, and say what you would show reviewers."
+    concepts: [ml-ci, cml]
+    sources: [1, 38]
+    rubric: |
+      - Includes tests of feature-engineering logic and component integration.
+      - Includes a training sanity check, such as loss decreasing or no NaN values, on small data.
+      - Includes data or schema validation.
+      - Says to show metrics or plots on the pull request, for example with a tool such as CML.

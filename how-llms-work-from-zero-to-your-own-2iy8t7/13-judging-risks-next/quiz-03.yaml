@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q59
+title: "Check: risks and next steps"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q59-1
+    type: match
+    text: "Match each risk to its root cause."
+    concepts: [risks]
+    sources: [21, 29, 37]
+    pairs:
+      - {left: "Hallucination", right: "The objective rewards likely text, not true text", explanation: "Nothing checks the facts."}
+      - {left: "Bias", right: "The model reflects biases in its training data", explanation: "As on the GPT-2 model card."}
+      - {left: "ELIZA effect", right: "Fluent output is mistaken for understanding", explanation: "A human tendency, not a model fault."}
+    distractors:
+      - "The tokenizer is too small"
+  - id: q59-2
+    type: mcq
+    text: "Which of these is a way to manage LLM risks, according to the lesson?"
+    concepts: [risk-management]
+    sources: [37]
+    options:
+      - {text: "Test on your own cases, ground answers in sources, limit tool privileges and keep a human in the loop for important decisions.", correct: true, explanation: "None of the risks has a single fix."}
+      - {text: "Use a bigger model, which removes hallucination.", correct: false, explanation: "Larger models were generally less truthful on TruthfulQA."}
+      - {text: "Turn the temperature to zero.", correct: false, explanation: "Greedy decoding does not make facts true."}
+  - id: q59-3
+    type: open
+    text: "Pick the next learning step that suits your own goal, and justify it with something you built in this course."
+    concepts: [next-steps]
+    sources: [19, 18]
+    rubric: |
+      - Names a concrete next step, such as Karpathy's Zero to Hero series, the nanochat project, or applying models in an application.
+      - Justifies it by linking to something the learner built or learned in the course, such as the mini-GPT, the labs or evaluation.

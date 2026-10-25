@@ -1,0 +1,66 @@
+schemaVersion: 1
+id: q34
+title: "Check: writing a Dag"
+questions:
+  - id: q34-1
+    type: spot
+    text: "This Dag should validate the data, train, and then register the model. Which line orders the tasks incorrectly?"
+    concepts: [airflow-dependencies]
+    sources: [49]
+    code: |
+      validate = EmptyOperator(task_id="validate")
+      train = EmptyOperator(task_id="train")
+      register = EmptyOperator(task_id="register")
+      validate >> train
+      register >> train
+    correct: [5]
+    explanation: "`register >> train` makes train wait for register. The intended order is `train >> register`."
+  - id: q34-2
+    type: fill
+    text: "Complete the sentence about a scheduled run."
+    concepts: [airflow-logical-date]
+    sources: [49]
+    template: |
+      For a scheduled run, the logical date marks the {{1}} of the data interval, and the run's actual start date falls {{2}}.
+    chips:
+      - {text: "start", slot: 1, explanation: "The page says the logical date marks the start of the data interval for scheduled runs."}
+      - {text: "later", slot: 2, explanation: "The run executes after its interval has passed."}
+      - {text: "end", explanation: "The logical date is the start of the interval, not the end."}
+      - {text: "earlier", explanation: "A run cannot start before the data it covers exists."}
+  - id: q34-3
+    type: mcq
+    text: "A branch task chooses between 'register' and 'stop'. Which trigger rule does the page recommend for the join task after the branch?"
+    concepts: [airflow-trigger-rules]
+    sources: [49]
+    options:
+      - {text: "none_failed_min_one_success", correct: true, explanation: "It runs when nothing failed and at least one upstream task succeeded, so skipped branches do not block it."}
+      - {text: "all_success", correct: false, explanation: "The page warns this cascades skips from the unchosen branch."}
+      - {text: "all_failed", correct: false, explanation: "The page warns against this too."}
+      - {text: "always", correct: false, explanation: "It would run even if a task failed, which is not what a join after a healthy branch wants."}
+  - id: q34-4
+    type: sort
+    text: "Which statements about the Dags page are documented, and which does the page not cover?"
+    concepts: [airflow-dags, source-limits]
+    sources: [49]
+    buckets: ["Covered by the page", "Not covered by the page"]
+    items:
+      - {text: "The default trigger rule is all_success", bucket: "Covered by the page", explanation: "Listed with the other rules."}
+      - {text: "`>>` is the recommended way to set dependencies", bucket: "Covered by the page", explanation: "set_upstream and set_downstream are the explicit alternatives."}
+      - {text: "What `catchup` does", bucket: "Not covered by the page", explanation: "It only appears as `catchup=False` in example code."}
+      - {text: "How to make a task idempotent", bucket: "Not covered by the page", explanation: "The page has no idempotency section."}
+  - id: q34-5
+    type: short
+    text: "Which decorator turns a Python function into a branching task?"
+    concepts: [airflow-branching]
+    sources: [49]
+    answers: ["@task.branch", "task.branch"]
+  - id: q34-6
+    type: open
+    text: "Design the task graph for a nightly retraining Dag: data check, training, evaluation, a decision, and registration or an alert. Say how data is selected and which trigger rule you would use on the join."
+    concepts: [airflow-dags, ml-pipeline-design]
+    sources: [49]
+    rubric: |
+      - Orders tasks with dependencies and a branch after evaluation.
+      - Selects training data from the run's data interval, not from the current time, so reruns and backfills reproduce the dataset.
+      - Uses a join rule such as none_failed_min_one_success after the branch, not all_success.
+      - Mentions a notification or cleanup task that runs regardless of outcome (for example all_done).

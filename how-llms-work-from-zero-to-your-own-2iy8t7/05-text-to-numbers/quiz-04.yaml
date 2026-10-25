@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q23
+title: "Check: embeddings"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q23-1
+    type: mcq
+    text: "Where do the numbers in an embedding table come from?"
+    concepts: [embeddings, training]
+    sources: [7, 15]
+    options:
+      - {text: "They start random and are learned by training like other weights.", correct: true, explanation: "Tokens used in similar contexts end up with similar vectors."}
+      - {text: "A linguist assigns them by hand.", correct: false, explanation: "They are learned, not designed."}
+      - {text: "They are the token ids themselves.", correct: false, explanation: "An id is an integer label; the embedding is a learned vector."}
+  - id: q23-2
+    type: mcq
+    text: "Why does the model add a position embedding to each token embedding?"
+    concepts: [positional-encoding]
+    sources: [20]
+    options:
+      - {text: "Attention looks at all tokens at once and would otherwise lose word order.", correct: true, explanation: "'Dog bites man' and 'man bites dog' must differ."}
+      - {text: "To make the vectors longer.", correct: false, explanation: "Length is not the goal; order information is."}
+      - {text: "To mark which words are nouns.", correct: false, explanation: "Position says where a token is, not what part of speech it is."}
+  - id: q23-3
+    type: short
+    text: "What do we call the grid with one learned row for each token in the vocabulary?"
+    concepts: [embedding-table]
+    sources: [7]
+    answers: ["embedding table", "embeddings table", "embedding matrix", "the embedding table"]

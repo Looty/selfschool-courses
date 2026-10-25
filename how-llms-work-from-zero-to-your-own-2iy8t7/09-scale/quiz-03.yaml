@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q40
+title: "Check: Chinchilla"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q40-1
+    type: mcq
+    text: "What was the Chinchilla paper's main conclusion?"
+    concepts: [chinchilla, compute-optimal]
+    sources: [8]
+    options:
+      - {text: "Model size and training tokens should be scaled equally; many large models were undertrained.", correct: true, explanation: "Each doubling of parameters should come with a doubling of tokens."}
+      - {text: "Bigger models always need less data.", correct: false, explanation: "That was closer to the 2020 recommendation."}
+      - {text: "Data does not matter once the model is large enough.", correct: false, explanation: "The paper argued the opposite."}
+  - id: q40-2
+    type: sort
+    text: "Which of these describes Gopher and which Chinchilla?"
+    concepts: [chinchilla]
+    sources: [8]
+    buckets: ["Gopher", "Chinchilla"]
+    items:
+      - {text: "280 billion parameters", bucket: "Gopher", explanation: "The larger, less-data model."}
+      - {text: "70 billion parameters trained on about 4x more data", bucket: "Chinchilla", explanation: "Same compute budget."}
+      - {text: "Scored 67.5% average accuracy on MMLU", bucket: "Chinchilla", explanation: "Over 7 points above Gopher."}
+  - id: q40-3
+    type: open
+    text: "Why is a smaller model trained on more data better value over the model's whole life?"
+    concepts: [inference-cost, chinchilla]
+    sources: [8, 11]
+    rubric: |
+      - Says that training is paid once, but inference is paid every time the model is used.
+      - Says that a smaller model needs less compute for every use (and for fine-tuning), while matching or beating a larger model.

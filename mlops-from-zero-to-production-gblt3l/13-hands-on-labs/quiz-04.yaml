@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q52
+title: "Check: capstone design"
+questions:
+  - id: q52-1
+    type: match
+    text: "Match each part of the loop to the tool from the labs."
+    concepts: [capstone, tools]
+    sources: [38, 64, 65, 66]
+    pairs:
+      - {left: "Data versioning", right: "DVC", explanation: "dvc add, push and pull."}
+      - {left: "Experiment tracking", right: "MLflow", explanation: "Parameters, metrics and models per run."}
+      - {left: "Metrics on the pull request", right: "CML", explanation: "cml comment create posts the report."}
+      - {left: "Drift report as JSON", right: "Evidently", explanation: "Reports export JSON, dict or HTML."}
+    distractors:
+      - "Kueue"
+  - id: q52-2
+    type: sort
+    text: "Which items in a design are known facts from the sources and which are unknowns you must find out?"
+    concepts: [capstone, unknowns]
+    sources: [1]
+    buckets: ["Known from sources", "Unknown for your system"]
+    items:
+      - {text: "A pipeline can include data and model validation before registration", bucket: "Known from sources", explanation: "Google's description of automated pipelines."}
+      - {text: "How fast your data drifts", bucket: "Unknown for your system", explanation: "Only measurement on your data answers it."}
+      - {text: "When labels arrive after a prediction", bucket: "Unknown for your system", explanation: "Depends on your business process."}
+      - {text: "Which tool exports a drift report as JSON", bucket: "Known from sources", explanation: "Evidently's quickstart shows exports."}
+  - id: q52-3
+    type: mcq
+    text: "A row in your design table has an empty 'who is told' cell. What does the lesson say that is?"
+    concepts: [capstone, ownership]
+    sources: [1]
+    options:
+      - {text: "A gap: a failure nobody is told about is not monitored", correct: true, explanation: "Every part needs an owner for failures."}
+      - {text: "Acceptable if the tool is open source", correct: false, explanation: "Ownership does not depend on licence."}
+      - {text: "Normal for data parts", correct: false, explanation: "Data failures need an owner too."}
+      - {text: "Fixed automatically by CML", correct: false, explanation: "CML posts reports; it does not assign owners."}
+  - id: q52-4
+    type: open
+    text: "Capstone: choose a model and write the one-page design table for the loop (part, tool, what is recorded, trigger, who is told), plus a short list of unknowns."
+    concepts: [capstone, design-exercise]
+    sources: [1, 6, 38, 64, 65, 66]
+    rubric: |
+      - Covers data versioning, experiments, pipeline, gate, CI, release, monitoring and response.
+      - Names a tool for each part and what it records, with the trigger and the person or team told on failure.
+      - Defines the baseline and thresholds for the release gate.
+      - Lists at least three real unknowns (for example drift rate, label delay, retraining cost, on-call ownership).

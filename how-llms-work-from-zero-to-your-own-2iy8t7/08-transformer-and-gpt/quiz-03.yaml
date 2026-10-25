@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q36
+title: "Check: lab 8"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q36-1
+    type: mcq
+    text: "Before training, the mini-GPT's held-out loss was about 4.33. What does that match?"
+    concepts: [loss, baseline]
+    sources: [17]
+    options:
+      - {text: "Roughly the uniform-guess loss for 65 characters (about 4.17).", correct: true, explanation: "With random weights the model knows nothing and spreads probability about evenly."}
+      - {text: "The loss of the finished model.", correct: false, explanation: "The trained model reached about 1.93."}
+      - {text: "Zero.", correct: false, explanation: "Zero would mean perfect prediction."}
+  - id: q36-2
+    type: spot
+    text: "Click the line in the attention code that stops a token from seeing later tokens."
+    concepts: [causal-mask, code-reading]
+    sources: [1]
+    code: |
+      att = (q @ k.transpose(-2, -1)) / math.sqrt(k.size(-1))
+      att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float("-inf"))
+      y = F.softmax(att, dim=-1) @ v
+    correct: [2]
+    explanation: "masked_fill sets scores for later positions to minus infinity so softmax gives them zero weight."
+  - id: q36-3
+    type: sort
+    text: "Which result do you expect from the mini-GPT, and which from the bigram of lab 6?"
+    concepts: [bigram, gpt]
+    sources: [17]
+    buckets: ["Bigram (lab 6)", "Mini-GPT (lab 8)"]
+    items:
+      - {text: "Held-out loss of about 2.49", bucket: "Bigram (lab 6)", explanation: "One character of context limits it."}
+      - {text: "Held-out loss of about 1.93 after a minute of training", bucket: "Mini-GPT (lab 8)", explanation: "Attention over 64 characters of context."}
+      - {text: "Output that follows the layout of a play with speaker names", bucket: "Mini-GPT (lab 8)", explanation: "Longer context captures structure."}
+      - {text: "Random-looking letter clumps with no layout", bucket: "Bigram (lab 6)", explanation: "No longer-range structure."}
+  - id: q36-4
+    type: open
+    text: "Describe how the text changed from before to after training, and explain the improvement in terms of what the model learned."
+    concepts: [training, language-model]
+    sources: [17]
+    rubric: |
+      - Describes random characters before training and word-like text with layout (names, colons, line breaks) after.
+      - Explains that gradient descent adjusted the weights so the model gives higher probability to the characters that really follow, learning patterns from the text.

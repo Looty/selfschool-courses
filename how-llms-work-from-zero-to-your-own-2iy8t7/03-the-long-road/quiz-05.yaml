@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q61
+title: "Check: pretrain, then fine-tune"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q61-1
+    type: match
+    text: "Match each 2018 method to what it contributed."
+    concepts: [transfer-learning, elmo, ulmfit]
+    sources: [68, 69, 41]
+    pairs:
+      - {left: "ELMo", right: "Word vectors that depend on the whole sentence, from a pretrained bidirectional language model", explanation: "Contextual representations that handle polysemy."}
+      - {left: "ULMFiT", right: "Fine-tuning the whole pretrained language model for a task", explanation: "100 labelled examples matched training from scratch on 100 times more data."}
+      - {left: "GPT-1", right: "Generative pre-training of a decoder-only Transformer, then fine-tuning per task", explanation: "Best on 9 of 12 tasks."}
+    distractors:
+      - "A rule-based chatbot"
+  - id: q61-2
+    type: mcq
+    text: "Why is a word vector from word2vec limited compared with an ELMo vector?"
+    concepts: [contextual-representation]
+    sources: [69]
+    options:
+      - {text: "word2vec gives one vector per word regardless of context, so 'bank' has the same vector in 'river bank' and 'bank account'.", correct: true, explanation: "ELMo's vectors depend on the sentence."}
+      - {text: "word2vec cannot be trained on large text.", correct: false, explanation: "word2vec was designed for very large text."}
+      - {text: "word2vec uses labelled data.", correct: false, explanation: "It is trained on unlabelled text."}
+  - id: q61-3
+    type: open
+    text: "Describe the pretrain-then-adapt recipe and what the GPT-3 paper did to the 'adapt' step."
+    concepts: [pretraining, fine-tuning, in-context-learning]
+    sources: [3, 41, 68]
+    rubric: |
+      - Says that a model is first pretrained on a large unlabelled corpus and then adapted (fine-tuned) to a specific task.
+      - Says that GPT-3 made the adaptation step unnecessary for many tasks by giving a few examples in the prompt, with no weight updates.

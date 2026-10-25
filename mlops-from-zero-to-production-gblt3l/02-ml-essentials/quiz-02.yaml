@@ -1,0 +1,60 @@
+schemaVersion: 1
+id: q06
+title: "Check: data splits and leakage"
+questions:
+  - id: q06-1
+    type: spot
+    text: "Which line leaks information from the test set into training?"
+    concepts: [data-leakage, preprocessing]
+    sources: [27]
+    code: |
+      X_scaled = StandardScaler().fit_transform(X)
+      X_train, X_test, y_train, y_test = train_test_split(X_scaled, y)
+      model.fit(X_train, y_train)
+      print(model.score(X_test, y_test))
+    correct: [1]
+    explanation: "The scaler is fitted on all the data before the split, so the mean and variance it learns include the test examples. Split first, fit the scaler on the training subset and only transform the test subset."
+  - id: q06-2
+    type: sort
+    text: "Does each practice keep the test set clean or leak information from it?"
+    concepts: [data-leakage, test-set]
+    sources: [18, 27]
+    buckets: ["Leaks", "Safe"]
+    items:
+      - {text: "Fit a scaler on the whole dataset, then split", bucket: "Leaks", explanation: "The scaler's statistics include test examples."}
+      - {text: "Use fit_transform on the training subset and transform on the test subset", bucket: "Safe", explanation: "Preprocessing is learned from the training data only."}
+      - {text: "Tune hyperparameters again and again against the test set", bucket: "Leaks", explanation: "The model implicitly fits the test set's peculiarities. Use the validation set for iterative decisions."}
+      - {text: "Select features on all rows, then split", bucket: "Leaks", explanation: "Feature selection saw the test labels, which inflated accuracy from 0.5 to 0.76 in scikit-learn's example."}
+      - {text: "Remove validation and test examples that duplicate training examples", bucket: "Safe", explanation: "Duplicates across sets make loss look suspiciously low."}
+  - id: q06-3
+    type: fill
+    text: "Complete the rule for preprocessing."
+    concepts: [preprocessing, pipeline]
+    sources: [27]
+    template: |
+      Learn every transformation from the {{1}} data only, then {{2}} the same fitted transformation to the {{3}} data.
+    chips:
+      - {text: "training", slot: 1, explanation: "Anything learned from the test data would leak information about it."}
+      - {text: "apply", slot: 2, explanation: "Reuse the transformation already fitted, with transform and not fit_transform."}
+      - {text: "test", slot: 3, explanation: "Test data, and later production data, get the same transformation as the training data."}
+      - {text: "all", explanation: "Fitting on all the data is exactly what causes leakage."}
+  - id: q06-4
+    type: mcq
+    text: "A model scores very well on the test set but performs poorly in production. Which causes does the crash course list? Select all that apply."
+    concepts: [test-set, representativeness]
+    sources: [18]
+    options:
+      - {text: "The test set differs from the real-world data", correct: true, explanation: "An unrepresentative test set can look good while the real data is different."}
+      - {text: "The test set was tuned against again and again", correct: true, explanation: "Repeated tuning makes the model implicitly fit the test set."}
+      - {text: "Duplicate examples appear in training and test sets", correct: true, explanation: "Duplicates inflate offline results."}
+      - {text: "The training set was shuffled before splitting", correct: false, explanation: "Shuffling before splitting is a recommended practice that helps the sets be representative."}
+  - id: q06-5
+    type: open
+    text: "Describe how you would split a dataset and set up preprocessing so the offline test score is trustworthy."
+    concepts: [data-splits, data-leakage]
+    sources: [18, 27]
+    rubric: |
+      - Splits into training, validation and test sets before any preprocessing.
+      - Fits transformations on the training data only, and applies them to validation, test and production data, ideally with a pipeline.
+      - Keeps the test set for the final check and uses validation for iterative decisions.
+      - Mentions removing duplicates across sets or checking that the test set represents real-world data.

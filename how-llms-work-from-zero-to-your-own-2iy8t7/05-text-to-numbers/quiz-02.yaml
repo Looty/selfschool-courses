@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: q21
+title: "Check: byte-pair encoding"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q21-1
+    type: fill
+    text: "Put the BPE steps in order."
+    concepts: [bpe]
+    sources: [6]
+    template: |
+      {{1}}, then {{2}}, then {{3}}, then {{4}}.
+    chips:
+      - {text: "start with single characters", slot: 1, explanation: "The initial vocabulary is the characters."}
+      - {text: "count every adjacent pair", slot: 2, explanation: "Find which pair is most common."}
+      - {text: "merge the most frequent pair into a new token", slot: 3, explanation: "Add the new token and record the rule."}
+      - {text: "repeat until the vocabulary is big enough", slot: 4, explanation: "Stop at the chosen vocabulary size."}
+  - id: q21-2
+    type: trace
+    text: "BPE runs on the text \"ababab\". Merge 1 joins the most frequent pair. Merge 2 joins the most frequent pair of the result, scanning left to right without overlap. Fill in the tokens (separated by spaces) and how many there are after each step."
+    concepts: [bpe]
+    sources: [6]
+    code: |
+      text: ababab
+      pairs at start: (a,b) x3, (b,a) x2
+    variables: [tokens, count]
+    steps:
+      - {label: "start", values: {tokens: "a b a b a b", count: 6}, given: [tokens, count]}
+      - {label: "after merge 1", values: {tokens: "ab ab ab", count: 3}}
+      - {label: "after merge 2", values: {tokens: "abab ab", count: 2}}
+    explanation: "Merge 1 joins (a,b), the most frequent pair, giving ab ab ab. Now (ab,ab) is the only pair and occurs twice; merging the first non-overlapping pair gives abab ab. Each merge removes one token per merged pair."
+  - id: q21-3
+    type: open
+    text: "How does BPE tokenize a word it never saw during training, and why is that an advantage over a fixed word list?"
+    concepts: [bpe, open-vocabulary]
+    sources: [6]
+    rubric: |
+      - Says that it applies the learned merges and falls back to smaller known pieces, down to single characters.
+      - Says that a fixed word list would mark the word as unknown, while BPE can always represent it.

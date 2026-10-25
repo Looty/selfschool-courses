@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q12
+title: "Check: LSTM"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q12-1
+    type: mcq
+    text: "What is the vanishing-gradient problem in a classic RNN?"
+    concepts: [vanishing-gradient, rnn]
+    sources: [27]
+    options:
+      - {text: "The error signal for distant steps shrinks toward zero, so the network stops learning long-range connections.", correct: true, explanation: "Gradients sent back through many steps can vanish."}
+      - {text: "The network runs out of weights.", correct: false, explanation: "The problem concerns the training signal, not the number of weights."}
+      - {text: "The training data disappears over time.", correct: false, explanation: "It is the error signal that fades."}
+  - id: q12-2
+    type: match
+    text: "Match each term to its meaning."
+    concepts: [lstm, rnn]
+    sources: [27]
+    pairs:
+      - {left: "Hidden state", right: "The summary of what has been read so far", explanation: "An RNN carries it from step to step."}
+      - {left: "Constant error carousel", right: "A path that lets error signals persist without shrinking", explanation: "The LSTM's answer to vanishing gradients."}
+      - {left: "Gate", right: "A learned control over how much information passes", explanation: "LSTM gates decide what to keep or forget."}
+    distractors:
+      - "A fixed rule written by an expert"
+  - id: q12-3
+    type: open
+    text: "Name two limits that remained even with LSTMs, and say what the course says came next."
+    concepts: [lstm, sequential-processing]
+    sources: [27]
+    rubric: |
+      - Says that an RNN/LSTM must process tokens one step at a time, so training cannot be easily parallelised.
+      - Says that everything about the past must pass through one hidden state.
+      - Says that attention (and then the Transformer) was the next step.

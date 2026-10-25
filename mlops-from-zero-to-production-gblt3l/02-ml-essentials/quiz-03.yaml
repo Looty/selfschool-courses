@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: q07
+title: "Check: baselines and launching without ML"
+questions:
+  - id: q07-1
+    type: mcq
+    text: "What does Rule #1 of Google's Rules of Machine Learning say?"
+    concepts: [rules-of-ml, baseline]
+    sources: [13]
+    options:
+      - {text: "Don't be afraid to launch a product without machine learning", correct: true, explanation: "Start with heuristics and adopt ML once you have data."}
+      - {text: "Always start with the largest model you can train", correct: false, explanation: "Rule #4 says the opposite: keep the first model simple."}
+      - {text: "Never launch before you have a perfect model", correct: false, explanation: "The rules favour launching early with simple solutions and good infrastructure."}
+      - {text: "Collect labels before building any infrastructure", correct: false, explanation: "Rule #4 puts infrastructure first for the simple first model."}
+  - id: q07-2
+    type: match
+    text: "Match each rule from the guide to what it says."
+    concepts: [rules-of-ml]
+    sources: [13]
+    pairs:
+      - {left: "Rule #1", right: "Don't be afraid to launch a product without machine learning", explanation: "Heuristics first, ML when you have data."}
+      - {left: "Rule #4", right: "Keep the first model simple and get the infrastructure right", explanation: "The simple model becomes the baseline."}
+      - {left: "Rule #8", right: "Know the freshness requirements of your system", explanation: "Measure how much performance degrades as the model ages."}
+      - {left: "Rule #10", right: "Watch for silent failures", explanation: "Stale upstream tables can degrade performance without any errors."}
+    distractors:
+      - "Use the newest algorithm available"
+  - id: q07-3
+    type: mcq
+    text: "In the lifecycle, what does model validation compare the model against?"
+    concepts: [validation, baseline]
+    sources: [1]
+    options:
+      - {text: "A baseline, such as a heuristic or the current production model", correct: true, explanation: "Validation checks that the model's predictive performance is better than a baseline."}
+      - {text: "The training set only", correct: false, explanation: "Training-set performance says little about generalisation."}
+      - {text: "The size of the model file", correct: false, explanation: "File size is not the criterion; predictive performance is."}
+      - {text: "Nothing, validation just copies the model to production", correct: false, explanation: "Validation is a decision step before serving."}
+  - id: q07-4
+    type: open
+    text: "Why should the first model of a new ML product be simple, and what does the simple model give you afterwards?"
+    concepts: [baseline, rules-of-ml]
+    sources: [13]
+    rubric: |
+      - Says that the priority is getting the infrastructure right: data to the learner, serving and consistent features in training and serving.
+      - Says that a simple model makes pipeline problems easier to isolate from model problems.
+      - Says that the simple model serves as a baseline to judge later models.

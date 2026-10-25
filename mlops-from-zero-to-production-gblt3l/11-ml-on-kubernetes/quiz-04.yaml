@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: q44
+title: "Check: KubeRay"
+questions:
+  - id: q44-1
+    type: mcq
+    text: "A batch RayJob finishes, but the GPU workers stay allocated for days. What is the most likely reason?"
+    concepts: [kuberay, cost]
+    sources: [60]
+    options:
+      - {text: "shutdownAfterJobFinishes is false, which is the default, so the RayCluster is kept", correct: true, explanation: "Set it to true (optionally with a TTL) to delete the cluster after the job."}
+      - {text: "RayJobs always keep their clusters and cannot be configured otherwise", correct: false, explanation: "The setting exists."}
+      - {text: "The submitter Job is holding the GPUs", correct: false, explanation: "The submitter is kept for logs; the worker Pods belong to the RayCluster."}
+      - {text: "Kueue prevents deletion of RayJobs", correct: false, explanation: "Nothing in the pages says that."}
+  - id: q44-2
+    type: match
+    text: "Match each KubeRay concept to what the pages say about it."
+    concepts: [kuberay]
+    sources: [59, 60]
+    pairs:
+      - {left: "KubeRay", right: "A Kubernetes operator that runs each Ray node as a Pod", explanation: "A head Pod and worker Pods."}
+      - {left: "RayJob", right: "Creates a RayCluster and submits a job when it is ready", explanation: "Can also use an existing cluster via clusterSelector."}
+      - {left: "K8sJobMode", right: "The default mode: a submitter Kubernetes Job runs ray job submit", explanation: "Other modes include HTTPMode and SidecarMode."}
+      - {left: "ttlSecondsAfterFinished", right: "The delay before the cluster is deleted, applied only when shutdownAfterJobFinishes is true", explanation: "Default is 0."}
+    distractors:
+      - "The number of GPUs per worker"
+  - id: q44-3
+    type: sort
+    text: "Which statements are documented, and which are not, in the pages read for this lesson?"
+    concepts: [kuberay, source-limits]
+    sources: [59, 60]
+    buckets: ["Documented in the pages", "Not documented in the pages"]
+    items:
+      - {text: "KubeRay runs several Ray clusters with different Ray versions in one Kubernetes cluster", bucket: "Documented in the pages", explanation: "Stated in the overview."}
+      - {text: "Kueue can modify the suspend field of a RayJob", bucket: "Documented in the pages", explanation: "A warning on the RayJob page."}
+      - {text: "What a RayService is used for", bucket: "Not documented in the pages", explanation: "It is named but not explained."}
+      - {text: "How to configure the autoscaler", bucket: "Not documented in the pages", explanation: "The overview gives no configuration."}
+  - id: q44-4
+    type: short
+    text: "What is the name of the field that makes the operator delete the RayCluster after the job finishes?"
+    concepts: [kuberay, cleanup]
+    sources: [60]
+    answers: ["shutdownAfterJobFinishes", "shutdownafterjobfinishes"]
+  - id: q44-5
+    type: open
+    text: "A team runs nightly Ray training on 16 GPUs shared with other teams. Describe how you would use RayJob and Kueue so that the cluster is released after each run and the team cannot exceed its share."
+    concepts: [kuberay, kueue, cost]
+    sources: [57, 59, 60]
+    rubric: |
+      - Uses a RayJob per run with shutdownAfterJobFinishes true (and a TTL if logs or inspection are needed).
+      - Puts the RayJob behind a Kueue LocalQueue and ClusterQueue with a nominal GPU quota, not setting suspend manually.
+      - Notes that the submitter Job keeps the logs.
+      - Mentions version requirements or alpha features to check.

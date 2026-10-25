@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q43
+title: "Check: Kueue"
+questions:
+  - id: q43-1
+    type: match
+    text: "Match each ClusterQueue field to its meaning."
+    concepts: [kueue, quota]
+    sources: [58]
+    pairs:
+      - {left: "nominalQuota", right: "The quantity of a resource available to the ClusterQueue", explanation: "Per flavor and resource."}
+      - {left: "borrowingLimit", right: "The most it can borrow from unused quota of other queues in its cohort", explanation: "Unset means up to the cohort total."}
+      - {left: "lendingLimit", right: "The most it lets cohort peers borrow when it is not using its quota", explanation: "Unset means it can lend all of it."}
+      - {left: "cohort", right: "The group of ClusterQueues that may borrow from one another", explanation: "A queue with no cohort cannot borrow."}
+    distractors:
+      - "The priority of a single Pod"
+  - id: q43-2
+    type: trace
+    text: "Team A's ClusterQueue has nominal quota 9 CPUs and Team B's has 12, in one cohort with no limits set. Track how many CPUs Team A can have admitted, and whose pending workload Kueue admits next."
+    concepts: [kueue, borrowing]
+    sources: [58]
+    code: |
+      1. Team B has no admitted workloads
+      2. Team B has pending workloads and Team A has used its nominal quota
+    variables: [team_a_max_cpu, admitted_next]
+    steps:
+      - {label: "Start (own quota)", values: {team_a_max_cpu: 9, admitted_next: "none"}, given: [team_a_max_cpu, admitted_next]}
+      - {label: "After 1", values: {team_a_max_cpu: 21, admitted_next: "A"}}
+      - {label: "After 2", values: {team_a_max_cpu: 21, admitted_next: "B"}}
+    explanation: "When Team B is idle, Team A can borrow its 12 on top of its own 9, up to 21. When Team B has pending workloads and A has used its nominal quota, Kueue admits B's workloads first to protect B's nominal quota. The page describes admission order; whether A's already-admitted borrowed work is evicted depends on the preemption settings (for example reclaimWithinCohort), which the example does not state."
+  - id: q43-3
+    type: mcq
+    text: "An older workload cannot be admitted because it needs more GPUs than are free. Under which strategy can newer, smaller workloads still be admitted ahead of it?"
+    concepts: [kueue, queueing-strategy]
+    sources: [58]
+    options:
+      - {text: "BestEffortFIFO, which is the default", correct: true, explanation: "Older unadmittable workloads do not block newer ones that fit."}
+      - {text: "StrictFIFO", correct: false, explanation: "Under StrictFIFO the older workload blocks newer ones even if they fit."}
+      - {text: "Neither; Kueue always admits strictly in creation order", correct: false, explanation: "Both strategies order by priority then creation time, but differ on blocking."}
+      - {text: "Only when preemption is set to Never", correct: false, explanation: "Preemption is a separate setting."}
+  - id: q43-4
+    type: sort
+    text: "Which responsibility stays with core Kubernetes, and which does Kueue handle?"
+    concepts: [kueue, responsibilities]
+    sources: [57]
+    buckets: ["Core Kubernetes", "Kueue"]
+    items:
+      - {text: "Placing admitted Pods on nodes", bucket: "Core Kubernetes", explanation: "kube-scheduler still does Pod scheduling."}
+      - {text: "Autoscaling the cluster", bucket: "Core Kubernetes", explanation: "The cluster autoscaler is unchanged."}
+      - {text: "Deciding when a job waits or starts", bucket: "Kueue", explanation: "Admission is Kueue's job."}
+      - {text: "Preempting a job by deleting its active Pods", bucket: "Kueue", explanation: "Kueue can preempt according to policy."}
+  - id: q43-5
+    type: open
+    text: "Two teams share 16 GPUs. Design a ClusterQueue setup so that each team has a guaranteed share but idle GPUs are used. Say what happens when both teams are busy and what your jobs must do to survive preemption."
+    concepts: [kueue, fair-share, checkpointing]
+    sources: [57, 58]
+    rubric: |
+      - Creates one ClusterQueue per team in the same cohort, each with a nominal GPU quota (for example 8 each).
+      - Explains that an idle team's quota can be borrowed, optionally capped with borrowingLimit and lendingLimit.
+      - States that when both are busy each is protected at its nominal quota, and that reclaimWithinCohort can preempt borrowers.
+      - Notes preemption deletes Pods, so jobs need checkpoints and resumable training.

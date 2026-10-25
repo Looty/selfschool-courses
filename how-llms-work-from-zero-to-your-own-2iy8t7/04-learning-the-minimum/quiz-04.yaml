@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q18
+title: "Check: neurons and layers"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q18-1
+    type: mcq
+    text: "A network has 2 inputs, one hidden layer of 3 neurons and 1 output. How many parameters (weights and biases) does it have?"
+    concepts: [parameter-count]
+    sources: [33]
+    options:
+      - {text: "13", correct: true, explanation: "Hidden: 2 × 3 = 6 weights + 3 biases = 9. Output: 3 weights + 1 bias = 4. Total 13."}
+      - {text: "6", correct: false, explanation: "That counts only the hidden-layer weights; biases and the output layer add 7 more."}
+      - {text: "9", correct: false, explanation: "That counts only the hidden layer; the output layer adds 4 more."}
+      - {text: "12", correct: false, explanation: "Recount: the output layer has 3 weights and 1 bias, and the hidden layer has 6 weights and 3 biases."}
+  - id: q18-2
+    type: mcq
+    text: "Why does a network need a non-linear activation function between its layers?"
+    concepts: [activation-function, nonlinearity]
+    sources: [33]
+    options:
+      - {text: "Linear calculations on linear outputs are still linear, so without it the stack collapses into one straight-line model.", correct: true, explanation: "The non-linear step is what lets depth add power."}
+      - {text: "It makes the network run faster.", correct: false, explanation: "The reason is expressiveness, not speed."}
+      - {text: "It removes the need for training.", correct: false, explanation: "Weights still have to be learned."}
+  - id: q18-3
+    type: short
+    text: "What do we call the layers between the input and the output?"
+    concepts: [hidden-layer]
+    sources: [33]
+    answers: ["hidden layers", "hidden layer", "hidden"]

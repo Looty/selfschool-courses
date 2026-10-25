@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: q40
+title: "Check: choosing a platform"
+questions:
+  - id: q40-1
+    type: match
+    text: "Match each job to the SageMaker or Azure ML feature the lessons named."
+    concepts: [managed-platforms, mapping]
+    sources: [52, 54]
+    pairs:
+      - {left: "Release gate on a metric (SageMaker)", right: "Condition step", explanation: "Stops the run if the metric misses its limit."}
+      - {left: "Step reuse (SageMaker)", right: "Opt-in step caching with a timeout", explanation: "Successful runs only, one pipeline."}
+      - {left: "Traffic split between versions (Azure ML)", right: "Controlled rollout on an online endpoint", explanation: "Traffic percentages between deployments."}
+      - {left: "Reproducible dependencies (Azure ML)", right: "Environments", explanation: "Track pip and conda dependencies."}
+    distractors:
+      - "Dynamic batching"
+  - id: q40-2
+    type: mcq
+    text: "Which statement about the lesson's comparison table is correct?"
+    concepts: [source-limits, managed-platforms]
+    sources: [52, 54]
+    options:
+      - {text: "A 'not covered' cell means the pages read do not say, not that the feature is absent", correct: true, explanation: "The lesson draws the distinction explicitly."}
+      - {text: "A 'not covered' cell proves the platform lacks the feature", correct: false, explanation: "Absence in a page is not absence in the product."}
+      - {text: "The table includes prices for each platform", correct: false, explanation: "None of the pages gives prices."}
+      - {text: "The table is based on benchmarks run for the course", correct: false, explanation: "The course ran no benchmarks."}
+  - id: q40-3
+    type: sort
+    text: "Which consideration favours a managed platform, and which favours the portable open-source stack?"
+    concepts: [platform-choice]
+    sources: [20, 52, 54]
+    buckets: ["Favours a managed platform", "Favours a portable open stack"]
+    items:
+      - {text: "A small team with no Kubernetes operations capacity", bucket: "Favours a managed platform", explanation: "The vendor operates the parts."}
+      - {text: "Lineage and an audit trail recorded for you", bucket: "Favours a managed platform", explanation: "Azure ML lists lineage metadata among its capabilities."}
+      - {text: "Must run in two clouds and on premises", bucket: "Favours a portable open stack", explanation: "Open definitions can be submitted to any conformant backend."}
+      - {text: "Pipeline definitions that can move between backends", bucket: "Favours a portable open stack", explanation: "Kubeflow pipelines compile to an intermediate representation."}
+  - id: q40-4
+    type: short
+    text: "What are the two Azure ML endpoint types the article names for scoring?"
+    concepts: [azure-ml, endpoints]
+    sources: [54]
+    answers: ["batch and online", "online and batch", "batch endpoints and online endpoints", "online endpoints and batch endpoints"]
+  - id: q40-5
+    type: open
+    text: "Your company's data lives in one cloud, the team has two engineers and no platform team, and the work is regulated. Recommend managed, self-hosted or a mix, with your reasons and the questions you would still need answered."
+    concepts: [platform-choice, governance]
+    sources: [20, 52, 54]
+    rubric: |
+      - Gives a clear recommendation (managed or a mix is the likely answer) tied to the data location, team size and regulation.
+      - Notes that lineage and registry features reduce audit effort.
+      - Names what to keep portable (model format, pipeline definitions) and states the exit cost.
+      - Lists open questions the sources did not answer, such as price, limits and quota.

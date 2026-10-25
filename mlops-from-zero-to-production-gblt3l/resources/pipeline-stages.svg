@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" width="1000" height="400" role="img" aria-label="Six stages of a CI/CD pipeline for ML in two rows: development and experimentation, pipeline continuous integration and pipeline continuous delivery on top; automated triggering, model continuous delivery and monitoring below.">
+  <rect width="1000" height="400" fill="#f4f4f1"/>
+  <!-- hotspot percent coordinates in the quizzes are measured on this 1000 x 400 canvas -->
+  <g fill="none" stroke="#5f5e5a" stroke-width="2">
+    <path d="M300 100H370"/>
+    <path d="M630 100H700"/>
+    <path d="M830 160V240"/>
+    <path d="M700 300H630"/>
+    <path d="M370 300H300"/>
+  </g>
+  <g fill="#ffffff" stroke="#2c2c2a" stroke-width="2">
+    <rect x="40" y="40" width="260" height="120" rx="8"/>
+    <rect x="370" y="40" width="260" height="120" rx="8"/>
+    <rect x="700" y="40" width="260" height="120" rx="8"/>
+    <rect x="700" y="240" width="260" height="120" rx="8"/>
+    <rect x="370" y="240" width="260" height="120" rx="8"/>
+    <rect x="40" y="240" width="260" height="120" rx="8"/>
+  </g>
+  <g fill="#2c2c2a" font-family="system-ui, sans-serif" font-size="22" text-anchor="middle">
+    <text x="170" y="92">1. Development and</text>
+    <text x="170" y="122">experimentation</text>
+    <text x="500" y="92">2. Pipeline continuous</text>
+    <text x="500" y="122">integration</text>
+    <text x="830" y="92">3. Pipeline continuous</text>
+    <text x="830" y="122">delivery</text>
+    <text x="830" y="307">4. Automated triggering</text>
+    <text x="500" y="292">5. Model continuous</text>
+    <text x="500" y="322">delivery</text>
+    <text x="170" y="307">6. Monitoring</text>
+  </g>
+</svg>
