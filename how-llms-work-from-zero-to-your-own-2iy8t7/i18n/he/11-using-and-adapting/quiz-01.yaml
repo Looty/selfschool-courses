@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q48
+title: "בדיקה: הנדסת פרומפטים (Prompting)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q48-1
+    type: mcq
+    text: "מה משמעותו של \"למידה בהקשר\" (in-context learning)?"
+    concepts: [in-context-learning, few-shot]
+    sources: [3]
+    options:
+      - {text: "המודל מבצע משימה על סמך דוגמאות שבפרומפט, בלי לשנות את המשקולות שלו.", correct: true, explanation: "המשימה והדוגמאות מוגדרות אך ורק באמצעות טקסט."}
+      - {text: "המודל מאומן מחדש על הדוגמאות.", correct: false, explanation: "לא מתבצעים עדכוני גרדיאנט."}
+      - {text: "המודל שומר את הדוגמאות לצמיתות.", correct: false, explanation: "דבר אינו נשמר ברגע שהדוגמאות יוצאות מחלון ההקשר (context window)."}
+  - id: q48-2
+    type: sort
+    text: "לאיזה חלק בפרומפט שייכת כל שורה?"
+    concepts: [prompt-structure]
+    sources: [3]
+    buckets: ["משימה או תפקיד", "דוגמה", "פורמט הפלט"]
+    items:
+      - {text: "You classify support tickets as BILLING, BUG or OTHER.", bucket: "משימה או תפקיד", explanation: "מגדירה מה המודל צריך לעשות."}
+      - {text: "Ticket: \"The export button does nothing.\" -> BUG", bucket: "דוגמה", explanation: "הדגמה של קלט ושל הפלט הרצוי."}
+      - {text: "Reply with one word.", bucket: "פורמט הפלט", explanation: "קובעת את צורת התשובה."}
+  - id: q48-3
+    type: open
+    text: "מדוע כדאי להתייחס לפרומפטים כמו אל קוד?"
+    concepts: [prompt-engineering]
+    sources: [3, 30]
+    rubric: |
+      - מציין ששינויים קטנים בניסוח יכולים לשנות את התוצאות, ולכן פרומפטים הם שבריריים.
+      - מציין שיש לנהל גרסאות של פרומפטים ולבדוק אותם מול דוגמאות קבועות.

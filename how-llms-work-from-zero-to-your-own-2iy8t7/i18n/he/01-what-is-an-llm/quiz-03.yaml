@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: q03
+title: "בדיקה: במה מודלי שפה גדולים טועים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q03-1
+    type: mcq
+    text: "מדוע מודל שפה גדול (LLM) יכול לטעון טענה שגויה בקול בטוח ושוטף?"
+    concepts: [hallucination, training-objective]
+    sources: [21]
+    options:
+      - {text: "הוא מאומן לייצר טקסט סביר; שום דבר במטרת האימון הזו לא בודק את העובדות.", correct: true, explanation: "בדרך כלל סביר ואמיתי חופפים, אבל מטרת האימון מתגמלת רק את מה שסביר."}
+      - {text: "הוא משקר למשתמש בכוונה.", correct: false, explanation: "למודל אין כוונה להונות; הכשל נובע ממטרת האימון ומהנתונים."}
+      - {text: "הוא תמיד מחפש תשובות במסד נתונים שלעיתים אינו מעודכן.", correct: false, explanation: "מודל שפה גדול לא מחפש תשובות; הידע שלו נמצא בפרמטרים שלו."}
+  - id: q03-2
+    type: mcq
+    text: "מה מצא TruthfulQA לגבי הקשר בין גודל המודל לבין אמינותו העובדתית?"
+    concepts: [truthfulqa, scaling-limits]
+    sources: [37]
+    options:
+      - {text: "המודלים הגדולים ביותר היו בדרך כלל הכי פחות אמינים עובדתית.", correct: true, explanation: "הם למדו תפיסות שגויות נפוצות מטקסט האימון שלהם."}
+      - {text: "האמינות העובדתית תמיד עולה עם גודל המודל.", correct: false, explanation: "התוצאה הייתה הפוכה במודלים שנבדקו."}
+      - {text: "לגודל המודל לא הייתה כל השפעה.", correct: false, explanation: "המחברים דיווחו שמודלים גדולים יותר היו בדרך כלל פחות אמינים."}
+  - id: q03-3
+    type: short
+    text: "איך קוראים להצהרה בטוחה של מודל, שנתוני האימון שלו אינם מצדיקים אותה?"
+    concepts: [hallucination]
+    sources: [21]
+    answers: ["hallucination", "a hallucination", "hallucinations", "הזיה", "הזיות", "הֶזיה", "הזיה של מודל", "הזיית מודל"]
+  - id: q03-4
+    type: open
+    text: "תנו שתי דרכים שונות שבהן מודל שפה גדול יכול להיכשל, וציינו מה בתכנון או באימון שלו גורם לכל אחת מהן."
+    concepts: [hallucination, bias, instruction-following]
+    sources: [21, 29, 4]
+    rubric: |
+      - מציין כשל אחד (לדוגמה הזיה, הטיה, או אי-מילוי כוונת המשתמש) וקושר אותו לסיבתו.
+      - מציין כשל שני, שונה מהראשון, וקושר אותו לסיבתו.
+      - הסיבות מתייחסות למטרת האימון או לנתוני האימון (לדוגמה: טקסט סביר ולא טקסט אמיתי, או הטיות בנתונים).

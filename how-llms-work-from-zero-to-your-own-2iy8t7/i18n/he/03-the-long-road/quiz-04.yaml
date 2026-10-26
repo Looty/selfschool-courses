@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q14
+title: "בדיקה: וקטורי מילים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q14-1
+    type: mcq
+    text: "מהי ההתקדמות המרכזית של המאמר word2vec משנת 2013?"
+    concepts: [word2vec, embeddings]
+    sources: [7]
+    options:
+      - {text: "וקטורי מילים באיכות גבוהה בעלות חישובית נמוכה בהרבה, בפחות מיום אחד על 1.6 מיליארד מילים.", correct: true, explanation: "העלות והיקף הנתונים היו העיקר."}
+      - {text: "מודל השפה העצבי הראשון אי פעם.", correct: false, explanation: "Bengio ועמיתיו הציעו מודל שפה עצבי כבר ב-2003."}
+      - {text: "החלפת מילים באותיות.", correct: false, explanation: "המאמר עוסק בייצוגים של מילים."}
+  - id: q14-2
+    type: sort
+    text: "איזה ייצוג הוא וקטור one-hot ואיזה הוא וקטור מילה נלמד?"
+    concepts: [one-hot, embeddings]
+    sources: [7]
+    buckets: ["וקטור one-hot", "וקטור מילה נלמד"]
+    items:
+      - {text: "רשימה ארוכה מאוד של אפסים עם 1 יחיד", bucket: "וקטור one-hot", explanation: "כל זוג מילים נראה לא קשור באותה מידה."}
+      - {text: "300 מספרים שמתכווננים במהלך האימון", bucket: "וקטור מילה נלמד", explanation: "מאומן כך שהקשרים דומים מניבים וקטורים דומים."}
+      - {text: "'פריז' ו'רומא' מתקרבות זו לזו", bucket: "וקטור מילה נלמד", explanation: "הדמיון נלמד מהשימוש."}
+  - id: q14-3
+    type: short
+    text: "איך נקראת הטבלה שממפה כל טוקן (token) לוקטור שלו, ונמצאת בתחילת כל LLM?"
+    concepts: [embeddings]
+    sources: [7]
+    answers: ["embedding", "embeddings", "an embedding", "embedding table", "הטמעה", "הטמעות", "טבלת הטמעות", "טבלת embedding", "טבלת embeddings", "מטריצת הטמעות"]

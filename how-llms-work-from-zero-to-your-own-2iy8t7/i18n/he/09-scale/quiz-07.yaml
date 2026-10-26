@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q64
+title: "בדיקה: איך הופכים מודלים לזולים יותר להרצה"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q64-1
+    type: match
+    text: "התאימו כל טכניקה למה שהיא חוסכת."
+    concepts: [kv-cache, flashattention, moe, quantisation]
+    sources: [74, 62, 59, 67]
+    pairs:
+      - {left: "מטמון מפתחות וערכים (KV cache)", right: "חישוב מחדש של המפתחות והערכים של טוקנים קודמים בכל צעד", explanation: "הם נשמרים ונעשה בהם שימוש חוזר, במחיר של זיכרון."}
+      - {left: "FlashAttention", right: "קריאות וכתיבות איטיות לזיכרון במהלך חישוב attention מדויק", explanation: "ה-tiling (חלוקה לאריחים) שומר את הנתונים בזיכרון המהיר שעל השבב."}
+      - {left: "תערובת מומחים (Mixture of Experts)", right: "חישוב לכל טוקן, על ידי הפעלה של מספר קטן של מומחים בלבד", explanation: "עדיין צריך לאחסן את כל המומחים."}
+      - {left: "קוונטיזציה (quantization) ל-4 ביט", right: "הזיכרון שבו משתמשים המשקלים", explanation: "QLoRA כיוונן מודל בן 65 מיליארד פרמטרים על GPU אחד עם 48 ג'יגה-בייט."}
+    distractors:
+      - "נתוני אימון"
+  - id: q64-2
+    type: mcq
+    text: "מהו המחיר של ה-KV cache?"
+    concepts: [kv-cache]
+    sources: [74]
+    options:
+      - {text: "זיכרון: הוא יכול לתפוס חלק משמעותי ממנו, במיוחד בהקשרים ארוכים.", correct: true, explanation: "מטמונים שמועברים לזיכרון חיצוני (offloading) או עוברים קוונטיזציה מחליפים מהירות בזיכרון."}
+      - {text: "הוא הופך את הפלט לפחות מדויק.", correct: false, explanation: "הוא שומר ערכים מדויקים ואינו משנה את הפלט."}
+      - {text: "הוא מאט כל טוקן.", correct: false, explanation: "הוא מאיץ את היצירה כי הוא מונע חישוב מחדש."}
+  - id: q64-3
+    type: open
+    text: "FlashAttention מחשב בדיוק את אותו attention אך רץ מהר יותר. הסבירו איך זה אפשרי."
+    concepts: [flashattention]
+    sources: [62]
+    rubric: |
+      - מציין שהצוואר בקבוק הוא העברת נתונים בין זיכרון איטי בעל רוחב פס גבוה (HBM) לזיכרון מהיר שעל השבב, ולא רק החישוב האריתמטי.
+      - מציין ש-FlashAttention משתמש ב-tiling (חלוקה לאריחים) כדי להקטין את מספר הקריאות והכתיבות, תוך חישוב התוצאה המדויקת.

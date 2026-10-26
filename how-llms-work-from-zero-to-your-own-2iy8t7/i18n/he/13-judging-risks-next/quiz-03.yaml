@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q59
+title: "בדיקה: סיכונים והצעדים הבאים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q59-1
+    type: match
+    text: "התאימו כל סיכון לגורם השורש שלו."
+    concepts: [risks]
+    sources: [21, 29, 37]
+    pairs:
+      - {left: "הזיה (Hallucination)", right: "פונקציית המטרה מתגמלת טקסט סביר, לא טקסט נכון", explanation: "שום דבר לא בודק את העובדות."}
+      - {left: "הטיה (Bias)", right: "המודל משקף הטיות שקיימות בנתוני האימון שלו", explanation: "כפי שמופיע בכרטיס המודל (model card) של GPT-2."}
+      - {left: "אפקט ELIZA", right: "מבלבלים בין פלט שוטף להבנה", explanation: "נטייה אנושית, לא כשל של המודל."}
+    distractors:
+      - "הטוקנייזר קטן מדי"
+  - id: q59-2
+    type: mcq
+    text: "מהי דרך לנהל סיכונים של LLM, לפי השיעור?"
+    concepts: [risk-management]
+    sources: [37]
+    options:
+      - {text: "לבדוק על המקרים שלכם, לעגן תשובות במקורות, להגביל הרשאות של כלים ולשמור על אדם בלולאה (human in the loop) בהחלטות חשובות.", correct: true, explanation: "אין פתרון יחיד לאף אחד מהסיכונים."}
+      - {text: "להשתמש במודל גדול יותר, שמבטל הזיות.", correct: false, explanation: "מודלים גדולים יותר היו בדרך כלל פחות אמינים ב-TruthfulQA."}
+      - {text: "להגדיר את הטמפרטורה (temperature) לאפס.", correct: false, explanation: "פענוח חמדני (greedy decoding) לא הופך עובדות לנכונות."}
+  - id: q59-3
+    type: open
+    text: "בחרו את הצעד הבא בלמידה שמתאים למטרה שלכם, ונמקו אותו בעזרת משהו שבניתם בקורס."
+    concepts: [next-steps]
+    sources: [19, 18]
+    rubric: |
+      - מציין צעד הבא קונקרטי, כגון הסדרה Zero to Hero של Karpathy, הפרויקט nanochat, או שימוש במודלים באפליקציה.
+      - מנמק אותו בקישור למשהו שהלומד בנה או למד בקורס, כגון ה-mini-GPT, המעבדות (labs) או ההערכה (evaluation).

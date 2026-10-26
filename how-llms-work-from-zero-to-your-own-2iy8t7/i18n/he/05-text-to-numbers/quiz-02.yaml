@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: q21
+title: "בוחן: קידוד זוגות בתים (byte-pair encoding)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q21-1
+    type: fill
+    text: "סדרו את שלבי ה-BPE לפי הסדר."
+    concepts: [bpe]
+    sources: [6]
+    template: |
+      {{1}}, אחר כך {{2}}, אחר כך {{3}}, אחר כך {{4}}.
+    chips:
+      - {text: "מתחילים מתווים בודדים", slot: 1, explanation: "אוצר המיליםההתחלתי הוא התווים."}
+      - {text: "סופרים כל זוג סמוך", slot: 2, explanation: "מוצאים איזה זוג נפוץ ביותר."}
+      - {text: "ממזגים את הזוג השכיח ביותר לטוקן חדש", slot: 3, explanation: "מוסיפים את הטוקן החדש ורושמים את כלל המיזוג."}
+      - {text: "חוזרים על התהליך עד שאוצר המילים גדול מספיק", slot: 4, explanation: "עוצרים בגודל אוצר המילים שנבחר."}
+  - id: q21-2
+    type: trace
+    text: "אלגוריתם BPE רץ על הטקסט \"ababab\". מיזוג 1 מחבר את הזוג השכיח ביותר. מיזוג 2 מחבר את הזוג השכיח ביותר בתוצאה, תוך סריקה משמאל לימין ללא חפיפה. מלאו את הטוקנים (מופרדים ברווחים) ואת מספרם אחרי כל שלב."
+    concepts: [bpe]
+    sources: [6]
+    code: |
+      text: ababab
+      pairs at start: (a,b) x3, (b,a) x2
+    variables: [tokens, count]
+    steps:
+      - {label: "התחלה", values: {tokens: "a b a b a b", count: 6}, given: [tokens, count]}
+      - {label: "אחרי מיזוג 1", values: {tokens: "ab ab ab", count: 3}}
+      - {label: "אחרי מיזוג 2", values: {tokens: "abab ab", count: 2}}
+    explanation: "מיזוג 1 מחבר את (a,b), הזוג השכיח ביותר, ומתקבל ab ab ab. כעת (ab,ab) הוא הזוג היחיד והוא מופיע פעמיים. מיזוג הזוג הראשון ללא חפיפה נותן abab ab. כל מיזוג מסיר טוקן אחד על כל זוג שמוזג."
+  - id: q21-3
+    type: open
+    text: "כיצד BPE מפצל לטוקנים מילה שלא נראתה מעולם בזמן האימון, ומדוע זה יתרון על פני רשימת מילים קבועה?"
+    concepts: [bpe, open-vocabulary]
+    sources: [6]
+    rubric: |
+      - מציין שהוא מחיל את המיזוגים שנלמדו ונסוג לחלקים קטנים וידועים יותר, עד לתווים בודדים.
+      - מציין שרשימת מילים קבועה תסמן את המילה כלא מוכרת, ואילו BPE תמיד יכול לייצג אותה.

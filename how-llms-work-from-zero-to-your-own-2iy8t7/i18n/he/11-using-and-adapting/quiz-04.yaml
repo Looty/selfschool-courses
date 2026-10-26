@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q51
+title: "בדיקה: מעבדה 11"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q51-1
+    type: mcq
+    text: "מדוע מטריצת ה-LoRA ‏B מאותחלת באפסים?"
+    concepts: [lora, initialisation]
+    sources: [10]
+    options:
+      - {text: "כדי שהמודל יתחיל בדיוק כמו המודל המאומן מראש (pretrained), והאימון יוסיף תיקון החל מנקודה זו.", correct: true, explanation: "המכפלה B·A שווה לאפס בתחילת האימון."}
+      - {text: "כדי לחסוך בזיכרון.", correct: false, explanation: "ערכי האתחול אינם משנים את נפח הזיכרון שבשימוש."}
+      - {text: "כי אפסים מתאמנים מהר יותר.", correct: false, explanation: "הסיבה היא להתחיל מההתנהגות של מודל הבסיס."}
+  - id: q51-2
+    type: spot
+    text: "לחצו על השורה שבה המשקולות המקוריות מוקפאות."
+    concepts: [lora, code-reading]
+    sources: [10]
+    code: |
+      self.base = base
+      for p in self.base.parameters():
+          p.requires_grad = False
+      self.A = nn.Parameter(torch.randn(rank, base.in_features) * 0.01)
+    correct: [3]
+    explanation: "הגדרת requires_grad ל-False מונעת מירידת הגרדיאנט (gradient descent) לשנות את המשקולות של שכבת הבסיס; רק A ו-B נשארות ברות אימון."
+  - id: q51-3
+    type: open
+    text: "ערך ה-loss של LoRA במשימת האותיות הגדולות (2.32) נשאר גבוה בהרבה מ-1.93, הערך שאליו המודל הגיע על טקסט רגיל. הסבירו מדוע, ומתי LoRA עובד הכי טוב."
+    concepts: [lora, limitations]
+    sources: [10]
+    rubric: |
+      - מציין שרק מטריצות ה-attention הותאמו, בעוד טבלת ה-embedding ושכבות ה-feed-forward נשארו קפואות, ולכן המודל לא יכול היה ללמוד ייצוגים חדשים לתווים לא מוכרים.
+      - מציין ש-LoRA עובד הכי טוב כשהמשימה החדשה קרובה למה שמודל הבסיס כבר מכיר.

@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q15
+title: "בדיקה: דוגמאות ופונקציית הפסד"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q15-1
+    type: mcq
+    text: "במודל prediction = w × x + b, מהם ה'כפתורים' שהאימון מכוונן?"
+    concepts: [weights, model-as-function]
+    sources: [32]
+    options:
+      - {text: "w ו-b", correct: true, explanation: "המשקל (weight) וההטיה (bias) הם המספרים הניתנים לכוונון."}
+      - {text: "x", correct: false, explanation: "x הוא הקלט; האימון אינו משנה אותו."}
+      - {text: "ההפסד (loss)", correct: false, explanation: "ההפסד מודד שגיאה; הוא אינו כפתור."}
+  - id: q15-2
+    type: fill
+    text: "השלימו את ההגדרה של שגיאה ריבועית ממוצעת (mean squared error, MSE)."
+    concepts: [mse, loss]
+    sources: [32]
+    template: |
+      לכל דוגמה, לוקחים את {{1}} בין התחזית לאמת, מבצעים {{2}} שלה, ואז מחשבים {{3}} על פני כל הדוגמאות.
+    chips:
+      - {text: "ההפרש", slot: 1, explanation: "השגיאה היא המרחק בין התחזית לאמת."}
+      - {text: "העלאה בריבוע", slot: 2, explanation: "העלאה בריבוע הופכת את השגיאות לחיוביות וגם מענישה בחומרה החטאות גדולות."}
+      - {text: "ממוצע", slot: 3, explanation: "זה ה-'mean' ב-mean squared error."}
+      - {text: "הכפלה", explanation: "אינה חלק מההגדרה."}
+  - id: q15-3
+    type: open
+    text: "מדוע הפיכת השאלה 'עד כמה המודל טועה' למספר יחיד מאפשרת למידה?"
+    concepts: [loss]
+    sources: [32, 34]
+    rubric: |
+      - מציין שעם מספר יחיד אפשר להשוות בין הגדרות שונות ולהבחין בין טובה יותר לגרועה יותר.
+      - מציין שהלמידה הופכת לחיפוש: משנים את הכפתורים בכיוון שמקטין את המספר.

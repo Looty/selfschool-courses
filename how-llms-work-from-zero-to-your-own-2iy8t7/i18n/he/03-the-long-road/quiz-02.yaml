@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q12
+title: "בדיקה: LSTM"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q12-1
+    type: mcq
+    text: "מהי בעיית דעיכת הגרדיינט (vanishing gradient) ב-RNN קלאסי?"
+    concepts: [vanishing-gradient, rnn]
+    sources: [27]
+    options:
+      - {text: "אות השגיאה עבור צעדים רחוקים מצטמצם לקראת אפס, ולכן הרשת מפסיקה ללמוד קשרים ארוכי טווח.", correct: true, explanation: "גרדיינטים שנשלחים אחורה דרך צעדים רבים עלולים להיעלם."}
+      - {text: "לרשת נגמרים המשקלים.", correct: false, explanation: "הבעיה נוגעת לאות האימון, לא למספר המשקלים."}
+      - {text: "נתוני האימון נעלמים עם הזמן.", correct: false, explanation: "אות השגיאה הוא שדועך."}
+  - id: q12-2
+    type: match
+    text: "התאימו כל מונח למשמעותו."
+    concepts: [lstm, rnn]
+    sources: [27]
+    pairs:
+      - {left: "מצב נסתר (Hidden state)", right: "סיכום של מה שנקרא עד כה", explanation: "רשת RNN מעבירה אותו מצעד לצעד."}
+      - {left: "קרוסלת השגיאה הקבועה (Constant error carousel)", right: "מסלול שמאפשר לאותות שגיאה להישמר בלי להצטמצם", explanation: "התשובה של ה-LSTM לדעיכת גרדיינטים."}
+      - {left: "שער (Gate)", right: "בקרה נלמדת על כמות המידע שעוברת", explanation: "שערי ה-LSTM מחליטים מה לשמור ומה לשכוח."}
+    distractors:
+      - "כלל קבוע שנכתב על ידי מומחה"
+  - id: q12-3
+    type: open
+    text: "ציינו שני מגבלות שנותרו גם עם LSTM, וכתבו מה לפי הקורס בא אחר כך."
+    concepts: [lstm, sequential-processing]
+    sources: [27]
+    rubric: |
+      - מציין ש-RNN/LSTM חייב לעבד טוקנים צעד אחר צעד, ולכן קשה לבצע את האימון במקביל.
+      - מציין שכל המידע על העבר חייב לעבור דרך מצב נסתר (hidden state) אחד.
+      - מציין שמנגנון הקשב (attention), ואחריו הטרנספורמר (Transformer), היה הצעד הבא.

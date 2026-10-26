@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q04
+title: "בדיקה: מעבדה 1"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q04-1
+    type: mcq
+    text: "בפענוח חמדני (greedy decoding) במעבדה נוצרו לעיתים קרובות ביטויים חוזרים. מדוע?"
+    concepts: [greedy-decoding, sampling]
+    sources: [30]
+    options:
+      - {text: "בחירה תמידית באסימון (token) הבא הסביר ביותר עלולה להוביל ללולאה.", correct: true, explanation: "ברגע שביטוי מסוים הופך להמשך הסביר ביותר של עצמו, הפענוח החמדני ממשיך לבחור בו שוב ושוב."}
+      - {text: "נגמר הזיכרון של המודל.", correct: false, explanation: "החזרתיות היא תכונה של כלל הפענוח ולא של הזיכרון."}
+      - {text: "הטמפרטורה (temperature) הייתה גבוהה מדי.", correct: false, explanation: "פענוח חמדני אינו משתמש בטמפרטורה כלל."}
+  - id: q04-2
+    type: short
+    text: "איזו הגדרה ב-generate() מגבילה את מספר האסימונים החדשים שנוצרים (ברירת המחדל היא רק כ-20)?"
+    concepts: [generate]
+    sources: [30]
+    answers: ["max_new_tokens", "max new tokens", "מקסימום אסימונים חדשים", "max_new_tokens", "מספר מקסימלי של אסימונים חדשים"]
+  - id: q04-3
+    type: open
+    text: "לאחר שהרצתם את המעבדה על הפרומפטים (prompts) שלכם, תארו תשובה אחת שנשמעה נכונה אך הייתה שגויה, והסבירו מה בשיעור 3 מסביר זאת."
+    concepts: [hallucination, hands-on]
+    sources: [29]
+    rubric: |
+      - מתאר פלט מסוים מההרצה של הלומד עצמו שהיה שוטף אך שגוי או לא אמין.
+      - מקשר אותו לכך שהמודל מאומן להפיק טקסט סביר ואינו בודק עובדות, או להטיות בנתוני האימון שלו.

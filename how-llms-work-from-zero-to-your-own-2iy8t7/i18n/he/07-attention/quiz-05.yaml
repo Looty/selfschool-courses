@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q33
+title: "בדיקה: ראשים (heads) ושכבות"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q33-1
+    type: mcq
+    text: "מה מוסיף multi-head attention (קשב מרובה ראשים) לעומת קשב (attention) יחיד?"
+    concepts: [multi-head-attention]
+    sources: [20]
+    options:
+      - {text: "כמה מנגנוני קשב, כל אחד עם מטריצות משלו שנלמדו, פועלים במקביל, וכל אחד מסתכל על המשפט בדרך שונה.", correct: true, explanation: "הפלטים משולבים לפלט אחד."}
+      - {text: "הוא חוזר על אותו קשב כמה פעמים לשם דיוק.", correct: false, explanation: "לכל ראש יש מטריצות משלו, ולכן הראשים יכולים להיות שונים זה מזה."}
+      - {text: "הוא מבטל את הצורך ב-softmax.", correct: false, explanation: "כל ראש עדיין משתמש ב-softmax."}
+  - id: q33-2
+    type: short
+    text: "איך קוראים לחישוב קשב עצמאי אחד בתוך multi-head attention?"
+    concepts: [attention-head]
+    sources: [20]
+    answers: ["head", "an attention head", "attention head", "a head", "ראש", "ראש קשב", "ראש attention", "head קשב", "ה-head", "ראש אחד"]
+  - id: q33-3
+    type: open
+    text: "מדוע Transformers מערימים הרבה בלוקים, ומה אתם באמת לא יודעים על מה שכל אחד מהם עושה?"
+    concepts: [stacking-layers, interpretability]
+    sources: [1, 20]
+    rubric: |
+      - מציין שבלוקים מאוחרים יותר נשענים על הפלט שכבר עבר ערבוב בבלוקים קודמים, וכך המידע יכול לזרום לאורך כמה שלבים.
+      - מציין שהמקורות של הקורס אינם קובעים מה ראשים או שכבות בודדים לומדים, וזו שאלת מחקר פתוחה.

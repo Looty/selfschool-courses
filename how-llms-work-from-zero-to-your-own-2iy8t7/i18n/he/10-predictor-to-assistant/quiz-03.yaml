@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q45
+title: "בדיקה: DPO"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q45-1
+    type: match
+    text: "התאימו כל שיטה לאופן שבו היא משתמשת בנתוני העדפה."
+    concepts: [rlhf, dpo]
+    sources: [4, 14]
+    pairs:
+      - {left: "RLHF", right: "מאמנת מודל תגמול (reward model), ואז מבצעת אופטימיזציה של מודל השפה באמצעות למידת חיזוק (reinforcement learning)", explanation: "תהליך רב־שלבי."}
+      - {left: "DPO", right: "מתאמנת ישירות על זוגות של תשובה מועדפת ותשובה נדחית, עם פונקציית הפסד פשוטה בסגנון סיווג", explanation: "אין מודל תגמול נפרד ואין לולאת RL."}
+    distractors:
+      - "כותבת ביד תשובות אידיאליות לכל פרומפט"
+  - id: q45-2
+    type: mcq
+    text: "מה תפקידו של מודל הייחוס (reference model) הקפוא ב־DPO?"
+    concepts: [dpo, reference-model]
+    sources: [14]
+    options:
+      - {text: "הוא מעגן את ההשוואה, כך שהמודל המכוונן לא יתרחק יותר מדי מנקודת המוצא שלו.", correct: true, explanation: "ההפסד נמדד ביחס למודל הייחוס."}
+      - {text: "הוא מייצר את נתוני האימון.", correct: false, explanation: "הנתונים הם זוגות העדפה של בני אדם."}
+      - {text: "הוא מחליף את ה־tokenizer.", correct: false, explanation: "אין לכך קשר לטוקניזציה."}
+  - id: q45-3
+    type: open
+    text: "מדוע DPO הפכה פופולרית, לפי טענות המחברים?"
+    concepts: [dpo]
+    sources: [14]
+    rubric: |
+      - מציין שהיא פשוטה יותר מ־RLHF: אין מודל תגמול נפרד ואין לולאת דגימה של למידת חיזוק.
+      - מציין שהמחברים דיווחו שהיא דורשת כוונון מועט של היפר־פרמטרים (hyperparameters) ושהיא משווה לאיכות של RLHF או משפרת אותה.

@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q41
+title: "בדיקה: עלות ונתונים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q41-1
+    type: mcq
+    text: "לפי ה-README של nanochat, בערך כמה זמן וכמה כסף נדרשים כדי לאמן מודל ברמת GPT-2 על 8 מעבדי H100 GPU?"
+    concepts: [training-cost]
+    sources: [18]
+    options:
+      - {text: "בערך שעתיים ובערך 48 דולר במחירי on-demand.", correct: true, explanation: "ה-README מציין גם ש-spot instances יכולים להוריד את העלות לכ-15 דולר."}
+      - {text: "בערך שבועיים ו-48,000 דולר.", correct: false, explanation: "המספרים האלה גבוהים פי אלף בערך ממה שה-README טוען."}
+      - {text: "בערך שתי דקות ו-0.50 דולר.", correct: false, explanation: "זה נמוך בהרבה ממה שה-README קובע."}
+  - id: q41-2
+    type: sort
+    text: "איזה סיכון של נתונים בקנה מידה של האינטרנט מדגימה כל דוגמה?"
+    concepts: [data-risks]
+    sources: [3, 29]
+    buckets: ["הטיה (Bias)", "זיהום (Contamination)"]
+    items:
+      - {text: "השלמות שנוטות לסטריאוטיפים באופן שונה בין שתי הנחיות (prompts) שנבדלות רק בגזע", bucket: "הטיה (Bias)", explanation: "מתואר בכרטיס המודל (model card) של GPT-2."}
+      - {text: "שאלות ממבחן ייחוס (benchmark) מופיעות בטקסט האימון ומנפחות את הציונים", bucket: "זיהום (Contamination)", explanation: "הועלה כחשש מתודולוגי במאמר של GPT-3."}
+      - {text: "המודל חוזר על תפיסה מוטעית נפוצה", bucket: "הטיה (Bias)", explanation: "שקרים שנלמדו מהנתונים דומים להטיה: הנתונים היו מוטים."}
+  - id: q41-3
+    type: open
+    text: "מדוע צריך לצרף שנה ומקור לנתונים המספריים בשיעור הזה, וכיצד כדאי להשתמש בהם?"
+    concepts: [training-cost]
+    sources: [21, 18]
+    rubric: |
+      - מציין שהעלויות תלויות בחומרה, במחירים ובקוד שמשתנים במהירות, ולכן מספר תקף רק לשנה ולשיטת החישוב שלו.
+      - מציין שיש להשתמש בהם כסדרי גודל (orders of magnitude) ולא כערכים מדויקים.

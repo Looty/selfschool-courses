@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q08
+title: "בדיקה: ELIZA"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q08-1
+    type: mcq
+    text: "כיצד ELIZA יצרה את התשובות שלה?"
+    concepts: [eliza, rules-based]
+    sources: [22]
+    options:
+      - {text: "היא זיהתה מילות מפתח, פיצלה את המשפט באמצעות כללי פירוק (decomposition rules) ומילאה תבניות באמצעות כללי הרכבה מחדש (reassembly rules).", correct: true, explanation: "זה המנגנון שהמקורות מתארים."}
+      - {text: "היא ניבאה את המילה הבאה לפי סטטיסטיקות של קורפוס (corpus) גדול.", correct: false, explanation: "זה מתאר מודל שפה (language model), ו-ELIZA לא הייתה כזו."}
+      - {text: "היא חיפשה עובדות בבסיס ידע גדול.", correct: false, explanation: "Weizenbaum בחר בהקשר של מטפל דווקא כדי לא להזדקק למאגר כזה."}
+  - id: q08-2
+    type: short
+    text: "איך נקראת הנטייה של אנשים לייחס הבנה או רגשות לתוכנה שוטפת כמו ELIZA?"
+    concepts: [eliza-effect]
+    sources: [22]
+    answers: ["eliza effect", "the eliza effect", "אפקט אליזה", "אפקט ELIZA", "אפקט הELIZA", "אפקט ה-ELIZA", "אפקט אלייזה"]
+  - id: q08-3
+    type: open
+    text: "ELIZA לא הבינה דבר, ובכל זאת אנשים שיתפו אותה בסודותיהם. איזו מסקנה צריך ללמוד מכך כשבוחנים צ'אטבוט מודרני?"
+    concepts: [eliza-effect, evaluation]
+    sources: [22]
+    rubric: |
+      - מציין שתשובות שוטפות או שנשמעות אנושיות אינן מוכיחות הבנה.
+      - מציין שבטוח יותר לשפוט מה המערכת עושה בפועל (דיוק, התנהגות במבחנים) ולא עד כמה היא נשמעת אנושית.

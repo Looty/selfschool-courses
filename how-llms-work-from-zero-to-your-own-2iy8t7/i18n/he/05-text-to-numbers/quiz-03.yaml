@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q22
+title: "בוחן: מעבדה 5"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q22-1
+    type: mcq
+    text: "במעבדה, המיזוג הראשון היה w + e ולא l + o. מדוע?"
+    concepts: [bpe]
+    sources: [6]
+    options:
+      - {text: "הזוג w,e הופיע 6 פעמים, יותר מ-l,o שהופיע 5 פעמים, ו-BPE ממזג קודם את הזוג השכיח ביותר.", correct: true, explanation: "סדר המיזוגים נקבע לפי ספירת הזוגות."}
+      - {text: "BPE ממזג זוגות לפי סדר אלפביתי.", correct: false, explanation: "השכיחות היא שמכריעה, לא סדר האלפבית."}
+      - {text: "האותיות l ו-o אף פעם לא מופיעות זו לצד זו.", correct: false, explanation: "הן כן הופיעו זו לצד זו, והפכו למיזוג השני."}
+  - id: q22-2
+    type: spot
+    text: "לחצו על השורה בלולאת המיזוג של המעבדה שהופכת את ה-tokenizer לחמדני (greedy) ביחס לשכיחות."
+    concepts: [bpe, code-reading]
+    sources: [6]
+    code: |
+      pairs = Counter(zip(tokens, tokens[1:]))
+      (left, right), count = pairs.most_common(1)[0]
+      merges.append((left, right))
+      tokens = merge_everywhere(tokens, left, right)
+    correct: [2]
+    explanation: "הפונקציה most_common(1) בוחרת את הזוג הסמוך השכיח ביותר; זה מה שגורם לסדר המיזוגים לעקוב אחר השכיחות."
+  - id: q22-3
+    type: open
+    text: "לאחר הרצת המעבדה, הסבירו מה קרה כשקידדתם את המילה שלא נראתה קודם, 'slowly', ומדוע זה חשוב."
+    concepts: [bpe, open-vocabulary]
+    sources: [6]
+    rubric: |
+      - מציין שהמילה פוצלה לחלקים קטנים וידועים (כולל תווים בודדים) במקום שהקידוד ייכשל.
+      - מציין שכך ה-tokenizer יכול לייצג כל טקסט, ונמנעת בעיית המילה הלא מוכרת (unknown-word problem).

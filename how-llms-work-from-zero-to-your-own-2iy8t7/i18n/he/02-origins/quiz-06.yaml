@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: q10
+title: "בדיקת הבנה: הפרספטרון והחורף הראשון"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q10-1
+    type: mcq
+    text: "מה פרספטרון (perceptron) חד-שכבתי לא יכול ללמוד?"
+    concepts: [perceptron, xor]
+    sources: [24]
+    options:
+      - {text: "XOR, כי הפונקציה אינה ניתנת להפרדה לינארית (linearly separable).", correct: true, explanation: "שכבה אחת יכולה להפריד בין מחלקות רק באמצעות קו ישר."}
+      - {text: "AND, כי נדרשים לו שני קלטים.", correct: false, explanation: "AND ניתנת להפרדה לינארית, ולכן אפשר ללמוד אותה."}
+      - {text: "אף תבנית בכלל.", correct: false, explanation: "הוא יכול ללמוד תבניות הניתנות להפרדה לינארית."}
+  - id: q10-2
+    type: mcq
+    text: "איזו קביעה לגבי הספר Perceptrons מ-1969 מדויקת?"
+    concepts: [perceptron, miscitation]
+    sources: [24]
+    options:
+      - {text: "הוא הראה שפרספטרונים חד-שכבתיים אינם יכולים ללמוד XOR; הטענה שהוא הוכיח שלרשתות רב-שכבתיות יש אותה מגבלה היא ציטוט שגוי.", correct: true, explanation: "זה בדיוק מה שנאמר במקור."}
+      - {text: "הוא הוכיח שרשתות רב-שכבתיות לעולם לא יוכלו ללמוד XOR.", correct: false, explanation: "זהו הציטוט השגוי הנפוץ."}
+      - {text: "הוא היה הגורם לכל חורפי ה-AI.", correct: false, explanation: "הוא תרם לדעיכה במחקר רשתות נוירונים, אך לא לכל חורף."}
+  - id: q10-3
+    type: sort
+    text: "איזה גורם שייך לאיזו סיבה של חורף ה-AI הראשון?"
+    concepts: [ai-winter]
+    sources: [26]
+    buckets: ["בריטניה", "ארה״ב (DARPA)"]
+    items:
+      - {text: "דו״ח לייטהיל (Lighthill) מ-1973", bucket: "בריטניה", explanation: "הוזמן על ידי הפרלמנט הבריטי."}
+      - {text: "תיקון מנספילד (Mansfield Amendment) מ-1969", bucket: "ארה״ב (DARPA)", explanation: "חייב את DARPA לממן עבודה בעלת מיקוד משימתי."}
+      - {text: "ביטול החוזה להבנת דיבור באוניברסיטת קרנגי מלון", bucket: "ארה״ב (DARPA)", explanation: "DARPA ביטלה אותו ב-1974."}
+  - id: q10-4
+    type: open
+    text: "מהו חורף AI (AI winter), ומדוע כדאי להיזהר מלראות בחורף הראשון הוכחה לכך שהמחקר נעצר?"
+    concepts: [ai-winter]
+    sources: [26]
+    rubric: |
+      - מגדיר חורף AI כתקופה של קיצוץ במימון ובעניין לאחר שההייפ (hype) עקף את התוצאות.
+      - מציין שהיסטוריון חולק על כך שהחורף הראשון היה חורף אמיתי, משום שמספר החוקרים המשיך לגדול.

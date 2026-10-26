@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q20
+title: "בדיקה: טוקנים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q20-1
+    type: mcq
+    text: "מדוע רוב ה-LLMs משתמשים בטוקנים של תת-מילים (subword tokens) ולא במילים שלמות?"
+    concepts: [subword, vocabulary]
+    sources: [6]
+    options:
+      - {text: "מילים חדשות ונדירות תמיד אינן מוכרות לרשימת מילים קבועה, אבל אפשר לאיית אותן מיחידות קטנות יותר.", correct: true, explanation: "זוהי בעיית אוצר המילים הפתוח (open vocabulary) שגישת תת-המילים נועדה לפתור."}
+      - {text: "תת-מילים הופכות את אוצר המילים לאינסופי.", correct: false, explanation: "אוצר המילים נשאר קבוע; מילים לא מוכרות נבנות מחלקים מוכרים."}
+      - {text: "ארכיטקטורת ה-Transformer מחייבת שימוש בתת-מילים.", correct: false, explanation: "זו בחירה ולא דרישה של הארכיטקטורה."}
+  - id: q20-2
+    type: sort
+    text: "איזו בעיה שייכת לאיזה סוג של טוקן?"
+    concepts: [tokenization-tradeoffs]
+    sources: [6]
+    buckets: ["מילים שלמות", "תווים בודדים"]
+    items:
+      - {text: "שם מותג חדש אינו נמצא באוצר המילים", bucket: "מילים שלמות", explanation: "רשימת מילים קבועה אינה יכולה להכיל כל מילה חדשה."}
+      - {text: "כל משפט הופך לרצף ארוך מאוד", bucket: "תווים בודדים", explanation: "צעד אחד לכל אות ממלא במהירות את חלון ההקשר (context window)."}
+      - {text: "שגיאת הקלדה הופכת את המילה ללא מוכרת", bucket: "מילים שלמות", explanation: "המילה שהוקלדה שגוי אינה ברשימה."}
+  - id: q20-3
+    type: short
+    text: "בטוקנייזר של GPT-2, איזה תו מסמן טוקן שמתחיל ברווח?"
+    concepts: [token]
+    sources: [21]
+    answers: ["Ġ", "G with a dot", "Ġ (G with a dot)", "G עם נקודה", "Ġ (G עם נקודה)", "האות G עם נקודה"]

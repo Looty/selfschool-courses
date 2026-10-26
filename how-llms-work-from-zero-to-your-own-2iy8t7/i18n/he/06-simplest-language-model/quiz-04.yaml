@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q27
+title: "בוחן: מעבדה 6"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q27-1
+    type: spot
+    text: "לחצו על השורה שמפעילה את הטמפרטורה (temperature) לפני הדגימה (sampling)."
+    concepts: [temperature, code-reading]
+    sources: [30]
+    code: |
+      p = probs(prev)
+      weights = [p[ch] ** (1.0 / TEMPERATURE) for ch in vocab]
+      return random.choices(vocab, weights)[0]
+    correct: [2]
+    explanation: "העלאת כל הסתברות בחזקת 1/TEMPERATURE מחדדת את ההתפלגות (כאשר T קטן מ-1) או משטיחה אותה (כאשר T גדול מ-1) לפני ש-random.choices דוגמת תו."
+  - id: q27-2
+    type: mcq
+    text: "בהרצת הבדיקה ה-loss על הטקסט המוחרג (held-out) היה 2.493, וה-loss של ניחוש אחיד (uniform) היה 4.174. מה אפשר ללמוד מכך?"
+    concepts: [loss, baseline]
+    sources: [17]
+    options:
+      - {text: "מודל הספירה מקצה לתו הבא האמיתי הסתברות גבוהה יותר מכפי שהייתה מוקצית בניחוש עיוור.", correct: true, explanation: "loss נמוך יותר פירושו הפתעה ממוצעת נמוכה יותר."}
+      - {text: "מודל הספירה כותב משפטים הגיוניים.", correct: false, explanation: "ה-loss אינו אומר דבר על משמעות; הטקסט שנדגם עדיין חסר משמעות."}
+      - {text: "המודל סובל מ-overfitting (התאמת יתר).", correct: false, explanation: "ה-loss נמדד על טקסט מוחרג (held-out), והוא היה טוב יותר מקו הבסיס."}
+  - id: q27-3
+    type: open
+    text: "אתם משנים את המעבדה כך שתשתמש בשני התווים הקודמים כהקשר (context). נבאו מה יקרה לגודל הטבלה ול-loss על הטקסט המוחרג (held-out), והסבירו מדוע."
+    concepts: [n-gram, context, curse-of-dimensionality]
+    sources: [17]
+    rubric: |
+      - מציין שמספר השורות בטבלת הספירות גדל פי גודל אוצר התווים (vocabulary), כלומר בערך פי 65.
+      - מציין שה-loss על הטקסט המוחרג אמור לרדת כי יותר הקשר מניב ניבויים טובים יותר, אך הספירות הופכות דלילות (sparse), כלומר הקשרים רבים נראים רק לעיתים רחוקות.

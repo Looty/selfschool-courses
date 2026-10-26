@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: q02
+title: "בדיקה: LLM בעמוד אחד"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q02-1
+    type: match
+    text: "התאימו כל מונח למשמעות שלו."
+    concepts: [training, inference, parameters]
+    sources: [21]
+    pairs:
+      - {left: "אימון (Training)", right: "כוונון הפרמטרים כך שהתחזיות יתאימו לדוגמאות", explanation: "האימון הוא שלב הלמידה."}
+      - {left: "הסקה (Inference)", right: "שימוש במודל מאומן על קלט חדש", explanation: "הסקה היא שימוש במודל, לא שינוי שלו."}
+      - {left: "פרמטרים (Parameters)", right: "המספרים הניתנים לכוונון בתוך המודל", explanation: "נקראים גם משקלים (weights); האימון משנה אותם."}
+    distractors:
+      - "הטקסט שמקלידים כדי להתחיל שיחה"
+  - id: q02-2
+    type: mcq
+    text: "כיצד LLM כותב תשובה של 200 מילים?"
+    concepts: [generation-loop]
+    sources: [21]
+    options:
+      - {text: "הוא מנבא טוקן אחד, מוסיף אותו לטקסט וחוזר על השלב הזה פעמים רבות.", correct: true, explanation: "יצירת טקסט היא לולאה של ניבוי הטוקן הבא."}
+      - {text: "הוא מחפש את התשובה במסד נתונים שמור של תשובות.", correct: false, explanation: "LLM לא מחפש תשובות; הידע שלו נמצא בפרמטרים שלו."}
+      - {text: "הוא כותב את כל התשובה בבת אחת, בשלב יחיד.", correct: false, explanation: "כל מעבר מפיק טוקן אחד."}
+  - id: q02-3
+    type: sort
+    text: "לאיזה שלב שייכת כל פעילות?"
+    concepts: [pretraining, fine-tuning]
+    sources: [21]
+    buckets: ["אימון מקדים (Pretraining)", "כוונון עדין (Fine-tuning)"]
+    items:
+      - {text: "ניבוי המילה הבאה על פני מאגר עצום של טקסט", bucket: "אימון מקדים (Pretraining)", explanation: "זו מטרת האימון המקדים."}
+      - {text: "הוראת המודל לבצע הוראות של משתמשים", bucket: "כוונון עדין (Fine-tuning)", explanation: "כוונון הוראות (instruction tuning) הוא התאמה מאוחרת יותר של מודל שכבר עבר אימון מקדים."}
+      - {text: "למידת דפוסים כלליים של שפה מטקסט בקנה מידה של האינטרנט", bucket: "אימון מקדים (Pretraining)", explanation: "האימון המקדים מקנה ידע רחב על השפה."}
+  - id: q02-4
+    type: open
+    text: "מהו חלון הקשר (context window), ולמה הוא חשוב בשיחה עם LLM?"
+    concepts: [context-window]
+    sources: [21]
+    rubric: |
+      - מציין שחלון ההקשר הוא הטווח, או מספר הטוקנים, שהמודל יכול לשקול בבת אחת.
+      - מציין שכל מה שנמצא מחוץ לחלון אינו יכול להשפיע על הניבוי הבא, ולכן שיחה ארוכה חייבת להיכנס בתוך החלון.

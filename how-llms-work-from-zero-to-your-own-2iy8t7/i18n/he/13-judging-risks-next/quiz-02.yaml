@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q58
+title: "בדיקה: משקולות פתוחות (open weights) ו-API"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q58-1
+    type: match
+    text: "התאימו כל דפוס שחרור לדוגמה."
+    concepts: [open-weights, api, staged-release]
+    sources: [11, 28, 21]
+    pairs:
+      - {left: "API בלבד", right: "GPT-3 (2020)", explanation: "זמין באמצעות API."}
+      - {left: "שחרור מדורג (staged release)", right: "GPT-2 (2019)", explanation: "גרסת 774M באוגוסט, והמודל המלא בנובמבר."}
+      - {left: "משקולות פתוחות (open weights)", right: "LLaMA (2023)", explanation: "המודלים שוחררו לקהילת המחקר."}
+    distractors:
+      - "ELIZA (1966)"
+  - id: q58-2
+    type: mcq
+    text: "איזו טענה על LLaMA הועלתה על ידי מחבריו?"
+    concepts: [llama]
+    sources: [11]
+    options:
+      - {text: "אפשר לאמן מודלים ברמה מתקדמת (state-of-the-art) באמצעות מערכי נתונים זמינים לציבור בלבד, ו-LLaMA-13B עקף את GPT-3 ברוב מבחני הביצועים (benchmarks).", correct: true, explanation: "שתי הטענות מצוינות בתקציר."}
+      - {text: "LLaMA זקוק למודל גדול יותר מ-GPT-3 כדי להשתוות אליו.", correct: false, explanation: "מודל של 13B מיליארד פרמטרים ניצח מודל של 175B ברוב מבחני הביצועים."}
+      - {text: "LLaMA היה זמין רק באמצעות API.", correct: false, explanation: "הוא שוחרר לקהילת המחקר."}
+  - id: q58-3
+    type: open
+    text: "תנו סיבה אחת לבחור במודל עם משקולות פתוחות (open-weight) וסיבה אחת לבחור ב-API, עבור פרויקט אמיתי."
+    concepts: [open-weights, api, trade-offs]
+    sources: [11, 21]
+    rubric: |
+      - מציג סיבה לבחירה במשקולות פתוחות, כגון פרטיות, שליטה, התאמה (adaptation) או יציבות, תוך ציון העלות של הרצת המודל.
+      - מציג סיבה לבחירה ב-API, כגון היעדר צורך בחומרה, נוחות או גישה למודלים החזקים ביותר, תוך ציון העובדה שהנתונים עוזבים את המחשב שלכם או שההתנהגות עשויה להשתנות.

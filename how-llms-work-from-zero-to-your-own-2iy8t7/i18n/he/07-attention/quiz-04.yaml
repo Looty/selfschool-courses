@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q32
+title: "בדיקה: מעבדה 7"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q32-1
+    type: spot
+    text: "לחצו על השורה שמונעת מטוקן (token) לראות טוקנים מאוחרים יותר."
+    concepts: [causal-mask, code-reading]
+    sources: [20]
+    code: |
+      scores = Q @ K.T / np.sqrt(d)
+      mask = np.triu(np.ones_like(scores), k=1).astype(bool)
+      scores = np.where(mask, -np.inf, scores)
+      weights = softmax(scores)
+    correct: [3]
+    explanation: "הצבת מינוס אינסוף בציונים המוסתרים גורמת ל-softmax לתת לעמדות האלה משקל אפס. שורה 2 רק בונה את המסכה."
+  - id: q32-2
+    type: mcq
+    text: "בטבלת המשקלות (weights) שהודפסה, מדוע השורה הראשונה היא 1.00, 0.00, 0.00?"
+    concepts: [causal-mask]
+    sources: [20]
+    options:
+      - {text: "המילה הראשונה יכולה להסתכל רק על עצמה, כי המסכה (mask) חוסמת מילים מאוחרות יותר.", correct: true, explanation: "softmax על ציון מותר אחד בלבד נותן לו משקל 1."}
+      - {text: "המילה הראשונה היא תמיד החשובה ביותר.", correct: false, explanation: "החשיבות אינה הסיבה; הסיבה היא המסכה."}
+      - {text: "המטריצות האקראיות היו אפס.", correct: false, explanation: "המטריצות אקראיות אך אינן אפס."}
+  - id: q32-3
+    type: open
+    text: "מדוע מודל בסגנון GPT זקוק למסכה סיבתית (causal mask)? מה היה משתבש באימון בלעדיה?"
+    concepts: [causal-mask, next-token]
+    sources: [20]
+    rubric: |
+      - אומר שהמודל מאומן לחזות את הטוקן הבא, ובלי המסכה כל עמדה יכולה להסתכל על התשובה (הטוקנים המאוחרים יותר).
+      - אומר שאז המודל ילמד להעתיק במקום לחזות, ויכשל בעת יצירת טקסט, שבה הטוקנים המאוחרים עדיין אינם קיימים.

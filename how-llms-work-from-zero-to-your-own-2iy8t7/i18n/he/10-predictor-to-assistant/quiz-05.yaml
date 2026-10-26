@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q47
+title: "בדיקה: מה היישור (alignment) אינו מתקן"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q47-1
+    type: sort
+    text: "מה שיפר כוונון היישור (alignment tuning) ב-InstructGPT, ומה הוא לא הסיר?"
+    concepts: [alignment, limitations]
+    sources: [4, 21]
+    buckets: ["שופר", "לא הוסר"]
+    items:
+      - {text: "אמיתות (truthfulness) ורעילות", bucket: "שופר", explanation: "InstructGPT הראה שיפור באמיתות ובהפחתת תוצרים רעילים."}
+      - {text: "טעויות פשוטות", bucket: "לא הוסר", explanation: "המחברים מציינים שהמודל עדיין עושה טעויות פשוטות."}
+      - {text: "הזיות (hallucination)", bucket: "לא הוסר", explanation: "נמנה בין המגבלות של מודלי שפה גדולים (LLMs)."}
+      - {text: "עמידה בפורמט שהמשתמש ביקש", bucket: "שופר", explanation: "זו אחת המטרות המרכזיות של כוונון הוראות (instruction tuning) ושל RLHF."}
+  - id: q47-2
+    type: mcq
+    text: "מהי הגישה הבטוחה ביותר כשהדיוק חשוב?"
+    concepts: [grounding, verification]
+    sources: [4, 37]
+    options:
+      - {text: "לתת למודל את טקסט המקור שממנו עליו לענות, ולאמת את הטענות החשובות.", correct: true, explanation: "יישור מפחית כשלים מסוימים, אך אינו הופך את התוצרים לאמינים."}
+      - {text: "לסמוך על התשובה כי המודל מיושר.", correct: false, explanation: "מודלים מיושרים עדיין טועים ויוצרים הזיות."}
+      - {text: "לשאול את אותה שאלה שוב ושוב עד שהמודל מסכים איתך.", correct: false, explanation: "כך בוחרים בהסכמה, לא באמת."}
+  - id: q47-3
+    type: open
+    text: "שיקול הדעת של מי מוטמע במודל שכוונן באמצעות RLHF, ולמה זה חשוב?"
+    concepts: [rlhf, values]
+    sources: [4]
+    rubric: |
+      - מציין שהמודל משקף את ההעדפות וההוראות של המתייגים האנושיים שדירגו תוצרים.
+      - מציין שהמתייגים הם מדגם קטן של אנשים, ולכן ייתכן שתפיסת ה"טוב" של המודל לא תתאים לכולם.

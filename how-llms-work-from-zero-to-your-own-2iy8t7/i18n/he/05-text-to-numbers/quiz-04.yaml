@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q23
+title: "בדיקה: הטמעות (Embeddings)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q23-1
+    type: mcq
+    text: "מאיפה מגיעים המספרים בטבלת ההטמעות (embedding table)?"
+    concepts: [embeddings, training]
+    sources: [7, 15]
+    options:
+      - {text: "הם מתחילים באקראי ונלמדים באימון, כמו שאר המשקלים.", correct: true, explanation: "טוקנים שמופיעים בהקשרים דומים מקבלים בסופו של דבר וקטורים דומים."}
+      - {text: "בלשן מקצה אותם ידנית.", correct: false, explanation: "הם נלמדים ולא מתוכננים."}
+      - {text: "הם מזהי הטוקנים (token ids) עצמם.", correct: false, explanation: "מזהה הוא תווית מספרית שלמה; ההטמעה היא וקטור נלמד."}
+  - id: q23-2
+    type: mcq
+    text: "מדוע המודל מוסיף הטמעת מיקום (position embedding) להטמעה של כל טוקן?"
+    concepts: [positional-encoding]
+    sources: [20]
+    options:
+      - {text: "מנגנון הקשב (attention) מסתכל על כל הטוקנים בבת אחת, ובלי זה היה מאבד את סדר המילים.", correct: true, explanation: "'כלב נושך אדם' ו'אדם נושך כלב' חייבים להיות שונים."}
+      - {text: "כדי להאריך את הווקטורים.", correct: false, explanation: "האורך אינו המטרה; המטרה היא מידע על הסדר."}
+      - {text: "כדי לסמן אילו מילים הן שמות עצם.", correct: false, explanation: "המיקום מציין היכן הטוקן נמצא, לא מהו חלק הדיבר שלו."}
+  - id: q23-3
+    type: short
+    text: "איך קוראים לרשת (grid) שיש בה שורה נלמדת אחת לכל טוקן באוצר המילים (vocabulary)?"
+    concepts: [embedding-table]
+    sources: [7]
+    answers: ["embedding table", "embeddings table", "embedding matrix", "the embedding table", "טבלת הטמעות", "טבלת ההטמעות", "מטריצת הטמעות", "מטריצת ההטמעות", "טבלת embedding", "מטריצת embedding"]

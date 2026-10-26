@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q13
+title: "בדיקה: מודל שפה נוירוני"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q13-1
+    type: mcq
+    text: "מדוע ספירות n-gram פשוטות מתקשות להתמודד עם שפה, לפי Bengio ואחרים?"
+    concepts: [curse-of-dimensionality, n-gram]
+    sources: [15]
+    options:
+      - {text: "רצף מילים במדגם הבדיקה שונה בדרך כלל מכל רצף באימון, ולכן ספירות בלבד אינן מאפשרות הכללה (generalisation).", correct: true, explanation: "זוהי קללת המימדיות (curse of dimensionality) כפי שהיא מופיעה בשפה."}
+      - {text: "מחשבים אינם מסוגלים לספור מהר מספיק.", correct: false, explanation: "הבעיה היא כיסוי הנתונים, לא מהירות הספירה."}
+      - {text: "מודלי n-gram אינם יכולים להשתמש במילה הקודמת.", correct: false, explanation: "הם כן משתמשים במילים הקודמות; הבעיה היא צירופים שלא נראו באימון."}
+  - id: q13-2
+    type: mcq
+    text: "כיצד וקטורי מילים דומים עוזרים למודל במשפט שמעולם לא ראה?"
+    concepts: [word-vectors, generalisation]
+    sources: [15]
+    options:
+      - {text: "אחרי שראה משפט עם 'חתול', הוא יכול לייחס הסתברות סבירה לאותו משפט עם 'כלב'.", correct: true, explanation: "מילים בעלות ייצוגים דומים חולקות את מה שהמודל למד."}
+      - {text: "הוא משנן כל משפט בקורפוס.", correct: false, explanation: "שינון של כל משפט הוא בדיוק מה שאינו יכול לכסות רצפים חדשים."}
+      - {text: "הוא מתעלם מסדר המילים.", correct: false, explanation: "המודל במאמר משתמש במילים הקודמות כדי לחזות את המילה הבאה."}
+  - id: q13-3
+    type: open
+    text: "אילו שני דברים למד המאמר משנת 2003 במשותף, וכיצד הם מופיעים שוב ב-LLM מודרני?"
+    concepts: [word-vectors, neural-lm]
+    sources: [15]
+    rubric: |
+      - מציין את ייצוגי המילים הנלמדים (וקטורים) ואת הרשת הנוירונית שחוזה את המילה הבאה.
+      - אומר ש-LLM מודרניים גם הם הופכים טוקנים (tokens) לוקטורים נלמדים ומשתמשים ברשת נוירונית כדי לחזות את הטוקן הבא.

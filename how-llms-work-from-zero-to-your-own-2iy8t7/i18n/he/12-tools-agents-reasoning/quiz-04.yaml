@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q56
+title: "בדיקה: מודלי חשיבה (reasoning models)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q56-1
+    type: mcq
+    text: "במה מודל חשיבה (reasoning model) שונה ממודל רגיל שמופנה באמצעות שרשרת מחשבה (chain-of-thought)?"
+    concepts: [reasoning-models, chain-of-thought]
+    sources: [21, 12]
+    options:
+      - {text: "הוא מאומן לייצר חשיבה ארוכה, צעד אחר צעד, לפני המענה, כהתנהגות הרגילה שלו.", correct: true, explanation: "הנחיית chain-of-thought היא טכניקה; מודלי חשיבה משלבים אותה בתוכם באמצעות האימון."}
+      - {text: "אין בו שכבות קשב (attention).", correct: false, explanation: "הארכיטקטורה עדיין היא Transformer."}
+      - {text: "הוא יכול לענות רק על שאלות במתמטיקה.", correct: false, explanation: "הוא מסייע במתמטיקה, בקוד ובלוגיקה, אך הוא מודל כללי."}
+  - id: q56-2
+    type: sort
+    text: "לכל משימה: האם מודל חשיבה (reasoning model) או מודל מהיר רגיל הוא הבחירה הראשונה הטובה יותר?"
+    concepts: [model-choice]
+    sources: [21]
+    buckets: ["מודל חשיבה", "מודל מהיר רגיל"]
+    items:
+      - {text: "תכנון מיגרציית נתונים רב-שלבית עם תלויות", bucket: "מודל חשיבה", explanation: "בעיות רב-שלביות שבהן הדיוק חשוב."}
+      - {text: "ניסוח מחדש של משפט כך שיישמע ידידותי יותר", bucket: "מודל מהיר רגיל", explanation: "המשימה פשוטה, ולכן חשיבה נוספת רק מגדילה את העלות."}
+      - {text: "פתרון חידת לוגיקה מורכבת", bucket: "מודל חשיבה", explanation: "מודלים אלה מסייעים במשימות לוגיקה."}
+  - id: q56-3
+    type: open
+    text: "מהן שתי עלויות של מודלי חשיבה, ומה עדיין כדאי לעשות ביחס לחשיבה הכתובה שלהם?"
+    concepts: [reasoning-models, evaluation]
+    sources: [21, 12]
+    rubric: |
+      - מציין שתי עלויות, כגון יותר חישוב לכל שאילתה, השהיה (latency) גבוהה יותר או עלות גבוהה יותר.
+      - מציין שהחשיבה הכתובה עשויה להיראות סבירה ובכל זאת להיות שגויה, ולכן יש לבדוק את התשובות על מקרים משלכם.

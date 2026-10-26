@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q18
+title: "בדיקה: נוירונים ושכבות"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q18-1
+    type: mcq
+    text: "לרשת יש 2 קלטים, שכבה חבויה אחת עם 3 נוירונים ופלט אחד. כמה פרמטרים (משקלים ו-biases) יש לה?"
+    concepts: [parameter-count]
+    sources: [33]
+    options:
+      - {text: "13", correct: true, explanation: "שכבה חבויה: 2 × 3 = 6 משקלים + 3 biases = 9. שכבת הפלט: 3 משקלים + bias אחד = 4. סך הכול 13."}
+      - {text: "6", correct: false, explanation: "זה סופר רק את משקלי השכבה החבויה; ה-biases ושכבת הפלט מוסיפים עוד 7."}
+      - {text: "9", correct: false, explanation: "זה סופר רק את השכבה החבויה; שכבת הפלט מוסיפה עוד 4."}
+      - {text: "12", correct: false, explanation: "ספרו שוב: בשכבת הפלט יש 3 משקלים ו-bias אחד, ובשכבה החבויה יש 6 משקלים ו-3 biases."}
+  - id: q18-2
+    type: mcq
+    text: "מדוע רשת צריכה פונקציית הפעלה (activation function) לא-לינארית בין השכבות שלה?"
+    concepts: [activation-function, nonlinearity]
+    sources: [33]
+    options:
+      - {text: "חישובים לינאריים על פלטים לינאריים נשארים לינאריים, ולכן בלעדיה כל השכבות קורסות למודל אחד של קו ישר.", correct: true, explanation: "הצעד הלא-לינארי הוא מה שמאפשר לעומק להוסיף כוח."}
+      - {text: "היא גורמת לרשת לרוץ מהר יותר.", correct: false, explanation: "הסיבה היא כוח ביטוי (expressiveness), לא מהירות."}
+      - {text: "היא מבטלת את הצורך באימון.", correct: false, explanation: "עדיין צריך ללמוד את המשקלים."}
+  - id: q18-3
+    type: short
+    text: "איך קוראים לשכבות שנמצאות בין הקלט לפלט?"
+    concepts: [hidden-layer]
+    sources: [33]
+    answers: ["hidden layers", "hidden layer", "hidden", "שכבות חבויות", "שכבה חבויה", "חבויות", "חבויה", "שכבות נסתרות", "שכבה נסתרת"]

@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q36
+title: "בדיקה: מעבדה 8"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q36-1
+    type: mcq
+    text: "לפני האימון, ערך ה-loss של ה-mini-GPT על קבוצת ההחזקה (held-out) היה כ-4.33. למה זה מתאים?"
+    concepts: [loss, baseline]
+    sources: [17]
+    options:
+      - {text: "בקירוב ל-loss של ניחוש אחיד על 65 תווים (כ-4.17).", correct: true, explanation: "כשהמשקלים אקראיים המודל אינו יודע דבר ומפזר את ההסתברות בערך באופן אחיד."}
+      - {text: "ה-loss של המודל המאומן.", correct: false, explanation: "המודל המאומן הגיע לכ-1.93."}
+      - {text: "אפס.", correct: false, explanation: "אפס פירושו חיזוי מושלם."}
+  - id: q36-2
+    type: spot
+    text: "לחצו על השורה בקוד ה-attention שמונעת מ-token לראות tokens מאוחרים יותר."
+    concepts: [causal-mask, code-reading]
+    sources: [1]
+    code: |
+      att = (q @ k.transpose(-2, -1)) / math.sqrt(k.size(-1))
+      att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float("-inf"))
+      y = F.softmax(att, dim=-1) @ v
+    correct: [2]
+    explanation: "הפונקציה masked_fill קובעת את הציונים של המיקומים המאוחרים ל-minus infinity, ולכן softmax נותן להם משקל אפס."
+  - id: q36-3
+    type: sort
+    text: "איזו תוצאה אתם מצפים לקבל מה-mini-GPT, ואיזו מה-bigram ממעבדה 6?"
+    concepts: [bigram, gpt]
+    sources: [17]
+    buckets: ["Bigram (מעבדה 6)", "Mini-GPT (מעבדה 8)"]
+    items:
+      - {text: "ערך loss של כ-2.49 על קבוצת ההחזקה (held-out)", bucket: "Bigram (מעבדה 6)", explanation: "תו אחד של הקשר מגביל אותו."}
+      - {text: "ערך loss של כ-1.93 על קבוצת ההחזקה (held-out) לאחר דקת אימון", bucket: "Mini-GPT (מעבדה 8)", explanation: "attention על פני 64 תווים של הקשר."}
+      - {text: "פלט שעוקב אחר מבנה של מחזה, עם שמות דוברים", bucket: "Mini-GPT (מעבדה 8)", explanation: "הקשר ארוך יותר לוכד מבנה."}
+      - {text: "גושי אותיות שנראים אקראיים וללא מבנה", bucket: "Bigram (מעבדה 6)", explanation: "אין מבנה לטווח ארוך יותר."}
+  - id: q36-4
+    type: open
+    text: "תארו כיצד השתנה הטקסט מלפני האימון ועד אחריו, והסבירו את השיפור במונחים של מה שהמודל למד."
+    concepts: [training, language-model]
+    sources: [17]
+    rubric: |
+      - מתאר תווים אקראיים לפני האימון, וטקסט הדומה למילים עם מבנה (שמות, נקודתיים, מעברי שורה) אחריו.
+      - מסביר שה-gradient descent התאים את המשקלים כך שהמודל נותן הסתברות גבוהה יותר לתווים שבאמת באים אחר כך, ולומד דפוסים מתוך הטקסט.

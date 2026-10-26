@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q34
+title: "בדיקה: בלוק ה-Transformer"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q34-1
+    type: match
+    text: "התאימו כל רכיב בבלוק לתפקידו."
+    concepts: [transformer-block]
+    sources: [1]
+    pairs:
+      - {left: "קשב עצמי (Self-attention)", right: "מערבב מידע בין טוקנים", explanation: "כל טוקן מסתכל על הטוקנים הקודמים לו."}
+      - {left: "רשת פידפורוורד (Feed-forward network)", right: "מְעַבדת את הווקטור של כל טוקן בנפרד", explanation: "מופעלת על כל מיקום בנפרד."}
+      - {left: "חיבור שארית (Residual connection)", right: "מוסיף את הקלט בחזרה לפלט", explanation: "כך שהשכבה לומדת רק תיקון."}
+      - {left: "נרמול שכבה (Layer normalisation)", right: "שומר על המספרים בטווח יציב", explanation: "עוזר לשמור על יציבות האימון."}
+    distractors:
+      - "בוחר את הטוקן הבא"
+  - id: q34-2
+    type: mcq
+    text: "מהי בחירת התכנון המרכזית של ה-Transformer משנת 2017?"
+    concepts: [transformer, attention-only]
+    sources: [1]
+    options:
+      - {text: "הוא הסתמך כולו על קשב (attention), ללא רקורסיה (recurrence) וללא קונבולוציה.", correct: true, explanation: "זה אִפשר הרצה מקבילית יותר ואימון מהיר יותר."}
+      - {text: "הוא הוסיף עוד שכבות LSTM.", correct: false, explanation: "הואוויתר על הרקורסיה."}
+      - {text: "הוא החליף מילים בתמונות.", correct: false, explanation: "הוא עבד על רצפי טקסט."}
+  - id: q34-3
+    type: open
+    text: "הסבירו מה ההבדל בתפקיד בין קשב עצמי (self-attention) לשכבת ה-feed-forward בתוך בלוק."
+    concepts: [transformer-block, feed-forward]
+    sources: [1, 33]
+    rubric: |
+      - מציין שהקשב מעביר מידע בין טוקנים (מיקומים).
+      - מציין ששכבת ה-feed-forward מעבדת את הווקטור של כל טוקן בנפרד, במקומו, באמצעות רשת לא-ליניארית.

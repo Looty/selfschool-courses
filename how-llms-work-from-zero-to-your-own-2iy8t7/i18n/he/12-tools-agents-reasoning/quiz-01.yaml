@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q53
+title: "בדיקה: שימוש בכלים (Tool Use)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q53-1
+    type: mcq
+    text: "מי מריץ בפועל כלי (tool) כאשר LLM \"קורא\" לו?"
+    concepts: [tool-use]
+    sources: [21]
+    options:
+      - {text: "תוכנה נפרדת שמזהה את הקריאה בטקסט של המודל, מריצה אותה ומחזירה לו את התוצאה.", correct: true, explanation: "המודל רק כותב טקסט."}
+      - {text: "המודל עצמו, מתוך המשקולות (weights) שלו.", correct: false, explanation: "מודל מפיק טוקנים (tokens); הוא לא מריץ שום דבר."}
+      - {text: "המשתמש, ידנית.", correct: false, explanation: "התוכנה שעוטפת את המודל עושה זאת באופן אוטומטי."}
+  - id: q53-2
+    type: sort
+    text: "בכל משימה: האם כדאי לתת למודל כלי, או שמספיק להסתמך על המודל לבדו?"
+    concepts: [tool-use]
+    sources: [13]
+    buckets: ["להשתמש בכלי", "המודל לבדו מספיק"]
+    items:
+      - {text: "כפל מדויק של שני מספרים בני 7 ספרות", bucket: "להשתמש בכלי", explanation: "חישוב אריתמטי מדויק אינו אמין ב-LLMs."}
+      - {text: "שער החליפין של היום", bucket: "להשתמש בכלי", explanation: "עובדות עדכניות אינן נמצאות במשקולות."}
+      - {text: "ניסוח מחדש של פסקה בטון ידידותי יותר", bucket: "המודל לבדו מספיק", explanation: "משימת שפה שהמודל מבצע היטב."}
+  - id: q53-3
+    type: open
+    text: "פרטו שני אמצעי בטיחות ללולאה (loop) של קריאה לכלים, והסבירו מדוע כל אחד מהם חשוב."
+    concepts: [tool-use, safety]
+    sources: [21, 13]
+    rubric: |
+      - מציין אמצעי כגון אימות (validation) של הארגומנטים לכלי, הגבלת מספר הסבבים, או הגבלת הרשאות, ומסביר מדוע.
+      - מציין אמצעי שני ומסביר מדוע (למשל: הפלט של המודל אינו אמין, או שטקסט שהוזרק לתוצאות הכלי יכול להשתלט על המודל).

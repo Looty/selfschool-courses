@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q43
+title: "בדיקה: ממנבא טקסט לעוזר"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q43-1
+    type: mcq
+    text: "מדוע מודל שעבר אימון מקדים (pretraining) עשוי לענות על הבקשה 'כתוב שיר על האביב' ברשימה של בקשות אחרות לכתיבת שירים?"
+    concepts: [pretraining, instruction-tuning]
+    sources: [4]
+    options:
+      - {text: "הוא אומן להמשיך טקסט, ורשימות כאלה קיימות בנתוני האימון שלו; הוא לא מנסה לעזור.", correct: true, explanation: "האימון המקדים מתגמל המשך סביר של הטקסט, ולא מועילות."}
+      - {text: "הוא לא מבין אנגלית.", correct: false, explanation: "הבעיה היא במטרת האימון, לא ביכולת השפה."}
+      - {text: "ה-temperature הוגדר נמוך מדי.", correct: false, explanation: "ה-temperature אינו הגורם לכך."}
+  - id: q43-2
+    type: mcq
+    text: "מה משנה כוונון הוראות (instruction tuning) במודל?"
+    concepts: [instruction-tuning]
+    sources: [21, 4]
+    options:
+      - {text: "ממשיכים לאמן אותו על זוגות של (prompt, תשובה אידיאלית), כך שהמודל לומד את הפורמט של תשובות מועילות.", correct: true, explanation: "אותה פונקציית loss, אבל נתונים שנבחרו בקפידה."}
+      - {text: "הוא מחליף את ה-Transformer במערכת חוקים.", correct: false, explanation: "הארכיטקטורה נשארת זהה."}
+      - {text: "הוא מלמד את המודל את רוב הידע העובדתי שלו.", correct: false, explanation: "עובדות מגיעות בעיקר מהאימון המקדים."}
+  - id: q43-3
+    type: short
+    text: "איך נקרא השלב הראשון במתכון של InstructGPT, שבו מתייגים (labelers) כותבים את ההתנהגות הרצויה והמודל מאומן עליה?"
+    concepts: [sft]
+    sources: [4]
+    answers: ["supervised fine-tuning", "sft", "supervised learning", "fine-tuning on demonstrations", "כוונון מפוקח", "כוונון עדין מפוקח", "למידה מפוקחת", "כוונון עדין על דוגמאות הדגמה", "כוונון על דוגמאות הדגמה"]

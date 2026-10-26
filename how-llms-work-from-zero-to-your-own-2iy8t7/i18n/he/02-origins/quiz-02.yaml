@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q06
+title: "בדיקה: דרטמות'"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q06-1
+    type: mcq
+    text: "מהי ההשערה המרכזית של הצעת דרטמות' (Dartmouth) משנת 1955?"
+    concepts: [dartmouth, ai-origins]
+    sources: [23]
+    options:
+      - {text: "ניתן, באופן עקרוני, לתאר כל היבט של למידה או של אינטליגנציה בדייקנות רבה כל כך, עד שמכונה תוכל לדמות אותו.", correct: true, explanation: "זהו ההימור המכונן של התחום."}
+      - {text: "בתוך עשור אחד מכונות יעקפו את בני האדם.", correct: false, explanation: "ההצעה טענה טענה על היכולת לתאר, ולא קבעה לוח זמנים."}
+      - {text: "אינטליגנציה דורשת נוירונים ביולוגיים.", correct: false, explanation: "ההצעה מניחה את ההפך: שאפשר לדמות אותה."}
+  - id: q06-2
+    type: match
+    text: "התאימו כל אדם לעובדה המתאימה."
+    concepts: [dartmouth]
+    sources: [23]
+    pairs:
+      - {left: "ג'ון מקארתי (John McCarthy)", right: "בחר את המונח \"בינה מלאכותית\" (artificial intelligence)", explanation: "הוא בחר בו בין היתר משום שהיה ניטרלי."}
+      - {left: "קלוד שאנון (Claude Shannon)", right: "אחד מארבעת המארגנים", explanation: "שאנון מופיע לצד מקארתי, מינסקי ורוצ'סטר."}
+    distractors:
+      - "כתב את מאמר ה-backpropagation מ-1986"
+      - "בנה את ELIZA"
+  - id: q06-3
+    type: open
+    text: "ההימור של דרטמות' משאיר פתוחה את השאלה כיצד לתאר אינטליגנציה בדייקנות. ציינו את שתי הגישות הרחבות שהשיעור הזה מעמיד זו מול זו."
+    concepts: [rules-vs-learning]
+    sources: [23]
+    rubric: |
+      - מציין כתיבה ידנית של הכללים (כללים מפורשים שנכתבו על ידי מומחים).
+      - מציין מתן אפשרות למכונה ללמוד את הכללים מדוגמאות.
