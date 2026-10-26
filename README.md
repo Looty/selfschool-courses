@@ -6,6 +6,7 @@ Course packages for Selfschool, a personal, AI-native course platform. Each fold
 |---|---|---|
 | `how-llms-work-from-zero-to-your-own-2iy8t7` | Engineer new to ML | about 13 h, 13 chapters, 65 lessons, Python labs |
 | `mlops-from-zero-to-production-gblt3l` | Beginner to practitioner | 52 lessons, hands-on labs |
+| `rust-from-zero-to-hero-ti89lo` | C/C++ programmer new to Rust | about 12 h, 14 chapters, 37 lessons, 5 Cargo labs and a capstone |
 | `typescript-fundamentals` | Beginner | 12 short lessons, plus a demo of every question type |
 
 ## Use a course

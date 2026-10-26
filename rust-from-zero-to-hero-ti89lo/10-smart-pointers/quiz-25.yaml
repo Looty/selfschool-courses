@@ -1,0 +1,64 @@
+schemaVersion: 1
+id: q25
+title: "Check: Box, Deref and Drop"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q25-1
+    type: mcq
+    text: "Why does `enum List { Cons(i32, List), Nil }` fail to compile?"
+    concepts: [box, recursive-types]
+    sources: [14]
+    options:
+      - {text: "It contains itself directly, so its size would be infinite; Box<List> fixes it.", correct: true, explanation: "A Box has a known size (one pointer), breaking the infinite nesting."}
+      - {text: "Enums cannot hold other enums.", correct: false, explanation: "They can; the problem is the size."}
+      - {text: "i32 cannot be combined with an enum in one variant.", correct: false, explanation: "Variants can hold any mix of types."}
+  - id: q25-2
+    type: sort
+    text: "Which deref coercions does Rust perform automatically?"
+    concepts: [deref-coercion]
+    buckets: ["Performed", "Never performed"]
+    items:
+      - {text: "&String to &str", bucket: "Performed", explanation: "String implements Deref<Target = str>."}
+      - {text: "&Box<Vec<u8>> to &Vec<u8>", bucket: "Performed", explanation: "Box derefs to its contents."}
+      - {text: "&mut String to &str", bucket: "Performed", explanation: "A mutable reference may coerce to a shared one."}
+      - {text: "&String to &mut str", bucket: "Never performed", explanation: "Shared to mutable would break the uniqueness guarantee."}
+  - id: q25-3
+    type: spot
+    text: "Which line does not compile?"
+    concepts: [drop]
+    code: |
+      struct Guard;
+      impl Drop for Guard { fn drop(&mut self) { println!("released"); } }
+      fn main() {
+          let g = Guard;
+          g.drop();
+          println!("done");
+      }
+    correct: [5]
+    explanation: "Calling the Drop::drop method explicitly is error E0040. Use std::mem::drop(g), or just let g go out of scope."
+  - id: q25-4
+    type: short
+    text: "Which C++ standard smart pointer is the closest analogue of Box<T>?"
+    answers: ["unique_ptr", "std::unique_ptr", "unique_ptr<T>"]
+    concepts: [box]
+  - id: q25-5
+    type: mcq
+    text: "Why does Deref::deref return &Self::Target instead of Self::Target?"
+    concepts: [deref]
+    sources: [14]
+    options:
+      - {text: "Returning the value would move it out of the smart pointer.", correct: true, explanation: "A reference lets you use the inner value while the pointer keeps owning it."}
+      - {text: "References are faster than values.", correct: false, explanation: "The reason is ownership, not speed."}
+      - {text: "Traits cannot return owned values.", correct: false, explanation: "They can; it would just be the wrong semantics here."}
+  - id: q25-6
+    type: open
+    text: "Give two situations from the lesson where Box<T> is the right tool, and explain why for each."
+    concepts: [box]
+    sources: [14]
+    rubric: |
+      - Names recursive types: Box has a fixed size, so the type's size becomes known.
+      - Names moving large data cheaply: only the pointer is copied on a move, not the data.
+      - Or names trait objects (Box<dyn Trait>): the concrete type's size is unknown, so it must live behind a pointer.

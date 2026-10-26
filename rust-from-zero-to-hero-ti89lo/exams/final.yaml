@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: final
+title: Final exam
+duration_minutes: 90
+max_attempts: 3
+passing_percentage: 70
+shuffle: true
+limit_questions: 40
+domains:
+  - id: core-ownership
+    title: Core language and ownership
+    weight: 20
+    chapters: [01-why-rust-and-tooling, 02-core-syntax, 03-ownership-and-borrowing]
+  - id: structure-errors
+    title: Project structure and error handling
+    weight: 10
+    chapters: [04-modules-crates-cargo, 05-error-handling]
+  - id: traits-lifetimes
+    title: Generics, traits and lifetimes
+    weight: 20
+    chapters: [06-generics-and-traits, 07-lifetimes]
+  - id: collections-testing
+    title: Collections, iterators and testing
+    weight: 10
+    chapters: [08-collections-closures-iterators, 09-testing-and-docs]
+  - id: smart-pointers
+    title: Smart pointers
+    weight: 10
+    chapters: [10-smart-pointers]
+  - id: concurrency-async
+    title: Concurrency and async
+    weight: 20
+    chapters: [11-concurrency, 12-async]
+  - id: advanced
+    title: Patterns, macros and unsafe
+    weight: 10
+    chapters: [13-patterns-macros-unsafe]

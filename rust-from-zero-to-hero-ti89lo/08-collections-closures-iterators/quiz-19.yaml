@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: q19
+title: "Check: collections"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q19-1
+    type: match
+    text: "Match each need to the standard collection that fits best."
+    concepts: [choosing-collections]
+    pairs:
+      - {left: "A FIFO queue of jobs", right: "VecDeque", explanation: "Efficient push and pop at both ends."}
+      - {left: "Look up user records by id, order irrelevant", right: "HashMap", explanation: "Expected O(1) lookup."}
+      - {left: "Iterate keys in sorted order and query ranges", right: "BTreeMap", explanation: "Kept sorted; supports range queries."}
+      - {left: "Always take the highest-priority task next", right: "BinaryHeap", explanation: "A priority queue."}
+      - {left: "Remember which URLs were already visited", right: "HashSet", explanation: "Keys only, no values."}
+    distractors: ["LinkedList"]
+  - id: q19-2
+    type: fill
+    text: "Count how often each word appears."
+    concepts: [entry-api, hashmap]
+    template: |
+      let mut counts = HashMap::new();
+      for w in text.split_whitespace() {
+          *counts.{{1}}(w).{{2}}(0) += 1;
+      }
+    chips:
+      - {text: "entry", slot: 1, explanation: "entry(key) finds the slot for the key."}
+      - {text: "or_insert", slot: 2, explanation: "Inserts 0 if vacant and returns &mut to the count; * dereferences it."}
+      - {text: "get", explanation: "get returns Option<&V>, which cannot be incremented."}
+      - {text: "insert", explanation: "insert would replace the count instead of updating it."}
+  - id: q19-3
+    type: mcq
+    text: "When is `v.get(i)` a better choice than `v[i]`?"
+    concepts: [vec-indexing]
+    sources: [7]
+    options:
+      - {text: "When an out-of-range index can legitimately happen, e.g. it comes from user input.", correct: true, explanation: "get returns None instead of panicking, so you can handle it."}
+      - {text: "Always, because get is faster.", correct: false, explanation: "Both check bounds; the difference is panic vs Option."}
+      - {text: "Only for vectors of references.", correct: false, explanation: "It works for any element type."}
+  - id: q19-4
+    type: short
+    text: "What is the default hash algorithm used by std's HashMap?"
+    answers: ["SipHash", "siphash", "SipHash 1-3", "SipHash-1-3"]
+    concepts: [hashmap]
+  - id: q19-5
+    type: mcq
+    text: "Which statement about Vec is guaranteed by the standard library docs?"
+    concepts: [vec-guarantees]
+    sources: [40]
+    options:
+      - {text: "push reallocates only when length equals capacity.", correct: true, explanation: "The reported capacity is accurate and can be relied on."}
+      - {text: "Small vectors keep their elements on the stack.", correct: false, explanation: "Vec never does a small-vector optimization."}
+      - {text: "A Vec shrinks its buffer automatically when you remove elements.", correct: false, explanation: "It never shrinks itself; call shrink_to_fit."}
+  - id: q19-6
+    type: open
+    text: "Why does `let first = &v[0]; v.push(9); println!(\"{first}\");` fail to compile, and how would you fix it?"
+    concepts: [vec-reallocation, borrowing-rules]
+    sources: [7]
+    rubric: |
+      - Says first is a shared borrow of v that is still used after push.
+      - Says push needs a mutable borrow and may reallocate, which would leave first dangling.
+      - Gives a fix: copy the value out (let first = v[0];), clone it, or finish using first before pushing.

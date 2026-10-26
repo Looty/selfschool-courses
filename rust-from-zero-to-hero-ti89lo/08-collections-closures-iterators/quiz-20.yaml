@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q20
+title: "Check: closures"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q20-1
+    type: sort
+    text: "Which is the most specific Fn trait each closure implements? (s is a String, n is a mut i32, v is a Vec<String> captured by the closure.)"
+    concepts: [fn-traits]
+    buckets: ["Fn", "FnMut", "FnOnce only"]
+    items:
+      - {text: "|| println!(\"{s}\")", bucket: "Fn", explanation: "Only reads s."}
+      - {text: "|| n += 1", bucket: "FnMut", explanation: "Mutates a captured variable, so it can run many times but not concurrently."}
+      - {text: "move || drop(s)", bucket: "FnOnce only", explanation: "Moves s out; a second call would have nothing to drop."}
+      - {text: "|x: i32| x * 2", bucket: "Fn", explanation: "Captures nothing."}
+      - {text: "|| v.push(String::from(\"x\"))", bucket: "FnMut", explanation: "Mutates v; the new String is created inside, nothing is moved out."}
+  - id: q20-2
+    type: mcq
+    text: "Why does slice::sort_by_key require FnMut rather than FnOnce?"
+    concepts: [fn-traits]
+    sources: [12]
+    options:
+      - {text: "It calls the closure once per element, so the closure must be callable many times.", correct: true, explanation: "FnOnce closures may only be called once."}
+      - {text: "It needs to modify the closure's captures.", correct: false, explanation: "It allows mutation, but the reason is repeated calls."}
+      - {text: "FnOnce closures cannot return values.", correct: false, explanation: "They can; they just cannot be called twice."}
+  - id: q20-3
+    type: spot
+    text: "Which line does not compile?"
+    concepts: [closure-type-inference]
+    code: |
+      let id = |x| x;
+      let a = id(String::from("hi"));
+      let b = id(5);
+    correct: [3]
+    explanation: "The first call fixed the closure's parameter type as String; calling it with an integer is a type mismatch."
+  - id: q20-4
+    type: short
+    text: "Which keyword makes a closure take ownership of the variables it uses?"
+    answers: ["move", "`move`"]
+    concepts: [move-closures]
+  - id: q20-5
+    type: mcq
+    text: "You need a Vec holding several different closures of type `i32 -> i32`. Which element type?"
+    concepts: [returning-closures, trait-objects]
+    sources: [19]
+    options:
+      - {text: "Box<dyn Fn(i32) -> i32>", correct: true, explanation: "Each closure has its own type; a trait object unifies them."}
+      - {text: "impl Fn(i32) -> i32", correct: false, explanation: "impl Trait stands for one concrete type, so all elements would have to be the same closure type."}
+      - {text: "fn(i32) -> i32", correct: false, explanation: "Works only for closures that capture nothing; capturing closures do not coerce to fn pointers."}
+  - id: q20-6
+    type: open
+    text: "When writing a function that takes a callback, how do you decide between F: Fn, F: FnMut and F: FnOnce?"
+    concepts: [fn-traits]
+    sources: [12]
+    rubric: |
+      - Says to look at how the function calls the callback: at most once means FnOnce, repeatedly means FnMut or Fn.
+      - Says FnOnce accepts the most closures, so use the loosest bound that works.
+      - Says Fn is needed when the callback may be called concurrently or through a shared reference, and FnMut when it is called repeatedly from one place.

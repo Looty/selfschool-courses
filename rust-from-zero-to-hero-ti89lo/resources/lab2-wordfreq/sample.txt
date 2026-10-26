@@ -1,0 +1,5 @@
+The borrow checker is strict, and the compiler is patient.
+A value has one owner. The owner drops the value when it goes out of scope.
+You can lend a value many times to readers, or once to a writer, but not both at the same time.
+The compiler checks the rules, so the program does not have to check them at run time.
+When the rules feel strict, read the error message: the compiler usually says what to change.

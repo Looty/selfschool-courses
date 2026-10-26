@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q08
+title: "Check: references and borrowing"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q08-1
+    type: sort
+    text: "Does each snippet compile? (Assume `let mut s = String::new();` before each.)"
+    concepts: [borrowing-rules, nll]
+    buckets: ["Compiles", "Does not compile"]
+    items:
+      - {text: "let a = &s; let b = &s; println!(\"{a}{b}\");", bucket: "Compiles", explanation: "Any number of shared borrows may coexist."}
+      - {text: "let a = &mut s; let b = &mut s; a.push('x'); b.push('y');", bucket: "Does not compile", explanation: "Two mutable borrows are alive at the same time (E0499)."}
+      - {text: "let a = &s; println!(\"{a}\"); let b = &mut s; b.push('x');", bucket: "Compiles", explanation: "a's last use is before b is created, so the borrows do not overlap."}
+      - {text: "let a = &s; let b = &mut s; b.push('x'); println!(\"{a}\");", bucket: "Does not compile", explanation: "a is still used after the mutable borrow starts (E0502)."}
+  - id: q08-2
+    type: mcq
+    text: "Which three conditions together make a data race?"
+    concepts: [data-races]
+    sources: [3]
+    options:
+      - {text: "Two or more pointers access the same data at the same time, at least one writes, and there is no synchronization.", correct: true, explanation: "That is the Book's definition; the borrowing rule prevents the first two from combining in safe code."}
+      - {text: "Two threads exist and one of them panics.", correct: false, explanation: "A panic is not a data race."}
+      - {text: "A value is read twice in a row without being written.", correct: false, explanation: "Concurrent reads alone are fine."}
+  - id: q08-3
+    type: spot
+    text: "Which line makes the compiler reject this function?"
+    concepts: [dangling-references]
+    code: |
+      fn longest_line(text: String) -> &str {
+          let first = text.lines().next().unwrap_or("");
+          first
+      }
+    correct: [1]
+    explanation: "The function takes the String by value, so it is dropped at the end; returning a &str into it would dangle. The signature (line 1) has no input reference to borrow from. Take `text: &str` instead."
+  - id: q08-4
+    type: short
+    text: "Complete the rule: at any time you may have either one ___ reference or any number of shared references."
+    answers: ["mutable", "&mut", "mut", "exclusive"]
+    concepts: [borrowing-rules]
+  - id: q08-5
+    type: mcq
+    text: "Since non-lexical lifetimes, when does a borrow end?"
+    concepts: [nll]
+    sources: [3, 60]
+    options:
+      - {text: "After the last place the reference is used.", correct: true, explanation: "Lifetimes follow control flow and liveness, not braces."}
+      - {text: "At the closing brace of the block where it was created.", correct: false, explanation: "That was the old lexical behavior RFC 2094 replaced."}
+      - {text: "When the referenced value is dropped.", correct: false, explanation: "The value's scope is an upper limit, not when the borrow ends."}
+  - id: q08-6
+    type: open
+    text: "Explain why the rule 'one &mut or many &' lets the compiler optimize code that C compilers often cannot."
+    concepts: [aliasing, borrowing-rules]
+    sources: [28]
+    rubric: |
+      - Says a &mut is guaranteed not to alias any other live reference.
+      - Gives the consequence: a value read through a & can be kept (e.g. in a register) while writing through the &mut, because the write cannot change it.
+      - Contrasts with languages where two pointer arguments may point to the same memory, forcing the compiler to reload.

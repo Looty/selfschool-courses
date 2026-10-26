@@ -1,0 +1,66 @@
+schemaVersion: 1
+id: q06
+title: "Check: structs, enums and match"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q06-1
+    type: match
+    text: "Match each method signature to what it lets the method do."
+    concepts: [methods, receivers]
+    pairs:
+      - {left: "fn len(&self)", right: "Read the instance; the caller keeps it", explanation: "&self is a shared borrow."}
+      - {left: "fn push(&mut self, x: T)", right: "Change the instance; the caller keeps it", explanation: "&mut self is an exclusive borrow that allows mutation."}
+      - {left: "fn into_bytes(self)", right: "Consume the instance; the caller cannot use it afterwards", explanation: "Taking self by value moves it into the method."}
+      - {left: "fn new() -> Self", right: "Create an instance; called as Type::new()", explanation: "No self parameter makes it an associated function."}
+  - id: q06-2
+    type: mcq
+    text: "Why can't you write `let total = some_option + 1;` when some_option is an Option<i32>?"
+    concepts: [option, null-safety]
+    sources: [5]
+    options:
+      - {text: "Option<i32> is a different type from i32, so you must handle None before using the number.", correct: true, explanation: "That type difference is exactly what replaces null checks."}
+      - {text: "Options are immutable.", correct: false, explanation: "Mutability is unrelated; the types simply do not match."}
+      - {text: "You need to write some_option.value + 1.", correct: false, explanation: "There is no .value field; use match, if let, or methods like unwrap_or."}
+  - id: q06-3
+    type: fill
+    text: "Complete the match so it compiles and handles every case of Option<u8>."
+    concepts: [match, option]
+    template: |
+      fn label(x: Option<u8>) -> &'static str {
+          match x {
+              {{1}} => "nothing",
+              Some(0) => "zero",
+              {{2}} => "something",
+          }
+      }
+    chips:
+      - {text: "None", slot: 1, explanation: "None is the empty case of Option."}
+      - {text: "Some(_)", slot: 2, explanation: "Covers every remaining Some value; must come after Some(0) or Some(0) would never match."}
+      - {text: "null", explanation: "Rust has no null."}
+      - {text: "default", explanation: "match has no default keyword; `_` or a pattern covers the rest."}
+  - id: q06-4
+    type: short
+    text: "How many bytes does Option<Box<i32>> take on a 64-bit target?"
+    answers: ["8", "8 bytes", "eight"]
+    concepts: [option, null-pointer-optimization]
+  - id: q06-5
+    type: mcq
+    text: "What does the compiler do when a match on an enum does not cover one of its variants?"
+    concepts: [match]
+    sources: [5]
+    options:
+      - {text: "Refuses to compile and names the missing pattern.", correct: true, explanation: "Matches must be exhaustive."}
+      - {text: "Compiles, and the missing variant does nothing at run time.", correct: false, explanation: "That would be a silent bug; Rust rejects it."}
+      - {text: "Compiles with a warning only.", correct: false, explanation: "It is an error, not a warning."}
+  - id: q06-6
+    type: open
+    text: "You are porting a C API where `struct User *find_user(int id)` returns NULL when no user exists. How would you express this in Rust, and what does it gain?"
+    concepts: [option, null-safety]
+    sources: [5, 33]
+    rubric: |
+      - Uses a return type like Option<User>, Option<&User> or Option<Box<User>>.
+      - Explains that callers are forced by the type system to handle the None case before using the user.
+      - Notes that for references or Box the Option adds no size or runtime cost (null pointer optimization).

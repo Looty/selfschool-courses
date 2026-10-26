@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q31
+title: "Check: Tokio"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q31-1
+    type: spot
+    text: "This async fn is called from inside tokio::spawn. Which line makes the spawned future non-Send?"
+    concepts: [send-bound, mutex-across-await]
+    code: |
+      async fn bump(m: &std::sync::Mutex<u32>) {
+          let mut guard = m.lock().unwrap();
+          *guard += 1;
+          save_to_disk().await;
+      }
+    correct: [4]
+    explanation: "The MutexGuard (not Send) is still alive at the .await on line 4. End its scope first: put lines 2-3 in their own block."
+  - id: q31-2
+    type: match
+    text: "Match each Tokio channel to its use."
+    concepts: [tokio-channels]
+    pairs:
+      - {left: "mpsc", right: "Many senders queue commands for one worker task", explanation: "Multi-producer, single-consumer, bounded."}
+      - {left: "oneshot", right: "Send exactly one reply back to a requester", explanation: "Capacity one, cannot be cloned."}
+      - {left: "broadcast", right: "Every subscriber receives every event", explanation: "Multi-producer, multi-consumer."}
+      - {left: "watch", right: "Receivers only care about the latest config value", explanation: "No history is kept."}
+  - id: q31-3
+    type: mcq
+    text: "In tokio::select!, what happens to the branches that did not complete first?"
+    concepts: [select, cancellation]
+    sources: [51]
+    options:
+      - {text: "Their futures are dropped, which cancels them.", correct: true, explanation: "Dropping a future is cancellation in async Rust."}
+      - {text: "They keep running in the background.", correct: false, explanation: "Only spawned tasks run independently; these futures are dropped."}
+      - {text: "They are paused and resume on the next select!.", correct: false, explanation: "They are gone unless you kept them outside select! by reference."}
+  - id: q31-4
+    type: short
+    text: "Which Tokio function runs blocking or CPU-heavy closures on a separate thread pool?"
+    answers: ["spawn_blocking", "tokio::task::spawn_blocking", "task::spawn_blocking"]
+    concepts: [spawn-blocking]
+  - id: q31-5
+    type: mcq
+    text: "Why does `mpsc::channel(32)` make send() an async function that may wait?"
+    concepts: [backpressure]
+    sources: [50]
+    options:
+      - {text: "The channel is bounded; when 32 messages are queued, senders wait, which provides backpressure.", correct: true, explanation: "Bounded queues stop fast producers from exhausting memory."}
+      - {text: "Every send waits for the receiver to process the message.", correct: false, explanation: "It only waits when the buffer is full."}
+      - {text: "32 is the number of allowed senders.", correct: false, explanation: "It is the buffer capacity; senders can be cloned freely."}
+  - id: q31-6
+    type: open
+    text: "Your async web service computes a 300 ms image thumbnail inside a request handler and other requests become slow. Explain why and give two fixes."
+    concepts: [spawn-blocking, starvation]
+    sources: [16, 52]
+    rubric: |
+      - Explains that futures only yield at .await, so the computation blocks the worker thread and all tasks scheduled on it.
+      - Proposes tokio::task::spawn_blocking (and awaiting its JoinHandle) for the computation.
+      - Proposes another valid option: a dedicated thread pool such as rayon, a separate worker thread with a channel, or splitting the work with yield points.

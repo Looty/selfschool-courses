@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q11
+title: "Check: Cargo dependencies and workspaces"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q11-1
+    type: match
+    text: "Match each requirement to the versions it accepts."
+    concepts: [semver-requirements]
+    pairs:
+      - {left: "\"1.4.2\"", right: ">=1.4.2, <2.0.0", explanation: "A bare version is a caret requirement; 1.x stays compatible."}
+      - {left: "\"0.4.2\"", right: ">=0.4.2, <0.5.0", explanation: "For 0.x, the minor number is the left-most non-zero one."}
+      - {left: "\"~1.4.2\"", right: ">=1.4.2, <1.5.0", explanation: "Tilde allows only patch updates when minor is given."}
+      - {left: "\"=1.4.2\"", right: "exactly 1.4.2", explanation: "= pins one version."}
+    distractors: [">=1.4.2 (any later version)"]
+  - id: q11-2
+    type: mcq
+    text: "What is Cargo.lock for?"
+    concepts: [cargo-lock]
+    sources: [42]
+    options:
+      - {text: "Recording the exact dependency versions so builds are reproducible.", correct: true, explanation: "Cargo writes it; anyone building gets the same versions until they run cargo update."}
+      - {text: "Locking the project so only one cargo command runs at a time.", correct: false, explanation: "It is not a file lock."}
+      - {text: "Listing which dependencies you want, with version ranges.", correct: false, explanation: "That is Cargo.toml, which you write."}
+  - id: q11-3
+    type: short
+    text: "Which command updates the versions recorded in Cargo.lock to the newest compatible ones?"
+    answers: ["cargo update", "`cargo update`"]
+    concepts: [cargo-lock]
+  - id: q11-4
+    type: sort
+    text: "Shared by all members of a workspace, or per member?"
+    concepts: [workspaces]
+    buckets: ["Shared by the workspace", "Per member package"]
+    items:
+      - {text: "Cargo.lock", bucket: "Shared by the workspace", explanation: "One lockfile at the root keeps versions consistent."}
+      - {text: "The target/ output directory", bucket: "Shared by the workspace", explanation: "Shared so dependencies are not built twice."}
+      - {text: "[profile.release] settings", bucket: "Shared by the workspace", explanation: "Profiles are only read from the root manifest."}
+      - {text: "The [dependencies] list", bucket: "Per member package", explanation: "Each member must list what it uses, even if another member already depends on it."}
+      - {text: "The package name and version", bucket: "Per member package", explanation: "Each member is its own package."}
+  - id: q11-5
+    type: mcq
+    text: "You add `serde = \"1.0\"` and write #[derive(Serialize)], but get 'cannot find derive macro Serialize'. What is missing?"
+    concepts: [features]
+    sources: [53, 44]
+    options:
+      - {text: "The derive feature: serde = { version = \"1.0\", features = [\"derive\"] }", correct: true, explanation: "Serde's derive macros are behind an opt-in feature."}
+      - {text: "A newer Rust edition.", correct: false, explanation: "Derives work on all current editions; the feature is off."}
+      - {text: "cargo update", correct: false, explanation: "Updating versions does not turn features on."}
+  - id: q11-6
+    type: open
+    text: "A teammate set a dependency to `\">=2.0, <2.4\"` 'to be safe'. What risk does the Cargo Book point out, and what would you suggest instead?"
+    concepts: [semver-requirements, cargo-lock]
+    sources: [43, 42]
+    rubric: |
+      - Says other crates in the dependency tree may need a newer 2.x, so the tight upper bound can make resolution fail.
+      - Suggests the default requirement (e.g. "2.0") instead.
+      - Says Cargo.lock already pins the exact version for reproducible builds, so the range need not.

@@ -1,0 +1,63 @@
+schemaVersion: 1
+id: q09
+title: "Check: slices and strings"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q09-1
+    type: mcq
+    text: "Which signature should a function that only reads some text use, so callers can pass both String and string literals?"
+    concepts: [str-vs-string]
+    sources: [3]
+    options:
+      - {text: "fn count(text: &str) -> usize", correct: true, explanation: "&String coerces to &str, and literals are already &str."}
+      - {text: "fn count(text: String) -> usize", correct: false, explanation: "That takes ownership, forcing callers to give up or clone their String."}
+      - {text: "fn count(text: &String) -> usize", correct: false, explanation: "A literal is not a &String, so callers with &str would need to allocate."}
+  - id: q09-2
+    type: mcq
+    text: "What does `&\"Здравствуйте\"[0..1]` do?"
+    concepts: [utf8, slices]
+    sources: [7]
+    options:
+      - {text: "Panics at run time: byte 1 is inside a two-byte character.", correct: true, explanation: "Slice ranges must fall on character boundaries; the check happens at run time."}
+      - {text: "Returns \"З\".", correct: false, explanation: "З takes two bytes, so 0..2 would be needed."}
+      - {text: "Fails to compile because strings cannot be sliced.", correct: false, explanation: "Range slicing compiles; integer indexing like s[0] is what does not."}
+  - id: q09-3
+    type: short
+    text: "How many bytes long is the UTF-8 string \"Здравствуйте\" (what .len() returns)?"
+    answers: ["24", "24 bytes"]
+    concepts: [utf8]
+  - id: q09-4
+    type: match
+    text: "Match each value to its size on a 64-bit target, as measured with size_of."
+    concepts: [slices, str-vs-string]
+    pairs:
+      - {left: "&str", right: "16 bytes (pointer + length)", explanation: "A slice is a wide pointer."}
+      - {left: "String", right: "24 bytes (pointer + capacity + length)", explanation: "String is a Vec<u8> underneath."}
+      - {left: "&String", right: "8 bytes (one pointer)", explanation: "A reference to a sized type is a single pointer."}
+    distractors: ["32 bytes", "the length of the text"]
+  - id: q09-5
+    type: spot
+    text: "Which line is rejected by the borrow checker?"
+    concepts: [slices, borrowing-rules]
+    code: |
+      let mut s = String::from("hello world");
+      let word = s.split(' ').next().unwrap();
+      println!("{word}");
+      s.push_str("!");
+      let again = &s[..5];
+      s.clear();
+      println!("{again}");
+    correct: [6]
+    explanation: "word's last use is line 3, so line 4 is fine. But `again` (line 5) is used on line 7, so clearing s on line 6 while it is borrowed is E0502."
+  - id: q09-6
+    type: open
+    text: "Why does Rust refuse `s[0]` on a String, and what should you write instead to get the first character?"
+    concepts: [utf8]
+    sources: [7]
+    rubric: |
+      - Explains that strings are UTF-8 bytes and a character may take more than one byte, so byte index 0 may not be a whole character.
+      - Mentions that character indexing cannot be constant time, which indexing is expected to be.
+      - Gives an alternative such as s.chars().next(), or bytes() for raw bytes.

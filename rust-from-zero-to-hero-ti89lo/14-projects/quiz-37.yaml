@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: q37
+title: "Check: capstone design"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q37-1
+    type: match
+    text: "Match each StoreError to the HTTP status the capstone maps it to."
+    concepts: [error-mapping, capstone]
+    pairs:
+      - {left: "StoreError::NotFound", right: "404 Not Found", explanation: "The resource does not exist."}
+      - {left: "StoreError::EmptyTitle", right: "400 Bad Request", explanation: "The client sent invalid input."}
+      - {left: "StoreError::Io", right: "500 Internal Server Error", explanation: "A server-side failure the client cannot fix."}
+    distractors: ["201 Created", "204 No Content"]
+  - id: q37-2
+    type: mcq
+    text: "Why put the library, CLI and web service in one Cargo workspace?"
+    concepts: [workspaces]
+    sources: [46]
+    options:
+      - {text: "They share one Cargo.lock and target directory, so all use the same dependency versions and builds are shared.", correct: true, explanation: "That is the main benefit of a workspace."}
+      - {text: "Workspaces are required for binaries that use a library.", correct: false, explanation: "A path dependency works without a workspace; the workspace adds shared resolution and builds."}
+      - {text: "It merges all crates into one binary.", correct: false, explanation: "Each member stays its own package."}
+  - id: q37-3
+    type: mcq
+    text: "Handlers need the Store and saving writes a file. Which design follows the Tokio tutorial's advice?"
+    concepts: [shared-state, manager-task]
+    sources: [49, 50]
+    options:
+      - {text: "A manager task owns the Store and receives commands over mpsc with oneshot replies.", correct: true, explanation: "Recommended when the state involves I/O; no lock is held across awaits."}
+      - {text: "Hold a std MutexGuard across an async file write.", correct: false, explanation: "The future would not be Send and other tasks could deadlock."}
+      - {text: "Give every handler its own copy of the Store.", correct: false, explanation: "Changes would be lost or overwrite each other."}
+  - id: q37-4
+    type: short
+    text: "Which axum trait do you implement so a custom error type can be returned from handlers?"
+    answers: ["IntoResponse", "axum::response::IntoResponse"]
+    concepts: [error-mapping]
+  - id: q37-5
+    type: open
+    text: "Write the short design note the capstone asks for: how did you share the Store, how are errors mapped, and how did you test it?"
+    concepts: [capstone]
+    sources: [49, 55, 10]
+    rubric: |
+      - Names a sharing strategy (Arc<Mutex<Store>> without guards across await, or a manager task with channels) and justifies it.
+      - Describes mapping typed library errors to HTTP statuses at the web layer (e.g. IntoResponse), keeping anyhow for main.
+      - Describes tests: library integration tests plus in-process route tests covering success and error statuses, with separate temp files.

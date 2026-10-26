@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q05
+title: "Check: expressions and control flow"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q05-1
+    type: spot
+    text: "This function does not compile. Which line is the problem?"
+    concepts: [expressions-statements, functions]
+    code: |
+      fn area(w: u32, h: u32) -> u32 {
+          let a = w * h;
+          a;
+      }
+    correct: [3]
+    explanation: "`a;` is a statement, so the body evaluates to () instead of u32. Removing the semicolon makes `a` the return value."
+  - id: q05-2
+    type: trace
+    text: "Trace the loop. What are `counter` and `result` after each step?"
+    concepts: [loops]
+    code: |
+      let mut counter = 0;
+      let result = loop {
+          counter += 3;
+          if counter > 6 { break counter * 10; }
+      };
+    variables: [counter, result]
+    steps:
+      - {label: "after the first pass", values: {counter: "3", result: ["unset", "-", "none"]}}
+      - {label: "after the second pass", values: {counter: "6", result: ["unset", "-", "none"]}}
+      - {label: "after the loop ends", values: {counter: "9", result: "90"}}
+    explanation: "counter goes 3, 6, 9; only when it is 9 (> 6) does break run and hand 9 * 10 = 90 out of the loop."
+  - id: q05-3
+    type: mcq
+    text: "Why does this not compile: `let v = if ok { 1 } else { \"one\" };`?"
+    concepts: [if-expression]
+    sources: [2]
+    options:
+      - {text: "The two arms produce different types, but v must have one type.", correct: true, explanation: "When if is used as a value, all arms must have the same type."}
+      - {text: "if cannot be used on the right side of let.", correct: false, explanation: "It can; if is an expression."}
+      - {text: "String literals cannot appear in if arms.", correct: false, explanation: "They can, as long as both arms have the same type."}
+  - id: q05-4
+    type: short
+    text: "What does `for i in 1..4` iterate over? Write the numbers separated by commas."
+    answers: ["1, 2, 3", "1,2,3", "1 2 3"]
+    concepts: [loops, ranges]
+  - id: q05-5
+    type: mcq
+    text: "In a match, one arm produces a u32 and the other arm is `Err(_) => continue,`. Why is that allowed?"
+    concepts: [never-type]
+    sources: [19]
+    options:
+      - {text: "continue has the never type !, which can be used as any type.", correct: true, explanation: "An expression that never produces a value can fit wherever a value is expected."}
+      - {text: "continue returns 0 by default.", correct: false, explanation: "continue returns nothing; it jumps to the next loop iteration."}
+      - {text: "match arms may have different types.", correct: false, explanation: "Arms must agree; ! works because it coerces to u32."}

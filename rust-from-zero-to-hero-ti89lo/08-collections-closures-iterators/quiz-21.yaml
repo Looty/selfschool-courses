@@ -1,0 +1,67 @@
+schemaVersion: 1
+id: q21
+title: "Check: iterators"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q21-1
+    type: sort
+    text: "Lazy adapter or consuming adapter?"
+    concepts: [iterator-adapters, laziness]
+    buckets: ["Lazy adapter (returns an iterator)", "Consumer (runs the iterator)"]
+    items:
+      - {text: "map", bucket: "Lazy adapter (returns an iterator)", explanation: "Returns a Map that does nothing until consumed."}
+      - {text: "filter", bucket: "Lazy adapter (returns an iterator)", explanation: "Returns a Filter."}
+      - {text: "collect", bucket: "Consumer (runs the iterator)", explanation: "Calls next until None to build a collection."}
+      - {text: "sum", bucket: "Consumer (runs the iterator)", explanation: "Takes ownership and adds every item."}
+      - {text: "zip", bucket: "Lazy adapter (returns an iterator)", explanation: "Pairs items from two iterators lazily."}
+      - {text: "count", bucket: "Consumer (runs the iterator)", explanation: "Runs to the end counting items."}
+  - id: q21-2
+    type: trace
+    text: "Trace `Countdown(3)` from the lesson. What does each call to next return, and what is the field afterwards?"
+    concepts: [implementing-iterator]
+    code: |
+      fn next(&mut self) -> Option<u32> {
+          if self.0 == 0 { None } else { self.0 -= 1; Some(self.0 + 1) }
+      }
+    variables: [returned, field]
+    steps:
+      - {label: "1st call", given: [], values: {returned: "Some(3)", field: "2"}}
+      - {label: "2nd call", values: {returned: "Some(2)", field: "1"}}
+      - {label: "3rd call", values: {returned: "Some(1)", field: "0"}}
+      - {label: "4th call", values: {returned: "None", field: "0"}}
+    explanation: "Each call decrements first and returns the old value (field + 1); at 0 it returns None and leaves the field alone."
+  - id: q21-3
+    type: mcq
+    text: "What happens when this line runs: `v.iter().map(|x| println!(\"{x}\"));`?"
+    concepts: [laziness]
+    sources: [12]
+    options:
+      - {text: "Nothing is printed, and the compiler warns that the Map must be used.", correct: true, explanation: "Adapters are lazy; nothing consumes this iterator."}
+      - {text: "Every element is printed.", correct: false, explanation: "That would need for_each or a for loop."}
+      - {text: "It fails to compile.", correct: false, explanation: "It compiles with a warning."}
+  - id: q21-4
+    type: match
+    text: "Match each call to what it yields for `v: Vec<String>`."
+    concepts: [iter-variants]
+    pairs:
+      - {left: "v.iter()", right: "&String, and v stays usable", explanation: "Shared borrows of each element."}
+      - {left: "v.iter_mut()", right: "&mut String, and v stays usable", explanation: "Mutable borrows of each element."}
+      - {left: "v.into_iter()", right: "String, and v is consumed", explanation: "Owned elements; v is moved."}
+    distractors: ["Box<String>"]
+  - id: q21-5
+    type: short
+    text: "Which single method must you implement to make your type an Iterator?"
+    answers: ["next", "next()", "fn next"]
+    concepts: [implementing-iterator]
+  - id: q21-6
+    type: open
+    text: "A colleague rewrites iterator chains as index loops 'for speed'. What evidence and reasoning would you give them?"
+    concepts: [zero-cost-abstractions]
+    sources: [12]
+    rubric: |
+      - Cites the Book's benchmark where loop and iterator versions performed about the same (about 19.6 vs 19.2 ms per iteration).
+      - Explains iterators are zero-cost abstractions that compile to similar machine code, with bounds checks often removed.
+      - Notes index loops add bounds checks and off-by-one risk, and suggests measuring with --release before changing code.

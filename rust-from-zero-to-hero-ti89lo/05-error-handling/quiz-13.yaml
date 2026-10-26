@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: q13
+title: "Check: error types"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q13-1
+    type: mcq
+    text: "Which traits must a type implement before it can implement std::error::Error?"
+    concepts: [error-trait]
+    sources: [39]
+    options:
+      - {text: "Debug and Display", correct: true, explanation: "Error is declared as `trait Error: Debug + Display`."}
+      - {text: "Clone and PartialEq", correct: false, explanation: "Many errors (like io::Error) are neither."}
+      - {text: "From and Into", correct: false, explanation: "From is useful for ?, but Error does not require it."}
+  - id: q13-2
+    type: match
+    text: "Match each thiserror attribute to the code it generates."
+    concepts: [thiserror]
+    pairs:
+      - {left: "#[error(\"missing key {0}\")]", right: "The Display implementation", explanation: "The message becomes fmt::Display, with fields interpolated."}
+      - {left: "#[from]", right: "A From conversion, and the field becomes the source()", explanation: "#[from] implies #[source]."}
+      - {left: "#[source]", right: "Only the source() method returns this field", explanation: "Use it when you do not want a From impl."}
+      - {left: "#[error(transparent)]", right: "Display and source() forward to the inner error", explanation: "Adds no message of its own."}
+  - id: q13-3
+    type: fill
+    text: "Complete this anyhow-based function so a missing file produces 'failed to read data.txt' followed by the cause."
+    concepts: [anyhow, error-context]
+    template: |
+      use anyhow::{ {{1}}, Result};
+
+      fn load() -> {{2}}<String> {
+          std::fs::read_to_string("data.txt").{{3}}("failed to read data.txt")
+      }
+    chips:
+      - {text: "Context", slot: 1, explanation: "The Context trait provides .context() on Result."}
+      - {text: "Result", slot: 2, explanation: "anyhow::Result<T> is Result<T, anyhow::Error>."}
+      - {text: "context", slot: 3, explanation: "Attaches the message; the io::Error stays as the cause."}
+      - {text: "unwrap", explanation: "That would panic instead of returning an error with context."}
+      - {text: "Error", explanation: "Not needed here; Result already names anyhow::Error."}
+  - id: q13-4
+    type: mcq
+    text: "You are writing a library crate. Callers need to react differently to 'not found' and 'permission denied'. What error type fits best?"
+    concepts: [library-vs-application-errors]
+    sources: [56, 57]
+    options:
+      - {text: "A public enum with one variant per case (handwritten or via thiserror).", correct: true, explanation: "Callers can match on variants; thiserror adds nothing to your public API."}
+      - {text: "anyhow::Error everywhere.", correct: false, explanation: "Callers would have to downcast to tell cases apart; anyhow targets applications."}
+      - {text: "String messages.", correct: false, explanation: "Strings cannot be matched reliably and do not implement Error."}
+  - id: q13-5
+    type: short
+    text: "Which method of the Error trait returns the lower-level error that caused this one?"
+    answers: ["source", "source()", "Error::source"]
+    concepts: [error-trait]
+  - id: q13-6
+    type: open
+    text: "Explain why a wrapping error should not both return the inner error from source() and include its text in Display."
+    concepts: [error-trait]
+    sources: [39]
+    rubric: |
+      - Says reporters (like anyhow's chain or an error printer) print each error's Display and then walk source().
+      - Says doing both prints the inner message twice.
+      - States the guideline: choose one, either expose it via source() or render it in Display.

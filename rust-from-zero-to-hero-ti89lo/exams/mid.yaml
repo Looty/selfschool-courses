@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: mid
+title: Mid-course exam (chapters 1 to 7)
+duration_minutes: 45
+max_attempts: 3
+passing_percentage: 70
+shuffle: true
+limit_questions: 25
+domains:
+  - id: foundations
+    title: Toolchain and core syntax
+    weight: 15
+    chapters: [01-why-rust-and-tooling, 02-core-syntax]
+  - id: ownership
+    title: Ownership and borrowing
+    weight: 30
+    chapters: [03-ownership-and-borrowing]
+  - id: cargo
+    title: Modules, crates and Cargo
+    weight: 10
+    chapters: [04-modules-crates-cargo]
+  - id: errors
+    title: Error handling
+    weight: 15
+    chapters: [05-error-handling]
+  - id: traits
+    title: Generics and traits
+    weight: 15
+    chapters: [06-generics-and-traits]
+  - id: lifetimes
+    title: Lifetimes
+    weight: 15
+    chapters: [07-lifetimes]

@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: q01
+title: "Check: why Rust"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q01-1
+    type: mcq
+    text: "According to the Rustonomicon, what is the soundness property of Safe Rust?"
+    concepts: [safe-unsafe, undefined-behavior]
+    sources: [27]
+    options:
+      - {text: "Safe Rust code can never cause undefined behavior, whatever it does.", correct: true, explanation: "That is the promise: no matter what, Safe Rust clients can't cause UB."}
+      - {text: "Safe Rust programs never panic.", correct: false, explanation: "Panics are allowed and well defined; an out-of-bounds index panics instead of reading stray memory."}
+      - {text: "Safe Rust programs never leak memory.", correct: false, explanation: "Leaks are explicitly considered safe; they cannot corrupt memory."}
+      - {text: "Safe Rust programs never deadlock.", correct: false, explanation: "Deadlocks are also outside Rust's safety guarantee."}
+  - id: q01-2
+    type: sort
+    text: "Does Rust's safety guarantee prevent each of these in safe code?"
+    concepts: [safe-unsafe, undefined-behavior]
+    buckets: ["Prevented in safe Rust", "Not prevented (but not UB)"]
+    items:
+      - {text: "Use after free", bucket: "Prevented in safe Rust", explanation: "Ownership and borrow checking make a dangling reference impossible in safe code."}
+      - {text: "A data race on shared memory", bucket: "Prevented in safe Rust", explanation: "The aliasing rules and Send/Sync stop unsynchronized shared writes at compile time."}
+      - {text: "A memory leak", bucket: "Not prevented (but not UB)", explanation: "Leaking memory is considered safe; for example a reference-counting cycle leaks."}
+      - {text: "A deadlock between two locks", bucket: "Not prevented (but not UB)", explanation: "Deadlocks are a logic error the compiler does not try to rule out."}
+      - {text: "Integer overflow", bucket: "Not prevented (but not UB)", explanation: "Overflow panics in debug builds and wraps in release builds; either way it is defined behavior."}
+  - id: q01-3
+    type: mcq
+    text: "Your crate uses the 2021 edition and a dependency uses 2024. What happens?"
+    concepts: [editions]
+    sources: [22]
+    options:
+      - {text: "They work together; each crate is compiled with its own edition.", correct: true, explanation: "Editions are chosen per crate and crates of all editions must interoperate."}
+      - {text: "Cargo refuses to build until both use the same edition.", correct: false, explanation: "Editions were designed so the ecosystem never splits like this."}
+      - {text: "Your crate is silently upgraded to 2024.", correct: false, explanation: "Editions are opt-in; your crate stays on 2021 until you change Cargo.toml."}
+  - id: q01-4
+    type: short
+    text: "What keyword marks the parts of a Rust program where some compiler checks become the programmer's responsibility?"
+    answers: ["unsafe", "`unsafe`", "the unsafe keyword"]
+    concepts: [safe-unsafe]
+  - id: q01-5
+    type: open
+    text: "A colleague says: 'Rust is just C++ with a stricter linter.' Using what you read, explain what is different about Rust's guarantee and where its limits are."
+    concepts: [safe-unsafe, memory-safety]
+    sources: [27, 59]
+    rubric: |
+      - States that safe Rust guarantees no undefined behavior (memory safety), which the compiler enforces, not an optional lint.
+      - Notes that the checks happen at compile time with no garbage collector.
+      - Names unsafe Rust as the explicit escape hatch where the programmer must uphold the rules.
+      - Mentions at least one thing Rust does not prevent, such as leaks, deadlocks or logic bugs.

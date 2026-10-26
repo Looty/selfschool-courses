@@ -1,0 +1,71 @@
+schemaVersion: 1
+id: q07
+title: "Check: ownership and moves"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q07-1
+    type: sort
+    text: "After `let b = a;`, is `a` still usable?"
+    concepts: [moves, copy-types]
+    buckets: ["a is still usable (copied)", "a is moved"]
+    items:
+      - {text: "a: i64", bucket: "a is still usable (copied)", explanation: "Integers are Copy."}
+      - {text: "a: (u8, char)", bucket: "a is still usable (copied)", explanation: "A tuple of Copy types is Copy."}
+      - {text: "a: String", bucket: "a is moved", explanation: "String owns heap memory and is not Copy."}
+      - {text: "a: Vec<u8>", bucket: "a is moved", explanation: "Vec owns a heap buffer."}
+      - {text: "a: (i32, String)", bucket: "a is moved", explanation: "One non-Copy field makes the whole tuple non-Copy."}
+      - {text: "a: [u8; 4]", bucket: "a is still usable (copied)", explanation: "An array of Copy elements is Copy."}
+  - id: q07-2
+    type: mcq
+    text: "Why does Rust invalidate `s1` after `let s2 = s1;` for a String, instead of letting both be used?"
+    concepts: [moves, double-free]
+    sources: [3]
+    options:
+      - {text: "Both would free the same heap buffer when they go out of scope.", correct: true, explanation: "Only the stack words are copied, so two owners would mean a double free."}
+      - {text: "Copying a String is too slow.", correct: false, explanation: "The copy is just three words; the issue is ownership of the buffer."}
+      - {text: "Strings are immutable.", correct: false, explanation: "A `mut` String can be changed; this is about who frees it."}
+  - id: q07-3
+    type: trace
+    text: "What does each line print? Write the drop message, or `none` if nothing prints at that line."
+    concepts: [drop-order]
+    code: |
+      struct N(&'static str);
+      impl Drop for N { fn drop(&mut self) { println!("drop {}", self.0); } }
+      fn main() {
+          let mut x = N("one");
+          let y = N("two");
+          x = N("three");
+          drop(y);
+      }  // end of main
+    variables: [prints]
+    steps:
+      - {label: "line 6: x = N(\"three\")", values: {prints: "drop one"}}
+      - {label: "line 7: drop(y)", values: {prints: "drop two"}}
+      - {label: "line 8: end of main", values: {prints: "drop three"}}
+    explanation: "Assigning to x drops the old value first. std::mem::drop drops y early. At the end only x (now three) is left; y was already moved into drop."
+  - id: q07-4
+    type: short
+    text: "Which function do you call to drop a value before the end of its scope?"
+    answers: ["drop", "std::mem::drop", "mem::drop", "drop()"]
+    concepts: [drop-order]
+  - id: q07-5
+    type: mcq
+    text: "You try to `#[derive(Clone, Copy)]` on a struct that has a String field. What happens?"
+    concepts: [copy-types]
+    sources: [3, 20]
+    options:
+      - {text: "Compile error: a type can only be Copy if all its fields are Copy.", correct: true, explanation: "String is not Copy because it owns memory and implements Drop."}
+      - {text: "It compiles and copies the String's bytes on every assignment.", correct: false, explanation: "Copy is never a hidden deep copy."}
+      - {text: "It compiles but Copy is ignored for that field.", correct: false, explanation: "The derive fails instead."}
+  - id: q07-6
+    type: open
+    text: "Explain in your own words what a Rust move is at the machine level and what the compiler adds on top."
+    concepts: [moves]
+    sources: [3]
+    rubric: |
+      - Says the bytes of the value (for a String, pointer, length and capacity) are copied, but not the heap data.
+      - Says the compiler then treats the source variable as invalid and rejects any later use.
+      - Says this guarantees exactly one owner frees the heap data, so no double free.

@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: q22
+title: "Check: Lab 2"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q22-1
+    type: short
+    text: "Running the lab on sample.txt, which word appears most often, and how many times? (Answer as word and number, e.g. 'word 5'.)"
+    answers: ["the 11", "the, 11", "the: 11", "11 the", "the 11 times"]
+    concepts: [lab-wordfreq]
+  - id: q22-2
+    type: mcq
+    text: "Why does top_n sort by word as well as by count?"
+    concepts: [hashmap, testing]
+    sources: [7]
+    options:
+      - {text: "HashMap iteration order is arbitrary, so ties would otherwise come out in a random order.", correct: true, explanation: "The tie-break makes output and tests deterministic."}
+      - {text: "Sorting by count alone does not compile.", correct: false, explanation: "It compiles; it is just not deterministic for equal counts."}
+      - {text: "Words must always be printed alphabetically.", correct: false, explanation: "The primary order is by count; words only break ties."}
+  - id: q22-3
+    type: mcq
+    text: "What does `+ '_` in `impl Iterator<Item = String> + '_` express?"
+    concepts: [impl-trait, lifetimes]
+    sources: [12]
+    options:
+      - {text: "The returned iterator borrows from the text argument and cannot outlive it.", correct: true, explanation: "It ties the opaque type to the input's lifetime."}
+      - {text: "The iterator lives for the whole program.", correct: false, explanation: "That would be 'static."}
+      - {text: "It allows any item type.", correct: false, explanation: "Item is fixed as String."}
+  - id: q22-4
+    type: spot
+    text: "A learner rewrote count_words. Which line introduces a bug?"
+    concepts: [entry-api]
+    code: |
+      pub fn count_words(text: &str) -> HashMap<String, usize> {
+          let mut counts = HashMap::new();
+          for word in words(text) {
+              counts.insert(word, 1);
+          }
+          counts
+      }
+    correct: [4]
+    explanation: "insert overwrites the previous count, so every word ends up with 1. Use *counts.entry(word).or_insert(0) += 1."
+  - id: q22-5
+    type: open
+    text: "Describe what you changed (or would change) to make wordfreq ignore a list of stop words like 'the' and 'a', and where in the code it belongs."
+    concepts: [lab-wordfreq, iterator-adapters]
+    sources: [12]
+    rubric: |
+      - Adds a filter step (in the words iterator chain or before counting) that drops stop words.
+      - Keeps the change in lib.rs so it can be unit tested, possibly with a parameter for the stop-word list.
+      - Adds or updates a test showing that stop words are not counted.

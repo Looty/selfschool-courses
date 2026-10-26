@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q02
+title: "Check: the toolchain"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q02-1
+    type: match
+    text: "Match each command to what it does."
+    concepts: [cargo-commands]
+    pairs:
+      - {left: "cargo check", right: "Type-checks the code without producing a binary", explanation: "It skips code generation, so it is the fastest way to see errors."}
+      - {left: "cargo build --release", right: "Builds an optimized binary in target/release", explanation: "The release profile uses opt-level 3."}
+      - {left: "cargo fmt", right: "Rewrites the code in the standard style", explanation: "It runs rustfmt over the crate."}
+      - {left: "cargo clippy", right: "Runs extra lints for common mistakes", explanation: "Clippy has over 800 lints in several categories."}
+    distractors: ["Uploads the crate to crates.io"]
+  - id: q02-2
+    type: mcq
+    text: "You want to measure how fast your program runs. Which build should you time?"
+    concepts: [profiles]
+    sources: [1, 45]
+    options:
+      - {text: "The one from cargo build --release", correct: true, explanation: "Release turns optimizations on (opt-level 3); debug builds are unoptimized."}
+      - {text: "The one from cargo build", correct: false, explanation: "The dev profile uses opt-level 0 and keeps extra checks, so it is much slower."}
+      - {text: "The one from cargo check", correct: false, explanation: "cargo check produces no executable at all."}
+  - id: q02-3
+    type: mcq
+    text: "Which Clippy lint category is an error by default?"
+    concepts: [clippy]
+    sources: [67]
+    options:
+      - {text: "correctness", correct: true, explanation: "Code that is outright wrong or useless is denied by default."}
+      - {text: "pedantic", correct: false, explanation: "Pedantic lints are strict, may have false positives, and are off (allow) by default."}
+      - {text: "restriction", correct: false, explanation: "Off by default, and the docs say never to enable it as a whole."}
+      - {text: "style", correct: false, explanation: "Style lints warn but do not fail the build."}
+  - id: q02-4
+    type: short
+    text: "Which release channel do you need for tools such as Miri that are not on stable?"
+    answers: ["nightly", "the nightly channel", "nightly toolchain"]
+    concepts: [channels]
+  - id: q02-5
+    type: fill
+    text: "Complete the manifest that cargo new generates."
+    concepts: [cargo-manifest]
+    template: |
+      [{{1}}]
+      name = "hello"
+      version = "0.1.0"
+      edition = "{{2}}"
+
+      [{{3}}]
+    chips:
+      - {text: "package", slot: 1, explanation: "The [package] table describes the package itself."}
+      - {text: "2024", slot: 2, explanation: "New projects use the newest edition, 2024."}
+      - {text: "dependencies", slot: 3, explanation: "Crates you depend on go in [dependencies]."}
+      - {text: "2027", explanation: "No 2027 edition exists yet."}
+      - {text: "workspace", explanation: "A [workspace] table is for multi-package repositories, not a new single package."}

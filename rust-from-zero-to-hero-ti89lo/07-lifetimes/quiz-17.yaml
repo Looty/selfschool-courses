@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: q17
+title: "Check: lifetime annotations"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q17-1
+    type: sort
+    text: "Does each signature compile without explicit lifetime annotations?"
+    concepts: [lifetime-elision]
+    buckets: ["Compiles as written", "Needs an annotation"]
+    items:
+      - {text: "fn trim(s: &str) -> &str", bucket: "Compiles as written", explanation: "One input lifetime goes to the output (rule 2)."}
+      - {text: "fn pick(a: &str, b: &str) -> &str", bucket: "Needs an annotation", explanation: "Two inputs, not a method: rules 2 and 3 do not apply."}
+      - {text: "fn name(&self, prefix: &str) -> &str", bucket: "Compiles as written", explanation: "Rule 3: the output takes self's lifetime."}
+      - {text: "fn len(a: &str, b: &str) -> usize", bucket: "Compiles as written", explanation: "No output reference, so nothing to infer."}
+      - {text: "fn make() -> &str", bucket: "Needs an annotation", explanation: "No input lifetime at all; the result would have to be 'static or owned."}
+  - id: q17-2
+    type: mcq
+    text: "What does `fn longest<'a>(x: &'a str, y: &'a str) -> &'a str` guarantee about the result?"
+    concepts: [lifetime-annotations]
+    sources: [9]
+    options:
+      - {text: "It is valid as long as both inputs are, i.e. for the shorter of their lifetimes.", correct: true, explanation: "'a is constrained by both arguments, so it is at most the shorter one."}
+      - {text: "It keeps both inputs alive until the result is dropped.", correct: false, explanation: "Annotations never extend lifetimes."}
+      - {text: "It is valid for the longer of the two lifetimes.", correct: false, explanation: "The compiler cannot know which input is returned, so it must assume the shorter."}
+  - id: q17-3
+    type: spot
+    text: "Using the longest<'a> function from the lesson, which line causes the borrow error?"
+    concepts: [lifetime-annotations, borrow-checker]
+    code: |
+      let a = String::from("abcd");
+      let r;
+      {
+          let b = String::from("xy");
+          r = longest(&a, &b);
+      }
+      println!("{r}");
+    correct: [5]
+    explanation: "The compiler reports `b` does not live long enough at the borrow &b on line 5, because r (tied to b's lifetime) is used on line 7 after b is dropped at line 6."
+  - id: q17-4
+    type: short
+    text: "How many lifetime elision rules does the compiler apply to function signatures?"
+    answers: ["3", "three"]
+    concepts: [lifetime-elision]
+  - id: q17-5
+    type: mcq
+    text: "A function builds a String locally and wants to return a &str into it. Which fix is right?"
+    concepts: [dangling-references, lifetime-annotations]
+    sources: [9]
+    options:
+      - {text: "Return the String itself (an owned value).", correct: true, explanation: "No annotation can keep a local alive past the function; move ownership out instead."}
+      - {text: "Add <'a> and return &'a str.", correct: false, explanation: "The local is still dropped at the end of the function; the reference would dangle."}
+      - {text: "Return &'static str.", correct: false, explanation: "The String is not static; this is rejected too."}
+  - id: q17-6
+    type: open
+    text: "Explain in your own words the difference between a value's scope and a reference's lifetime, as RFC 2094 defines them."
+    concepts: [lifetimes, nll]
+    sources: [60]
+    rubric: |
+      - Says scope is how long the value exists, until it is freed or dropped.
+      - Says lifetime is the span of code where the reference may still be used.
+      - Says the reference's lifetime must fit within the scope of the referent, otherwise it would dangle.
