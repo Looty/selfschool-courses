@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: q17
+title: "בדיקה: מעבדה 3"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q17-1
+    type: trace
+    text: "מודל מנבא y = w × x כאשר w מתחיל ב-0, קצב הלמידה (learning rate) הוא 0.1, ודוגמת האימון היחידה היא x = 1, y = 2. השיפוע של השגיאה הריבועית ביחס ל-w הוא 2 × (w × x − y) × x. מלאו את ערך w אחרי כל צעד."
+    concepts: [gradient-descent, learning-rate]
+    sources: [32]
+    code: |
+      for step in range(3):
+          slope = 2 * (w * 1 - 2) * 1
+          w = w - 0.1 * slope
+    variables: [slope, w]
+    steps:
+      - {label: "התחלה", values: {slope: "n/a", w: 0}, given: [slope, w]}
+      - {label: "צעד 1", values: {slope: "-4", w: "0.4"}}
+      - {label: "צעד 2", values: {slope: "-3.2", w: "0.72"}}
+      - {label: "צעד 3", values: {slope: "-2.56", w: "0.976"}}
+    explanation: "בכל צעד w זז נגד כיוון השיפוע: 0 - 0.1 × (-4) = 0.4, אחר כך 0.4 - 0.1 × (-3.2) = 0.72, ואחר כך 0.72 - 0.1 × (-2.56) = 0.976. השיפוע קטן ככל ש-w מתקרב לתשובה הנכונה, 2."
+  - id: q17-2
+    type: mcq
+    text: "במעבדה, קצב למידה (learning rate) של 1.2 גרם לפונקציית ההפסד (loss) להתפוצץ. למה?"
+    concepts: [learning-rate, divergence]
+    sources: [32]
+    options:
+      - {text: "כל צעד חורג מהמינימום יותר ממה שהוא מתקן, ולכן השגיאה גדלה.", correct: true, explanation: "צעד גדול מדי מנחית אותנו גבוה יותר בצד השני של הקערה."}
+      - {text: "הנתונים היו רועשים מדי.", correct: false, explanation: "אותם נתונים התכנסו עם קצב למידה של 0.3."}
+      - {text: "במודל היו יותר מדי פרמטרים.", correct: false, explanation: "היו בו שניים, בדיוק כמו בהרצות המוצלחות."}
+  - id: q17-3
+    type: open
+    text: "תארו מה ראיתם עם קצבי הלמידה (learning rate) 0.01, 0.3 ו-1.2, ואיזה מהם הייתם בוחרים."
+    concepts: [learning-rate]
+    sources: [32]
+    rubric: |
+      - מציין ש-0.01 היה איטי ולא התכנס אחרי 1000 צעדים.
+      - מציין ש-0.3 התכנס קרוב לישר האמיתי.
+      - מציין ש-1.2 התבדר (ה-loss גדל), ולכן 0.3 הוא הקצב שיש לבחור.

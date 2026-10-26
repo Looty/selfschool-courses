@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q61
+title: "בדיקה: pretraining ואחריו fine-tuning"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q61-1
+    type: match
+    text: "התאימו כל שיטה משנת 2018 לתרומה שלה."
+    concepts: [transfer-learning, elmo, ulmfit]
+    sources: [68, 69, 41]
+    pairs:
+      - {left: "ELMo", right: "וקטורי מילים התלויים בכל המשפט, שנוצרים ממודל שפה דו-כיווני שאומן מראש (pretrained)", explanation: "ייצוגים הקשריים (contextual representations) שמתמודדים עם רב-משמעות (polysemy)."}
+      - {left: "ULMFiT", right: "כוונון עדין (fine-tuning) של כל מודל השפה שאומן מראש עבור משימה מסוימת", explanation: "100 דוגמאות מתויגות השיגו תוצאות זהות לאימון מאפס על פי 100 יותר נתונים."}
+      - {left: "GPT-1", right: "אימון מקדים גנרטיבי (generative pre-training) של Transformer מסוג decoder-only, ואחריו fine-tuning לכל משימה", explanation: "הניב את התוצאה הטובה ביותר ב-9 מתוך 12 משימות."}
+    distractors:
+      - "צ'טבוט מבוסס כללים"
+  - id: q61-2
+    type: mcq
+    text: "מדוע וקטור מילה של word2vec מוגבל בהשוואה לוקטור של ELMo?"
+    concepts: [contextual-representation]
+    sources: [69]
+    options:
+      - {text: "word2vec נותן וקטור אחד לכל מילה בלי קשר להקשר, ולכן ל-'bank' יש אותו וקטור גם ב-'river bank' וגם ב-'bank account'.", correct: true, explanation: "הוקטורים של ELMo תלויים במשפט."}
+      - {text: "אי אפשר לאמן את word2vec על טקסט גדול.", correct: false, explanation: "word2vec תוכנן במיוחד לטקסט גדול מאוד."}
+      - {text: "word2vec משתמש בנתונים מתויגים.", correct: false, explanation: "הוא מאומן על טקסט לא מתויג."}
+  - id: q61-3
+    type: open
+    text: "תארו את מתכון ה-pretrain-then-adapt (אימון מקדים ואחריו התאמה), ואת מה שמאמר GPT-3 עשה לשלב ה-'adapt' (ההתאמה)."
+    concepts: [pretraining, fine-tuning, in-context-learning]
+    sources: [3, 41, 68]
+    rubric: |
+      - מציין שמודל מאומן תחילה (pretraining) על קורפוס גדול לא מתויג, ולאחר מכן מותאם (fine-tuning) למשימה מסוימת.
+      - מציין ש-GPT-3 הפך את שלב ההתאמה למיותר עבור משימות רבות, באמצעות מתן מספר דוגמאות בתוך ה-prompt, ללא עדכון משקולות.

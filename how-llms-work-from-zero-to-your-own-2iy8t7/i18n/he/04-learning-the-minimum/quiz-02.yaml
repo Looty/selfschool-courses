@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q16
+title: "בדיקה: ירידה במדרון (Gradient Descent)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q16-1
+    type: fill
+    text: "סדרו את ארבעת השלבים של ירידה במדרון (Gradient Descent) בסדר הנכון."
+    concepts: [gradient-descent]
+    sources: [32]
+    template: |
+      {{1}}, אחר כך {{2}}, אחר כך {{3}}, ואז {{4}}.
+    chips:
+      - {text: "חישוב ה-loss", slot: 1, explanation: "מתחילים במדידה של מידת הטעות של ההגדרות הנוכחיות."}
+      - {text: "מציאת הכיוון שמקטין את ה-loss", slot: 2, explanation: "הגרדיאנט (gradient) מצביע על כיוון הירידה."}
+      - {text: "הזזת הפרמטרים צעד קטן", slot: 3, explanation: "צועדים נגד כיוון השיפוע."}
+      - {text: "חוזרים על התהליך עד שה-loss מפסיק לרדת", slot: 4, explanation: "עוצרים כשהמודל התכנס."}
+  - id: q16-2
+    type: mcq
+    text: "מה קורה אם קצב הלמידה (learning rate) גדול מדי בהרבה?"
+    concepts: [learning-rate]
+    sources: [32]
+    options:
+      - {text: "הצעדים חורגים מהנקודה הנמוכה ביותר, וה-loss עלול לקפוץ הלוך ושוב או לגדול במקום לרדת.", correct: true, explanation: "צעדים גדולים קופצים מעבר למינימום."}
+      - {text: "האימון נעשה איטי יותר אך תמיד מצליח.", correct: false, explanation: "זה מתאר קצב למידה קטן מדי."}
+      - {text: "כלום; קצב הלמידה לא משנה.", correct: false, explanation: "זו אחת מההגדרות החשובות ביותר."}
+  - id: q16-3
+    type: short
+    text: "איך קוראים לנקודה שבה צעדים נוספים כבר לא מקטינים את ה-loss?"
+    concepts: [convergence]
+    sources: [32]
+    answers: ["convergence", "converged", "converge", "the model has converged", "התכנסות", "התכנס", "המודל התכנס", "להתכנס"]

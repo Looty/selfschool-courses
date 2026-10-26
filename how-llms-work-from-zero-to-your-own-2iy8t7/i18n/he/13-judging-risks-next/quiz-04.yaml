@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q60
+title: "בדיקה: פרויקט הסיכום (capstone)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q60-1
+    type: open
+    text: "כתבו את הערכתכם למודל שאימנתם: במה הוא טוב, במה הוא גרוע, ומה הדבר האחד שהייתם משנים בהמשך, תוך שימוש ב-loss וב-samples (דגימות הטקסט) שלכם."
+    concepts: [evaluation, capstone]
+    sources: [8, 2]
+    rubric: |
+      - מציין שני דברים ספציפיים שהמודל עושה היטב, תוך הפניה למאפיינים של טקסט הדוגמה שלו.
+      - מציין לפחות כשל ספציפי אחד, תוך הפניה לטקסט הדוגמה או למספרים.
+      - משווה את ה-loss למודל ה-bigram ולמעבדה 8, ומציע שינוי הבא שמנומק ברעיונות של חוקי הקנה מידה (scaling) ושל Chinchilla (יותר צעדי אימון, יותר נתונים או מודל גדול יותר).
+  - id: q60-2
+    type: mcq
+    text: "בהשוואה למעבדה 8 (1.93), ה-loss של הפרויקט על נתוני ההחזקה (held-out) שעמד על 1.545 נבע בעיקר מ:"
+    concepts: [scaling-laws, capstone]
+    sources: [2]
+    options:
+      - {text: "מודל גדול יותר, הקשר (context) ארוך יותר ויותר צעדי אימון.", correct: true, explanation: "מספר השכבות, גודל הווקטור, אורך ההקשר ומספר הצעדים - כולם גדלו."}
+      - {text: "נתוני אימון שונים.", correct: false, explanation: "נעשה שימוש באותו טקסט של שייקספיר."}
+      - {text: "פונקציית loss שונה.", correct: false, explanation: "ה-loss היה אותו cross-entropy."}
+  - id: q60-3
+    type: short
+    text: "בפרויקט הסיכום, איזו הגדרת דגימה (sampling) שיניתם כדי לקבל טקסט מסודר יותר או המצאתי יותר?"
+    concepts: [temperature]
+    sources: [17]
+    answers: ["temperature", "the temperature", "טמפרטורה", "הטמפרטורה", "טמפרטורת הדגימה"]

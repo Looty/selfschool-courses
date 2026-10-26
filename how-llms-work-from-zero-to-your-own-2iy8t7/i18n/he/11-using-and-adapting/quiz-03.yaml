@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q50
+title: "בדיקה: כוונון עדין (Fine-tuning) ו-LoRA"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q50-1
+    type: mcq
+    text: "מטריצת משקולות W בגודל 1000 × 1000. LoRA בדרגה (rank) 4 לומדת את A (בגודל 4 × 1000) ואת B (בגודל 1000 × 4). כמה מספרים מאומנים במקום 1,000,000 המספרים ב-W?"
+    concepts: [lora, parameter-count]
+    sources: [10]
+    options:
+      - {text: "8,000", correct: true, explanation: "4 × 1000 + 1000 × 4 = 8,000."}
+      - {text: "4,000", correct: false, explanation: "זה סופר רק אחת משתי המטריצות."}
+      - {text: "1,000,000", correct: false, explanation: "זו המטריצה המלאה; LoRA נמנעת מלאמן אותה."}
+  - id: q50-2
+    type: sort
+    text: "בכל אחד מהמצבים הבאים, מה עדיף כצעד ראשון: פרומפט (prompting) או כוונון עדין (fine-tuning)?"
+    concepts: [fine-tuning, prompting]
+    sources: [10]
+    buckets: ["קודם כול פרומפט", "כדאי לשקול כוונון עדין"]
+    items:
+      - {text: "יש לך משימה אחת ואתה רוצה לנסות אותה כבר עכשיו", bucket: "קודם כול פרומפט", explanation: "מיידי, ללא אימון, וניתן לביטול."}
+      - {text: "אתה צריך סגנון מדויק במיליוני בקשות, בעלות נמוכה, עם מודל קטן יותר", bucket: "כדאי לשקול כוונון עדין", explanation: "התנהגות שפרומפט אינו מסוגל לשמור עליה באופן עקבי."}
+      - {text: "אתה רוצה שהמודל יכיר את מחירי המוצרים של השבוע", bucket: "קודם כול פרומפט", explanation: "עובדות שמשתנות שייכות לפרומפט, לא למשקולות."}
+  - id: q50-3
+    type: open
+    text: "ציין שני יתרונות של LoRA לעומת כוונון עדין מלא (full fine-tuning), והסבר מדוע היא אינה מוסיפה השהיה בשלב ההסקה (inference)."
+    concepts: [lora]
+    sources: [10]
+    rubric: |
+      - מציין שני יתרונות, כגון הרבה פחות פרמטרים לאימון, פחות זיכרון GPU, או קבצים קטנים לכל משימה.
+      - מציין שאת השינוי בדרגה נמוכה (low-rank) שנלמד אפשר למזג לתוך משקולות המודל הבסיסי, ולכן ההסקה אינה דורשת חישוב נוסף.

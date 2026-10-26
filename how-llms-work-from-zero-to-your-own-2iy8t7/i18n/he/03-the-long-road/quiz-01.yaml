@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: q11
+title: "בדיקה: הפצה לאחור (backpropagation) והחורף השני"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q11-1
+    type: mcq
+    text: "מה מחשבת ההפצה לאחור (backpropagation)?"
+    concepts: [backpropagation, gradient]
+    sources: [25]
+    options:
+      - {text: "את הגרדיינט (gradient) של פונקציית ההפסד ביחס לכל משקל, בהתקדמות לאחור משכבת הפלט.", correct: true, explanation: "הוא מראה בכמה תשתנה השגיאה אם נזיז כל משקל מעט."}
+      - {text: "את התשובה הסופית של הרשת עבור קלט נתון.", correct: false, explanation: "זהו המעבר קדימה (forward pass), לא הפצה לאחור."}
+      - {text: "את נתוני האימון הטובים ביותר לשימוש הבא.", correct: false, explanation: "היא אינה אומרת דבר על בחירת נתונים."}
+  - id: q11-2
+    type: sort
+    text: "איזו גישה נפגעה מהחורף השני של הבינה המלאכותית, ואיזו המשיכה להשתפר בשקט?"
+    concepts: [ai-winter, expert-systems]
+    sources: [26]
+    buckets: ["נפגעו מהחורף", "המשיכו להשתפר"]
+    items:
+      - {text: "מערכות מומחה שנבנו מכללים שנכתבו ידנית", bucket: "נפגעו מהחורף", explanation: "הן היו שבריריות ויקרות לתחזוקה."}
+      - {text: "מכונות LISP (חומרה ייעודית)", bucket: "נפגעו מהחורף", explanation: "תחנות עבודה זולות יותר סיימו את השוק שלהן ב-1987."}
+      - {text: "למידה מנתונים באמצעות רשתות נוירונים", bucket: "המשיכו להשתפר", explanation: "שיטות הלמידה התקדמו במשימות קטנות עד שהנתונים והמחשבים הדביקו את הפער."}
+  - id: q11-3
+    type: short
+    text: "על כלל של מי משנת 1676 נשענת ההפצה לאחור, מחבר כלל השרשרת (chain rule)?"
+    concepts: [chain-rule]
+    sources: [25]
+    answers: ["leibniz", "gottfried leibniz", "gottfried wilhelm leibniz", "לייבניץ", "גוטפריד לייבניץ", "גוטפריד וילהלם לייבניץ"]
+  - id: q11-4
+    type: open
+    text: "הסבירו במילים שלכם מדוע נדרשה הפצה לאחור כדי לאמן רשתות בעלות כמה שכבות."
+    concepts: [backpropagation]
+    sources: [25]
+    rubric: |
+      - מציין שהשגיאה נראית רק בפלט, בעוד שמשקלים בשכבות מוקדמות יותר משפיעים עליה בעקיפין.
+      - מציין שההפצה לאחור מעבירה נגזרות לאחור, שכבה אחר שכבה, כדי לחשב כיצד כל משקל משפיע על השגיאה.

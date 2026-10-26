@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q31
+title: "בדיקה: קשב עצמי (Self-Attention)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q31-1
+    type: fill
+    text: "סדרו לפי הסדר את השלבים של קשב עצמי (self-attention) עבור טוקן אחד."
+    concepts: [self-attention]
+    sources: [20]
+    template: |
+      {{1}}, אחר כך {{2}}, אחר כך {{3}}, אחר כך {{4}}, ואחר כך {{5}}.
+    chips:
+      - {text: "יוצרים query, key ו-value לכל טוקן", slot: 1, explanation: "שלוש מטריצות נלמדות מפיקות אותם מתוך ה-embeddings."}
+      - {text: "מחשבים ציון בין ה-query של הטוקן לבין כל ה-keys", slot: 2, explanation: "מכפלות סקלריות (dot products) מודדות רלוונטיות."}
+      - {text: "מנרמלים את הציונים בקנה מידה ומפעילים softmax", slot: 3, explanation: "כך מתקבלים משקלים שסכומם 1."}
+      - {text: "מכפילים כל value במשקל ה-softmax שלו", slot: 4, explanation: "טוקנים רלוונטיים שומרים על ההשפעה שלהם."}
+      - {text: "מסכמים את ה-values המשוקללים", slot: 5, explanation: "הסכום הוא וקטור הפלט של הטוקן."}
+  - id: q31-2
+    type: match
+    text: "התאימו כל אחד משלושת הוקטורים לתפקידו."
+    concepts: [query-key-value]
+    sources: [20]
+    pairs:
+      - {left: "Query", right: "מה הטוקן הזה מחפש", explanation: "מושווה מול כל ה-keys."}
+      - {left: "Key", right: "מה הטוקן הזה מציע לצורך התאמה", explanation: "מושווה מול ה-queries כדי לקבל ציונים."}
+      - {left: "Value", right: "מה הטוקן הזה מעביר הלאה אם מקשיבים לו", explanation: "משוקלל ומסוכם ליצירת הפלט."}
+    distractors:
+      - "כמה שכבות יש במודל"
+  - id: q31-3
+    type: mcq
+    text: "מדוע Transformer מתאמן מהר יותר מ-LSTM על אותו טקסט?"
+    concepts: [parallelism, transformer]
+    sources: [1, 20]
+    options:
+      - {text: "קשב עצמי מעבד את כל הטוקנים בבת אחת באמצעות מטריצות, במקום צעד אחר צעד.", correct: true, explanation: "אף טוקן לא צריך לחכות לקודם לו."}
+      - {text: "יש לו פחות פרמטרים.", correct: false, explanation: "מספר הפרמטרים אינו הסיבה."}
+      - {text: "הוא מתעלם לחלוטין מסדר המילים.", correct: false, explanation: "מידע על המיקום מתווסף; הסדר אינו מתעלמים ממנו."}
+  - id: q31-4
+    type: short
+    text: "איזו פעולה הופכת את ציוני הקשב למשקלים חיוביים שסכומם 1?"
+    concepts: [softmax]
+    sources: [20]
+    answers: ["softmax", "the softmax function", "סופטמקס", "פונקציית softmax", "פונקציית סופטמקס"]

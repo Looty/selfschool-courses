@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q54
+title: "בדיקה: ReAct"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q54-1
+    type: match
+    text: "התאימו כל סוג שורה בתמלול (transcript) של ReAct למי שכותב אותה ולמה שהיא מייצגת."
+    concepts: [react]
+    sources: [13]
+    pairs:
+      - {left: "Thought", right: "נכתבת על ידי המודל: החשיבה שלו בטקסט", explanation: "עקבת הנימוק (reasoning trace)."}
+      - {left: "Action", right: "נכתבת על ידי המודל: קריאה לכלי בפורמט קבוע", explanation: "התוכנה מנתחת אותה ומריצה אותה."}
+      - {left: "Observation", right: "נכתבת על ידי התוכנה: התוצאה שהכלי החזיר", explanation: "מוזנת בחזרה אל השיחה."}
+    distractors:
+      - "נכתבת על ידי המשתמש לפני תחילת השיחה"
+  - id: q54-2
+    type: mcq
+    text: "מה הראה ReAct על HotpotQA ועל FEVER?"
+    concepts: [react, hallucination]
+    sources: [13]
+    options:
+      - {text: "שימוש ב-API פשוט של Wikipedia הפחית הזיות (hallucination) והתפשטות שגיאות בהשוואה ל-chain-of-thought בלבד.", correct: true, explanation: "נימוק יחד עם פעולה ניצח נימוק בלבד."}
+      - {text: "מודלים לעולם לא צריכים להשתמש בכלים.", correct: false, explanation: "המאמר מצא שהכלים עזרו."}
+      - {text: "עקבות נימוק לא היו נחוצות.", correct: false, explanation: "השילוב המשולב של נימוק ופעולה היה לב העניין."}
+  - id: q54-3
+    type: open
+    text: "מדוע קשה יותר להעריך סוכן (agent) מאשר להעריך תשובה בודדת?"
+    concepts: [agents, evaluation]
+    sources: [13]
+    rubric: |
+      - מציין שסוכן מבצע צעדים רבים, ושגיאה מוקדמת עלולה לקלקל את כל מה שאחריה (שגיאות מצטברות).
+      - מציין שצריך להעריך מסלולים שלמים (trajectories, כלומר רצף המחשבות והפעולות), ולא רק את התשובה הסופית.

@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q09
+title: "בוחן: מעבדה 2"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q09-1
+    type: sort
+    text: "לאיזה חלק ב-ELIZA הקטנה שייך כל שלב?"
+    concepts: [eliza, rules-based]
+    sources: [22]
+    buckets: ["מציאת התבנית", "בניית התשובה"]
+    items:
+      - {text: "ביטוי רגולרי (regular expression) לוכד את המילים שאחרי 'I am'", bucket: "מציאת התבנית", explanation: "הפירוק (decomposition) מפצל את המשפט לקטעים."}
+      - {text: "החלפת 'my' ב-'your'", bucket: "בניית התשובה", explanation: "ההשתקפות (reflection) מכינה את הקטע כך שהתשובה תישמע טבעית."}
+      - {text: "הכנסת הקטע לתבנית", bucket: "בניית התשובה", explanation: "ההרכבה מחדש (reassembly) בונה את התשובה."}
+      - {text: "בדיקה אם המשפט מזכיר את 'mother'", bucket: "מציאת התבנית", explanation: "התאמת מילות מפתח (keyword matching) בוחרת את הכלל."}
+  - id: q09-2
+    type: mcq
+    text: "המשתמש מקליד שאלה עובדתית: \"who wrote Hamlet\". מה ELIZA הקטנה עושה?"
+    concepts: [rules-based, limits]
+    sources: [22]
+    options:
+      - {text: "היא משתמשת בתשובת גיבוי (fallback), כי אף כלל אינו תואם ואין לה ידע.", correct: true, explanation: "יש לה רק תבניות ותבניות תשובה; היא אינה יכולה לענות על שאלות עובדתיות."}
+      - {text: "היא עונה 'Shakespeare'.", correct: false, explanation: "הסקריפט אינו מכיל עובדות."}
+      - {text: "היא לומדת את התשובה מהשאלה.", correct: false, explanation: "התוכנית אינה לומדת."}
+  - id: q09-3
+    type: open
+    text: "מדוע גישת הכללים מבוססי מילות המפתח אינה מתרחבת (scale) לשיחה פתוחה, ומה מודל שפה עושה במקום זאת?"
+    concepts: [rules-vs-learning]
+    sources: [22]
+    rubric: |
+      - מציין שכל מצב חדש דורש כלל חדש שנכתב ידנית, ויש אינספור מצבים כאלה.
+      - מציין שמודל שפה במקום זאת לומד דפוסים מכמויות גדולות של טקסט וחוזה את ה-token הבא.

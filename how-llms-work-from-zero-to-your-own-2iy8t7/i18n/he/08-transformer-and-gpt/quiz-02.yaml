@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q35
+title: "בדיקה: GPT מסוג Decoder-only"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q35-1
+    type: sort
+    text: "איזה תיאור מתאים ל-BERT ואיזה ל-GPT?"
+    concepts: [bert, gpt, encoder-decoder]
+    sources: [9, 21]
+    buckets: ["BERT", "GPT"]
+    items:
+      - {text: "משתמש בהקשר גם מצד שמאל וגם מצד ימין בכל שכבה", bucket: "BERT", explanation: "אימון מקדים דו-כיווני (bidirectional)."}
+      - {text: "Decoder-only; מנבא את הטוקן הבא מתוך הטוקנים שמשמאלו", bucket: "GPT", explanation: "סיבתי (causal), משמאל לימין."}
+      - {text: "עובר כוונון (fine-tuning) עם שכבת פלט נוספת אחת לכל משימה", bucket: "BERT", explanation: "זה היה המתכון של BERT."}
+      - {text: "כותב טקסט באמצעות חזרה על ניבוי הטוקן הבא", bucket: "GPT", explanation: "היצירה משתמשת באותו לולאה כמו האימון."}
+  - id: q35-2
+    type: mcq
+    text: "מדוע ניבוי הטוקן הבא אינו דורש נתונים שתויגו בידי בני אדם?"
+    concepts: [self-supervised]
+    sources: [21]
+    options:
+      - {text: "התשובה הנכונה בכל מיקום היא הטוקן הבא בטקסט עצמו.", correct: true, explanation: "כל טקסט מספק לעצמו את התוויות."}
+      - {text: "המודל מתייג את הנתונים בעצמו באמצעות מילון.", correct: false, explanation: "אין שימוש במילון."}
+      - {text: "כי המודל רק נבחן ואף פעם אינו מאומן.", correct: false, explanation: "המודל מאומן בדיוק על המשימה הזו."}
+  - id: q35-3
+    type: open
+    text: "מה הראה המאמר של GPT-3 לגבי הגדלת קנה המידה (scaling) של מודל Decoder-only?"
+    concepts: [gpt3, few-shot]
+    sources: [3]
+    rubric: |
+      - מציין שמודל בן 175 מיליארד פרמטרים ביצע משימות רבות מתוך מספר דוגמאות בפרומפט, בלי כוונון (fine-tuning) (few-shot).
+      - מציין שהגדלת המודל שיפרה את הביצועים ב-few-shot שאינם תלויי משימה, והתקרבה בחלק מהמשימות לתוצאות קודמות שהושגו בכוונון.

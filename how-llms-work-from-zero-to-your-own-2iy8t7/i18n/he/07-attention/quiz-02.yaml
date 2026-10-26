@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q30
+title: "בדיקה: attention (קשב)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q30-1
+    type: mcq
+    text: "מה משמעות המונח \"רך\" (soft) ב-soft attention?"
+    concepts: [attention, soft-attention]
+    sources: [5]
+    options:
+      - {text: "המשקל מתפזר על פני כמה מילות מקור, במקום לבחור מילה אחת בלבד.", correct: true, explanation: "משקלים רציפים וחלקים שומרים על כך שאפשר לאמן הכול בעזרת ירידת גרדיאנט (gradient descent)."}
+      - {text: "ה-attention מופעל בעדינות, ולכן המודל מתאמן לאט.", correct: false, explanation: "ה\"רכות\" נוגעת למשקלים, לא למהירות."}
+      - {text: "המודל מתעלם ממרבית המקור.", correct: false, explanation: "ייתכן שהוא נותן משקל גבוה יותר לחלק מהמילים, אבל כולן משתתפות."}
+  - id: q30-2
+    type: fill
+    text: "השלימו את התיאור של צעד attention אחד."
+    concepts: [attention]
+    sources: [5]
+    template: |
+      נותנים לכל מילת מקור ציון עבור {{1}}, הופכים את הציונים ל-{{2}} שסכומם 1, ואז לוקחים {{3}} של וקטורי המקור.
+    chips:
+      - {text: "הרלוונטיות שלה למילה שנכתבת כעת", slot: 1, explanation: "מילות פלט שונות זקוקות למילות קלט שונות."}
+      - {text: "משקלים", slot: 2, explanation: "פונקציית softmax מפיקה אותם."}
+      - {text: "ממוצע משוקלל", slot: 3, explanation: "הממוצע הזה הוא התקציר החדש עבור מילת הפלט הנוכחית."}
+      - {text: "דגימה אקראית", explanation: "ב-soft attention יש שילוב משוקלל, לא בחירה אקראית."}
+  - id: q30-3
+    type: open
+    text: "כיצד attention פתר את צוואר הבקבוק משיעור 29, ומה הראו ה-alignments (ההתאמות) שנלמדו?"
+    concepts: [attention, alignment]
+    sources: [5]
+    rubric: |
+      - מציין שה-decoder (המפענח) מסתכל לאחור על הווקטורים של כל מילות המקור ובונה תקציר משוקלל חדש עבור כל מילת פלט, במקום להשתמש בווקטור קבוע אחד.
+      - מציין שה-alignments שנלמדו תאמו היטב את האינטואיציה האנושית לגבי אילו מילים מתאימות זו לזו.

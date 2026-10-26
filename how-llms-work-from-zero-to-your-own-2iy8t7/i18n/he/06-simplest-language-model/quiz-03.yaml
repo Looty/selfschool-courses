@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: q26
+title: "בדיקה: פונקציית הפסד (loss) ו-perplexity"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q26-1
+    type: mcq
+    text: "מודל נותן הסתברות 1.0 לטוקן הבא הנכון בכל מיקום. מהו ה-loss שלו?"
+    concepts: [cross-entropy, loss]
+    sources: [34]
+    options:
+      - {text: "0", correct: true, explanation: "-log(1) = 0: אין שום הפתעה."}
+      - {text: "1", correct: false, explanation: "-log(1) הוא 0, לא 1."}
+      - {text: "אינסוף", correct: false, explanation: "ה-loss גדל לעבר אינסוף כשההסתברות שואפת ל-0, לא כשהיא שואפת ל-1."}
+  - id: q26-2
+    type: mcq
+    text: "ערך loss של 2.493 nats לתו מתאים ל-perplexity של בערך:"
+    concepts: [perplexity]
+    sources: [34]
+    options:
+      - {text: "12", correct: true, explanation: "exp(2.493) הוא בערך 12.1."}
+      - {text: "2.5", correct: false, explanation: "ה-perplexity הוא exp(loss), ולא ה-loss עצמו."}
+      - {text: "65", correct: false, explanation: "65 הוא ה-perplexity של ניחוש אחיד על פני 65 תווים."}
+  - id: q26-3
+    type: short
+    text: "ציינו את המדד השווה ל-exp(loss), כלומר המספר האפקטיבי של אפשרויות שוות הסתברות שביניהן המודל מתלבט."
+    concepts: [perplexity]
+    sources: [34]
+    answers: ["perplexity", "פרפלקסיטי", "פרפלקסיה", "perplexity (פרפלקסיטי)"]
+  - id: q26-4
+    type: open
+    text: "מדוע אין זה הוגן להשוות loss לתו ל-loss לטוקן?"
+    concepts: [loss, tokenization-tradeoffs]
+    sources: [34]
+    rubric: |
+      - מציין שטוקן מכיל בדרך כלל יותר מתו אחד, ולכן חיזוי של טוקן הוא קשה יותר ונושא יותר מידע.
+      - מציין שהשוואה הוגנת אפשרית רק עם אותו tokenizer ואותו טקסט held-out (טקסט שלא שימש לאימון).

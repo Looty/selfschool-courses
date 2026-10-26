@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q63
+title: "בדיקה: יכולות אמרגנטיות (emergent abilities)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q63-1
+    type: mcq
+    text: "כיצד הגדירו Wei ועמיתיו יכולת אמרגנטית (emergent ability)?"
+    concepts: [emergent-abilities]
+    sources: [54]
+    options:
+      - {text: "יכולת שאינה קיימת במודלים קטנים יותר אך קיימת במודלים גדולים יותר.", correct: true, explanation: "לכן אי אפשר לחזות אותה על ידי אקסטרפולציה ממודלים קטנים יותר."}
+      - {text: "יכולת שיש לכל מודל, בלי קשר לגודלו.", correct: false, explanation: "אמרגנטיות עניינה יכולת שמופיעה רק עם הגדלת קנה המידה (scale)."}
+      - {text: "יכולת שמופיעה רק לאחר כוונון עדין (fine-tuning).", correct: false, explanation: "ההגדרה מבוססת על גודל המודל (scale), לא על כוונון עדין."}
+  - id: q63-2
+    type: mcq
+    text: "מודל צודק בכל ספרה של סכום בן 5 ספרות ב-90% מהמקרים, באופן בלתי תלוי. בערך באיזו תדירות הוא יקבל את הסכום כולו נכון בדיוק?"
+    concepts: [metric-choice, exact-match]
+    sources: [55]
+    options:
+      - {text: "בערך 59% (0.9 בחזקת חמש).", correct: true, explanation: "0.9 × 0.9 × 0.9 × 0.9 × 0.9 הם בערך 0.59."}
+      - {text: "90%", correct: false, explanation: "זה שיעור ההצלחה לכל ספרה; כל חמש הספרות צריכות להיות נכונות בו-זמנית."}
+      - {text: "בערך 99%", correct: false, explanation: "שגיאות מצטברות, ולכן שיעור ההצלחה בתשובה כולה נמוך יותר."}
+  - id: q63-3
+    type: open
+    text: "הסבירו את טענת ה-\"mirage\" (אשליה), ומה הייתם מבקשים לראות לפני שתאמינו לטענה שמודל רכש מיומנות פתאום."
+    concepts: [emergent-abilities, metric-choice]
+    sources: [55]
+    rubric: |
+      - מציין שהופעה לכאורה של אמרגנטיות יכולה לנבוע ממדדים לא-לינאריים או בלתי רציפים (כגון exact match), שהופכים שיפור הדרגתי וחלק לקפיצה פתאומית.
+      - מציין שיש לבחון מדד רציף (כגון ציון חלקי או דיוק לכל צעד) ולבדוק אם גם הוא מראה קפיצה.

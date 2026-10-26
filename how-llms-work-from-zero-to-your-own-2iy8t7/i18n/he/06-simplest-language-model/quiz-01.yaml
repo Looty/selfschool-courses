@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q24
+title: "בדיקה: ספירת ביגרמות"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q24-1
+    type: mcq
+    text: "נניח שמתוך 60,000 זוגות שמתחילים בתו t, התו h מופיע אחריו 20,592 פעמים. מה בקירוב P(next = h | previous = t)?"
+    concepts: [conditional-probability, bigram]
+    sources: [34]
+    options:
+      - {text: "בערך 0.34", correct: true, explanation: "20,592 / 60,000 הם בערך 0.34."}
+      - {text: "בערך 0.034", correct: false, explanation: "זה קטן פי עשרה מדי."}
+      - {text: "בערך 3.4", correct: false, explanation: "הסתברות לא יכולה לעלות על 1."}
+  - id: q24-2
+    type: mcq
+    text: "מדוע במעבדה מוסיפים 1 לכל ספירה לפני שהופכים ספירות להסתברויות?"
+    concepts: [smoothing]
+    sources: [34]
+    options:
+      - {text: "כדי שזוג שלא נראה מעולם באימון לא יקבל הסתברות אפס.", correct: true, explanation: "אפס אחד היה הופך כל טקסט שמכיל את הזוג הזה לבלתי אפשרי."}
+      - {text: "כדי שסכום הספירות יהיה 1.", correct: false, explanation: "את זה עושה החלוקה בסכום הכולל."}
+      - {text: "כדי להאיץ את האימון.", correct: false, explanation: "החלקה (smoothing) נועדה למנוע אפסים, לא להאיץ."}
+  - id: q24-3
+    type: open
+    text: "מודל הביגרמות (bigram) מייצר טקסט שנראה כמו מילים באנגלית אך חסר משמעות. הסבירו מדוע, במונחי הקשר (context)."
+    concepts: [bigram, context]
+    sources: [31]
+    rubric: |
+      - מציין שהמודל רואה רק תו קודם אחד כשהוא בוחר את התו הבא.
+      - מציין שדבר אינו מקשר בין הבחירות לאורך קטעים ארוכים יותר (מילים או משפטים), ולכן לטקסט אין משמעות.

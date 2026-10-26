@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q29
+title: "בדיקה: צוואר הבקבוק"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q29-1
+    type: mcq
+    text: "לאיזו בעיה בתרגום מבוסס מקודד-מפענח (encoder-decoder) הצביעו Bahdanau, Cho ו-Bengio?"
+    concepts: [bottleneck, encoder-decoder]
+    sources: [5]
+    options:
+      - {text: "דחיסה של משפט מקור שלם לווקטור אחד באורך קבוע מגבילה את איכות התרגום.", correct: true, explanation: "זו המוטיבציה המוצהרת להצגת מנגנון הקשב (attention)."}
+      - {text: "המפענח אינו יכול להפיק יותר מעשר מילים.", correct: false, explanation: "אורך הפלט אינו הבעיה."}
+      - {text: "המקודד אינו יכול לקרוא מספרים.", correct: false, explanation: "זה לא מוזכר ואינו הבעיה."}
+  - id: q29-2
+    type: match
+    text: "התאימו כל רכיב לתפקידו."
+    concepts: [encoder-decoder]
+    sources: [5, 27]
+    pairs:
+      - {left: "מקודד (Encoder)", right: "קורא את משפט המקור ובונה ייצוג שלו", explanation: "החצי הראשון של הארכיטקטורה."}
+      - {left: "מפענח (Decoder)", right: "כותב את משפט היעד מילה אחר מילה", explanation: "החצי השני."}
+      - {left: "ווקטור באורך קבוע", right: "התקציר היחיד שעובר ביניהם", explanation: "זהו צוואר הבקבוק."}
+    distractors:
+      - "פונקציית ההפסד (loss function)"
+  - id: q29-3
+    type: open
+    text: "בעזרת האנלוגיה של תרגום לאחר ששמעתם משפט ארוך פעם אחת, הסבירו מדוע התקציר באורך קבוע הוא צוואר בקבוק."
+    concepts: [bottleneck]
+    sources: [5]
+    rubric: |
+      - מציין שלתקציר יש אותו גודל בלי קשר לאורך המשפט, ולכן קלטים ארוכים מאבדים פרטים.
+      - מציין שהמפענח נאלץ להשתמש באותו תקציר יחיד לכל מילת פלט, אף שמילים שונות תלויות בחלקים שונים של הקלט.

@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q40
+title: "בדיקה: Chinchilla"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q40-1
+    type: mcq
+    text: "מהי המסקנה המרכזית של המאמר על Chinchilla?"
+    concepts: [chinchilla, compute-optimal]
+    sources: [8]
+    options:
+      - {text: "יש להגדיל את גודל המודל ואת מספר הטוקנים (tokens) באותו קצב; מודלים גדולים רבים אומנו על כמות נתונים קטנה מדי.", correct: true, explanation: "על כל הכפלה של מספר הפרמטרים יש להכפיל גם את מספר הטוקנים."}
+      - {text: "מודלים גדולים יותר זקוקים תמיד לפחות נתונים.", correct: false, explanation: "זו הייתה קרובה יותר להמלצה משנת 2020."}
+      - {text: "הנתונים כבר אינם חשובים כשהמודל גדול מספיק.", correct: false, explanation: "המאמר טען את ההפך."}
+  - id: q40-2
+    type: sort
+    text: "אילו מהתיאורים הבאים מתאימים ל-Gopher ואילו ל-Chinchilla?"
+    concepts: [chinchilla]
+    sources: [8]
+    buckets: ["Gopher", "Chinchilla"]
+    items:
+      - {text: "280 מיליארד פרמטרים", bucket: "Gopher", explanation: "המודל הגדול יותר, שאומן על פחות נתונים."}
+      - {text: "70 מיליארד פרמטרים, אומן על פי כ-4 יותר נתונים", bucket: "Chinchilla", explanation: "באותו תקציב חישוב (compute)."}
+      - {text: "השיג דיוק ממוצע של 67.5% ב-MMLU", bucket: "Chinchilla", explanation: "יותר מ-7 נקודות מעל Gopher."}
+  - id: q40-3
+    type: open
+    text: "מדוע מודל קטן יותר שאומן על יותר נתונים משתלם יותר לאורך כל חיי המודל?"
+    concepts: [inference-cost, chinchilla]
+    sources: [8, 11]
+    rubric: |
+      - מציין שהאימון משולם פעם אחת, אבל ההסקה (inference) משולמת בכל פעם שהמודל משמש.
+      - מציין שמודל קטן יותר דורש פחות חישוב בכל שימוש (וגם בכוונון עדין, fine-tuning), ובו בזמן משתווה למודל גדול יותר או עולה עליו.

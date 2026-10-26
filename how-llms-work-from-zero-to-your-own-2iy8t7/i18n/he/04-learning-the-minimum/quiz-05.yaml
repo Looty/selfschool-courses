@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q19
+title: "בדיקה: התאמת יתר (Overfitting)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q19-1
+    type: mcq
+    text: "ה-training loss ממשיך לרדת, אבל ה-validation loss מתחיל לעלות. מה זה מרמז?"
+    concepts: [overfitting, loss-curves]
+    sources: [35]
+    options:
+      - {text: "המודל סובל מהתאמת יתר (overfitting): הוא משתפר על נתוני האימון ומידרדר על נתונים חדשים.", correct: true, explanation: "ההתבדרות הזו היא הסימן הקלאסי."}
+      - {text: "המודל לומד היטב וכדאי לאמן אותו עוד.", correct: false, explanation: "המשך אימון רק יחריף את ההתבדרות."}
+      - {text: "קצב הלמידה (learning rate) קטן מדי.", correct: false, explanation: "קצב למידה קטן היה מוביל להתקדמות איטית בשני העקומים."}
+  - id: q19-2
+    type: sort
+    text: "אילו מהתיאורים הבאים מתארים התאמת יתר (overfitting), ואילו מתארים הכללה (generalisation)?"
+    concepts: [overfitting, generalisation]
+    sources: [35]
+    buckets: ["התאמת יתר (Overfitting)", "הכללה (Generalisation)"]
+    items:
+      - {text: "מודל שמדקלם את טקסט האימון שלו אך נכשל על טקסט חדש", bucket: "התאמת יתר (Overfitting)", explanation: "הוא שינן במקום ללמוד דפוסים."}
+      - {text: "מודל שממשיך באופן הגיוני טקסט שמעולם לא ראה", bucket: "הכללה (Generalisation)", explanation: "הוא למד את הדפוסים הבסיסיים."}
+      - {text: "ציון מושלם על נתוני האימון, ציון נמוך על נתוני ה-validation", bucket: "התאמת יתר (Overfitting)", explanation: "הפער הוא הסימפטום."}
+  - id: q19-3
+    type: open
+    text: "מדוע אנו משאירים חלק מהנתונים מחוץ לאימון, ומה עושים איתם?"
+    concepts: [validation-set]
+    sources: [35]
+    rubric: |
+      - מציין שהנתונים שהושארו בצד אינם מוכרים למודל, ולכן מדידה עליהם מראה עד כמה המודל מכליל (generalises) היטב.
+      - מציין שמשווים בין ה-loss על נתוני האימון לבין ה-loss על נתוני ה-validation, ובודקים אם ה-validation loss עולה.

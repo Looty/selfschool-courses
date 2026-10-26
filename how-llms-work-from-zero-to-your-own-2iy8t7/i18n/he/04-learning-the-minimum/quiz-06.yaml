@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q62
+title: "בדיקה: אופטימייזרים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q62-1
+    type: mcq
+    text: "מה Adam עושה שגרדיאנט דיסנט (gradient descent) רגיל אינו עושה?"
+    concepts: [adam, optimiser]
+    sources: [46]
+    options:
+      - {text: "הוא שומר ממוצעים נעים של הגרדיאנט ושל הגרדיאנט בריבוע עבור כל פרמטר, ומשנה את גודל כל צעד לפיהם.", correct: true, explanation: "\"הערכות אדפטיביות של מומנטים מסדר נמוך\" של הגרדיאנטים."}
+      - {text: "הוא מחשב גרדיאנטים מדויקים על כל מערך הנתונים בכל צעד.", correct: false, explanation: "Adam פועל על גרדיאנטים סטוכסטיים (מבוססי minibatch)."}
+      - {text: "הוא מבטל את הצורך בקצב למידה (learning rate).", correct: false, explanation: "עדיין יש לקבוע קצב למידה, בדרך כלל לפי לוח זמנים (schedule)."}
+  - id: q62-2
+    type: fill
+    text: "תארו את לוח הזמנים של קצב הלמידה במאמר ה-Transformer."
+    concepts: [warmup, learning-rate-schedule]
+    sources: [1]
+    template: |
+      קצב הלמידה {{1}} באופן ליניארי במהלך {{2}} הצעדים הראשונים, ולאחר מכן {{3}} באופן יחסי להופכי של השורש הריבועי של מספר הצעד.
+    chips:
+      - {text: "עולה", slot: 1, explanation: "זהו שלב ה-warmup."}
+      - {text: "4000", slot: 2, explanation: "warmup_steps = 4000."}
+      - {text: "יורד", slot: 3, explanation: "לאחר מכן מתחילה הדעיכה."}
+      - {text: "נשאר קבוע", explanation: "הנקודה היא שהוא אינו נשאר קבוע."}
+  - id: q62-3
+    type: open
+    text: "מדוע באימון משתמשים ב-minibatches, ומה ההשפעה על הגרדיאנט?"
+    concepts: [minibatch, sgd]
+    sources: [32, 46]
+    rubric: |
+      - מציין שחישוב הגרדיאנט על כל הנתונים בכל צעד איטי מדי, ולכן בכל צעד משתמשים בתת-קבוצה אקראית קטנה.
+      - מציין שהגרדיאנט המתקבל הוא הערכה רועשת של הגרדיאנט האמיתי, ולכן ההתקדמות מקוטעת.

@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: q01
+title: "בדיקה: הבעיה במילים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q01-1
+    type: mcq
+    text: "על איזו שאלה מנסה מודל שפה (language model) לענות?"
+    concepts: [language-model, next-token]
+    sources: [21]
+    options:
+      - {text: "בהינתן טקסט כלשהו, מה הסבירות של כל קטע טקסט אפשרי שיבוא אחריו?", correct: true, explanation: "חיזוי ה-token הבא הוא המשימה המרכזית; שימושים רבים מנוסחים כהמשכת טקסט."}
+      - {text: "איזה כלל בספר כללים חל על המשפט הזה?", correct: false, explanation: "זה מתאר מערכת מבוססת כללים, הגישה שמודלי שפה החליפו."}
+      - {text: "מהי המשמעות של המילה הזו במילון?", correct: false, explanation: "מודל שפה אינו מחפש הגדרות במילון; הוא עובד עם מספרים שנלמדו."}
+  - id: q01-2
+    type: short
+    text: "איך קוראים לקטעי הטקסט הקטנים, שכל אחד מהם מומר למספר שלם, שהמודל עובד איתם בפועל?"
+    concepts: [token]
+    sources: [21]
+    answers: ["tokens", "token", "טוקנים", "טוקן", "אסימונים", "אסימון"]
+  - id: q01-3
+    type: open
+    text: "במילים שלך, מדוע כללים שנכתבו ידנית הם דרך גרועה לטפל בשפה?"
+    concepts: [ambiguity, rules-vs-learning]
+    sources: [21]
+    rubric: |
+      - מציין שאותו רעיון אפשר לבטא בדרכים רבות, או שאותן מילים יכולות להשתמע במשמעויות שונות (עמימות, ambiguity).
+      - מציין שהמשמעות תלויה בהקשר שמסביב.
+      - מציין שכללים עובדים במקרים צרים אך קורסים מחוץ להם.

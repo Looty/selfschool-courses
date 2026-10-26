@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q37
+title: "בדיקה: יצירת טקסט"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q37-1
+    type: fill
+    text: "סדרו לפי הסדר מעבר אחד של לולאת היצירה (generation loop)."
+    concepts: [generation-loop]
+    sources: [30]
+    template: |
+      {{1}}, אחר כך {{2}}, אחר כך {{3}}, ואחר כך {{4}}.
+    chips:
+      - {text: "להשאיר רק את הטוקנים האחרונים שנכנסים בחלון", slot: 1, explanation: "כל מה שישן יותר בלתי נראה למודל."}
+      - {text: "להריץ את המודל ולקחת את הציונים של המיקום האחרון", slot: 2, explanation: "רק המיקום האחרון מנבא מה יבוא בהמשך."}
+      - {text: "להחיל טמפרטורה (temperature) ו-softmax, ואז לדגום (sample) טוקן אחד", slot: 3, explanation: "הופך ציונים לטוקן שנבחר."}
+      - {text: "לצרף את הטוקן ולחזור על התהליך", slot: 4, explanation: "הפלט הופך לחלק מהקלט הבא."}
+  - id: q37-2
+    type: mcq
+    text: "איך מודל מתארח (hosted) יודע מתי להפסיק לכתוב?"
+    concepts: [eos-token]
+    sources: [30]
+    options:
+      - {text: "הוא מפיק טוקן מיוחד לסיום רצף (end-of-sequence), או שמגיעים למגבלת אורך.", correct: true, explanation: "שתי האפשרויות מתוארות בתיעוד של Hugging Face."}
+      - {text: "הוא סופר מילים ועוצר ב-100.", correct: false, explanation: "אין מספר מילים קבוע; העצירה מתבצעת לפי טוקן הסיום או לפי מגבלה שאתם קובעים."}
+      - {text: "הוא עוצר כשהמשתמש לוחץ על מקש.", correct: false, explanation: "היצירה היא לולאה בתוך התוכנה, ולא לחיצה על מקש."}
+  - id: q37-3
+    type: open
+    text: "למה כתיבת תשובה ארוכה איטית יותר מקריאת פרומפט (prompt) ארוך, גם על חומרה מהירה?"
+    concepts: [autoregressive, parallelism]
+    sources: [30]
+    rubric: |
+      - מציין שכל טוקן חדש דורש מעבר אחד דרך המודל, ולא ניתן להתחיל בו לפני שהטוקן הקודם נבחר (תהליך סדרתי).
+      - מציין שאת הטוקנים של הפרומפט אפשר לעבד יחד במקביל, בניגוד לטוקנים שנוצרים.

@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: q25
+title: "בדיקה: דגימה (sampling) וטמפרטורה (temperature)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q25-1
+    type: sort
+    text: "איזו הגדרה מתאימה לאיזו משימה?"
+    concepts: [temperature, decoding]
+    sources: [30]
+    buckets: ["טמפרטורה נמוכה או greedy", "טמפרטורה גבוהה יותר"]
+    items:
+      - {text: "תרגום משפט", bucket: "טמפרטורה נמוכה או greedy", explanation: "משימות שנשענות על הקלט מתאימות לחיפוש greedy."}
+      - {text: "סיעור מוחות לרעיונות לסיפור", bucket: "טמפרטורה גבוהה יותר", explanation: "משימות יצירתיות נהנות מבחירות מגוונות יותר."}
+      - {text: "חילוץ עובדה ממסמך", bucket: "טמפרטורה נמוכה או greedy", explanation: "משימות הדורשות דיוק צריכות פלט צפוי."}
+  - id: q25-2
+    type: mcq
+    text: "מודל מחזיר הסתברויות לטוקן הבא: 0.6, 0.3 ו-0.1. כיצד טמפרטורה נמוכה (נניח 0.5) משנה אותן לפני הדגימה?"
+    concepts: [temperature]
+    sources: [30]
+    options:
+      - {text: "היא הופכת את הטוקן הסביר לסביר עוד יותר ואת הטוקנים הבלתי סבירים לנדירים יותר.", correct: true, explanation: "העלאת ההסתברויות בחזקת 1/T כאשר T < 1 מחדדת את ההתפלגות."}
+      - {text: "היא הופכת את שלושתם לסבירים באותה מידה.", correct: false, explanation: "זה מה שטמפרטורה גבוהה מאוד שואפת אליו."}
+      - {text: "היא מסירה מהאוצר המילים (vocabulary) את הטוקן הכי פחות סביר.", correct: false, explanation: "טמפרטורה נמוכה רק משקללת מחדש את ההסתברויות; דבר אינו מוסר."}
+  - id: q25-3
+    type: short
+    text: "איך קוראים לכלל הפענוח (decoding) שתמיד בוחר את הטוקן הסביר ביותר?"
+    concepts: [greedy-decoding]
+    sources: [30]
+    answers: ["greedy", "greedy search", "greedy decoding", "חמדני", "חיפוש חמדני", "פענוח חמדני", "גרידי", "חיפוש גרידי", "פענוח גרידי"]

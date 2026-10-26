@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: q07
+title: "בדיקה: קירובי שאנון"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q07-1
+    type: fill
+    text: "סדרו את קירובי שאנון (Shannon) לפי סדר, מהקטן ביותר בהקשר ועד הגדול ביותר."
+    concepts: [n-gram, shannon]
+    sources: [31]
+    template: |
+      {{1}} -> {{2}} -> {{3}} -> {{4}}
+    chips:
+      - {text: "סדר אפס: סימנים שווי הסתברות", slot: 1, explanation: "אין סטטיסטיקה כלל: כל סימן סביר באותה מידה."}
+      - {text: "סדר ראשון: שכיחויות האותיות באנגלית", slot: 2, explanation: "האותיות נבחרות לפי תדירות הופעתן, ללא הקשר."}
+      - {text: "סדר שני: מבנה דיגרמות (digram)", slot: 3, explanation: "כל אות נבחרת בהינתן האות שלפניה."}
+      - {text: "סדר שלישי: מבנה טריגרמות (trigram)", slot: 4, explanation: "כל אות נבחרת בהינתן שתי האותיות הקודמות."}
+  - id: q07-2
+    type: mcq
+    text: "כיצד יצר שאנון את הדגימה מהסדר השלישי שלו ללא מחשב?"
+    concepts: [shannon, n-gram]
+    sources: [31]
+    options:
+      - {text: "על ידי פתיחת ספר באקראי, מציאת אות שנבחרה ורישום האות שבאה אחריה, ואז חזרה על התהליך עם האות החדשה.", correct: true, explanation: "הספר שימש כטבלת הסטטיסטיקה של הטריגרמות."}
+      - {text: "על ידי הרצת תוכנית על מחשב מרכזי (mainframe).", correct: false, explanation: "הוא עשה זאת ידנית בעזרת ספרים; העבודה הפיזית עצרה אותו בשלב הבא."}
+      - {text: "על ידי בקשה מאנשים לנחש אותיות.", correct: false, explanation: "ניסויי הניחוש שימשו למטרה אחרת, הערכת יתירות (redundancy)."}
+  - id: q07-3
+    type: short
+    text: "בערך איזה אחוז העריך שאנון שהיא היתירות (redundancy) של אנגלית רגילה?"
+    concepts: [redundancy]
+    sources: [31]
+    answers: ["50%", "50", "fifty percent", "about 50%", "roughly 50%", "50 percent", "חמישים אחוז", "כ-50%", "בערך 50%", "50 אחוז", "חמישים"]
+  - id: q07-4
+    type: open
+    text: "מדוע סולם הקירובים של שאנון הוא אב קדמון של מודלי השפה של ימינו?"
+    concepts: [language-model, next-token]
+    sources: [31]
+    rubric: |
+      - מציין שכל קירוב בוחר את הסימן הבא לפי הסתברויות שהוערכו מטקסט אמיתי, וזה מה שמודל שפה (language model) עושה.
+      - מציין שכל שלב מוסיף עוד הקשר מקדים ונראה יותר כמו אנגלית, כפי שקורה במודלים בעלי הקשר גדול יותר.

@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q52
+title: "בוחן: RAG"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q52-1
+    type: fill
+    text: "סדרו את שלושת שלבי ה-RAG לפי הסדר."
+    concepts: [rag]
+    sources: [38]
+    template: |
+      {{1}}, אחר כך {{2}}, ואחר כך {{3}}.
+    chips:
+      - {text: "שולפים קטעים הדומים לשאלה", slot: 1, explanation: "מחפשים במאגר החיצוני לפי דמיון בין וקטורים."}
+      - {text: "מדביקים אותם לתוך הפרומפט", slot: 2, explanation: "מעשירים את הפרומפט בטקסט שנשלף."}
+      - {text: "מייצרים תשובה על סמך הטקסט הזה", slot: 3, explanation: "המודל עונה בהסתמך על הקטעים שסופקו לו."}
+      - {text: "מאמנים מחדש את המודל על הקטעים", explanation: "RAG אינו משנה את המשקולות."}
+  - id: q52-2
+    type: mcq
+    text: "מתי תבחרו ב-RAG במקום ב-fine-tuning (כוונון עדין)?"
+    concepts: [rag, fine-tuning]
+    sources: [38]
+    options:
+      - {text: "כשהעובדות משתנות לעיתים קרובות או שיש צורך לצטט מקורות, כי מעדכנים את המסמכים ולא את המודל.", correct: true, explanation: "RAG שומר את הידע במאגר שאפשר לעדכן ולצטט ממנו."}
+      - {text: "כשרוצים לשנות באופן קבוע את סגנון הכתיבה של המודל.", correct: false, explanation: "סגנון והתנהגות מתאימים יותר ל-fine-tuning."}
+      - {text: "כשאין לכם מסמכים.", correct: false, explanation: "RAG זקוק למסמכים שאפשר לשלוף."}
+  - id: q52-3
+    type: open
+    text: "ציינו מגבלה אחת של RAG והסבירו איך עדיין עלולה להיווצר הזיה (hallucination)."
+    concepts: [rag, limitations]
+    sources: [38, 21]
+    rubric: |
+      - מציין מגבלה, למשל איכות התלויה בשליפה, או קטעים שחייבים להיכנס לחלון ההקשר (context window).
+      - אומר שאם הקטע הנכון לא נשלף, המודל עלול לענות מתוך הזיכרון שלו ולטעון דבר שגוי.

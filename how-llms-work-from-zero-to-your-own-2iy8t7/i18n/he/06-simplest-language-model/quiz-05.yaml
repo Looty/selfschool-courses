@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: q28
+title: "בדיקה: ה-bigram כרשת נוירונים"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q28-1
+    type: mcq
+    text: "מה עושה softmax?"
+    concepts: [softmax, logits]
+    sources: [20]
+    options:
+      - {text: "הופך ציונים גולמיים למספרים חיוביים שסכומם 1, כך שאפשר לקרוא אותם כהסתברויות.", correct: true, explanation: "זה תפקידו בשכבת הפלט של מודל שפה."}
+      - {text: "בוחר את הציון הגבוה ביותר וזורק את השאר.", correct: false, explanation: "Softmax שומר על כל הציונים, בצורת הסתברויות."}
+      - {text: "מוסיף רעש לציונים.", correct: false, explanation: "האקראיות מגיעה מהדגימה (sampling), לא מ-softmax."}
+  - id: q28-2
+    type: fill
+    text: "סדרו את לולאת האימון של ה-bigram העצבי."
+    concepts: [training-loop, gradient-descent]
+    sources: [32, 34]
+    template: |
+      {{1}}, אחר כך {{2}}, אחר כך {{3}}, ואחר כך {{4}}.
+    chips:
+      - {text: "שולפים את השורה ומפעילים softmax", slot: 1, explanation: "מקבלים הסתברויות לתו הבא."}
+      - {text: "מחשבים את ה-cross-entropy loss", slot: 2, explanation: "בודקים איזו הסתברות ניתנה לתו הבא האמיתי."}
+      - {text: "מחשבים גרדיאנטים באמצעות backpropagation", slot: 3, explanation: "מוצאים כיצד כל מספר משפיע על ה-loss."}
+      - {text: "מזיזים כל מספר נגד כיוון הגרדיאנט שלו", slot: 4, explanation: "עדכון של gradient descent."}
+      - {text: "סופרים את התווים הבאים", explanation: "זה מודל הספירה, לא המודל העצבי."}
+  - id: q28-3
+    type: open
+    text: "אם ה-bigram העצבי לומד בערך אותו דבר כמו ספירה, למה בכלל עוברים לרשתות נלמדות?"
+    concepts: [scaling, context]
+    sources: [33]
+    rubric: |
+      - מציין שספירה דורשת מספר שורות שגדל אקספוננציאלית ככל שההקשר גדל.
+      - מציין שפונקציה נלמדת של ההקשר יכולה לנצל יותר הקשר עם הרבה פחות פרמטרים, וזה הצעד בדרך ל-Transformer.

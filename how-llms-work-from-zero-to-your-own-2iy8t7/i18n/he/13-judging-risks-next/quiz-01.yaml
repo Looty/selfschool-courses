@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q57
+title: "בדיקה: שיפוט של מודל"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q57-1
+    type: mcq
+    text: "מהי התרומה העיקרית של HELM, לפי המחברים שלו?"
+    concepts: [helm, evaluation]
+    sources: [36]
+    options:
+      - {text: "הערכה של מודלים רבים על תרחישים רבים ועל שבעה מדדים באותם תנאים, במקום בנצ'מרקים (benchmarks) צרים.", correct: true, explanation: "30 מודלים, 42 תרחישים ומדדים החורגים מדיוק בלבד."}
+      - {text: "יצירת מספר יחיד שמדרג את כל המודלים.", correct: false, explanation: "HELM מתנגד לציון יחיד."}
+      - {text: "אימון מודל גדול יותר.", correct: false, explanation: "זהו פרויקט הערכה."}
+  - id: q57-2
+    type: sort
+    text: "איזו בעיה ממחישה כל מצב?"
+    concepts: [evaluation-traps]
+    sources: [3]
+    buckets: ["זיהום נתונים (Contamination)", "רגישות לפרומפט (Prompt sensitivity)", "ממוצעים מסתירים כשלים"]
+    items:
+      - {text: "שאלות המבחן היו בטקסט מהאינטרנט שעליו המודל אומן", bucket: "זיהום נתונים (Contamination)", explanation: "הציונים מנופחים."}
+      - {text: "ניסוח מחדש של ההוראה משנה את הציון בצורה ניכרת", bucket: "רגישות לפרומפט (Prompt sensitivity)", explanation: "יש להשוות מודלים עם פרומפטים זהים."}
+      - {text: "מודל מצליח היטב בסך הכול אבל נכשל בקבוצת לקוחות אחת", bucket: "ממוצעים מסתירים כשלים", explanation: "יש לבדוק פלחים (slices) ולא רק ממוצעים."}
+  - id: q57-3
+    type: open
+    text: "תארו כיצד תעריכו מודל עבור יישום מסוים שחשוב לכם, ב-4 או 5 שלבים."
+    concepts: [evaluation, test-set]
+    sources: [36]
+    rubric: |
+      - אוסף קבוצת בדיקה (test set) מציאותית של קלטים, כולל מקרים בעייתיים.
+      - מגדיר לכל קלט את התשובה הרצויה או מחוון ניקוד.
+      - מריץ את המועמדים בהגדרות זהות ומדרג אותם (עם בדיקה אנושית חלקית), ומריץ מחדש בכל פעם שמשהו משתנה.

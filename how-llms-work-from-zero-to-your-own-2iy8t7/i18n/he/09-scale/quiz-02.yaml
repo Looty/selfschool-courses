@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q39
+title: "בדיקה: חוקי קנה מידה (scaling laws)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q39-1
+    type: mcq
+    text: "לפי Kaplan ואחרים, איזו צורה יש ליחס בין ה-loss לבין קנה המידה (scale)?"
+    concepts: [scaling-laws, power-law]
+    sources: [2]
+    options:
+      - {text: "חוק חזקה (power law), שמתקיים על פני יותר משבעה סדרי גודל.", correct: true, explanation: "ה-loss יורד באופן חלק עם גודל המודל, כמות הנתונים וכוח החישוב (compute)."}
+      - {text: "קפיצה פתאומית בגודל מסוים.", correct: false, explanation: "הם מצאו מגמות חלקות בטווח שנבדק."}
+      - {text: "אין קשר; הארכיטקטורה לבדה קובעת את ה-loss.", correct: false, explanation: "הם מצאו שלפרטי הארכיטקטורה יש השפעה קטנה בלבד בתוך טווח רחב."}
+  - id: q39-2
+    type: mcq
+    text: "מדוע עקומות קנה מידה חלקות שימושיות לתכנון?"
+    concepts: [scaling-laws, planning]
+    sources: [2]
+    options:
+      - {text: "אפשר להתאים את המגמה על הרצות קטנות ולחזות את ה-loss של מודל גדול בהרבה לפני שמשלמים עליו.", correct: true, explanation: "היכולת לחזות את התוצאה הפכה השקעות גדולות להגיוניות."}
+      - {text: "הן מבטיחות שמודל גדול יותר תמיד טוב יותר בכל משימה.", correct: false, explanation: "הן מתארות את ה-loss ולא כל יכולת, ומראות תשואה פוחתת."}
+      - {text: "הן מבטלות את הצורך בנתוני אימון.", correct: false, explanation: "גודל מערך הנתונים הוא אחד הצירים."}
+  - id: q39-3
+    type: open
+    text: "מה המליצו Kaplan ואחרים לגבי אופן ההקצאה של תקציב compute קבוע, ומה אמרו על רוחב ועומק הרשת?"
+    concepts: [scaling-laws, compute-budget]
+    sources: [2]
+    rubric: |
+      - מציין שהאימון היעיל ביותר מבחינת compute משתמש במודלים גדולים מאוד על כמות צנועה של נתונים, ונעצר הרבה לפני התכנסות (convergence).
+      - מציין שלפרטי ארכיטקטורה כמו רוחב או עומק יש השפעה מזערית בתוך טווח רחב.

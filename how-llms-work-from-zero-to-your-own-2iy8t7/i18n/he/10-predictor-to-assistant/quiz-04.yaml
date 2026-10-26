@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: q46
+title: "בדיקה: מעבדה 10"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q46-1
+    type: mcq
+    text: "במעבדה ערך ה-loss של DPO התחיל ב-0.693. מהו ערך זה?"
+    concepts: [dpo, loss]
+    sources: [14]
+    options:
+      - {text: "ה-loss של הטלת מטבע: המדיניות (policy) עדיין אינה מעדיפה תשובות מועדפות על פני תשובות נדחות.", correct: true, explanation: "log 2 הוא בערך 0.693; כאשר הציונים שווים, ה-margin הוא אפס."}
+      - {text: "הדיוק (accuracy) של המדיניות.", correct: false, explanation: "זהו loss ולא דיוק."}
+      - {text: "קצב הלמידה (learning rate).", correct: false, explanation: "קצב הלמידה היה 0.1."}
+  - id: q46-2
+    type: sort
+    text: "איזו מהטענות היא מגבלה של הדמו הפשוט (toy) ואיזו היא מאפיין של DPO אמיתי?"
+    concepts: [dpo, limitations]
+    sources: [14]
+    buckets: ["מגבלה של הדמו הפשוט", "מאפיין של DPO אמיתי"]
+    items:
+      - {text: "ההעדפות עקביות לחלוטין", bucket: "מגבלה של הדמו הפשוט", explanation: "נתונים אמיתיים רועשים ומכילים סתירות."}
+      - {text: "מודל ייחוס קפוא (reference model) מגביל סחף", bucket: "מאפיין של DPO אמיתי", explanation: "ה-loss מחושב ביחס למודל הייחוס."}
+      - {text: "המדיניות בוחרת מתוך ארבע תשובות מוכנות מראש", bucket: "מגבלה של הדמו הפשוט", explanation: "מודל אמיתי מייצר טקסט חופשי."}
+  - id: q46-3
+    type: open
+    text: "לאחר הוספת זוג סותר (תשובה גסה מנצחת תשובה ברורה), תארו מה ראיתם ומה זה מלמד על איכות נתוני ההעדפות."
+    concepts: [preference-data, dpo]
+    sources: [14]
+    rubric: |
+      - מתאר שינוי שנצפה, כגון שהמדיניות כבר אינה מקצה את כל ההסתברות לתשובה אחת, או למידה איטית יותר או סותרת.
+      - מסיק שנתוני העדפות לא עקביים או רועשים מחלישים או מבלבלים את אות האימון.

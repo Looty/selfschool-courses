@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q49
+title: "בדיקה: שרשרת מחשבה (chain-of-thought)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q49-1
+    type: mcq
+    text: "מהי הנחיית שרשרת מחשבה (chain-of-thought prompting)?"
+    concepts: [chain-of-thought]
+    sources: [12]
+    options:
+      - {text: "הוספת דוגמאות עם הנמקה צעד אחר צעד, כך שהמודל כותב שלבי ביניים לפני שהוא עונה.", correct: true, explanation: "אין צורך ב-fine-tuning."}
+      - {text: "אימון נוסף (fine-tuning) של המודל על ספרי לימוד במתמטיקה.", correct: false, explanation: "השיטה היא טכניקת הנחיה (prompting)."}
+      - {text: "שאילת אותה שאלה פעמים רבות וחישוב ממוצע.", correct: false, explanation: "זו טכניקה אחרת."}
+  - id: q49-2
+    type: mcq
+    text: "לפי המאמר, עבור אילו מודלים שרשרת מחשבה עזרה יותר מכול?"
+    concepts: [chain-of-thought, emergence]
+    sources: [12]
+    options:
+      - {text: "מודלי שפה גדולים דיים: היכולת מופיעה (emerges) עם הגידול בקנה המידה.", correct: true, explanation: "המאמר קובע שיכולות הנמקה מופיעות במודלים גדולים."}
+      - {text: "כל המודלים באותה מידה.", correct: false, explanation: "ההשפעה תלויה בגודל המודל."}
+      - {text: "רק מודלים שאומנו (fine-tuning) על מתמטיקה.", correct: false, explanation: "לא נעשה שימוש ב-fine-tuning."}
+  - id: q49-3
+    type: open
+    text: "מודל כותב הנמקה משכנעת צעד אחר צעד, אך נותן תשובה שגויה. מה זה מלמד אותך על מידת האמון שכדאי לתת להסברים, ומה כדאי לבדוק?"
+    concepts: [chain-of-thought, evaluation]
+    sources: [12]
+    rubric: |
+      - מציין ששלבים שוטפים או סבירים אינם מבטיחים הנמקה נכונה או תשובה נכונה.
+      - מציין שיש לבדוק את התשובה הסופית (ואת השלבים) באופן עצמאי, ולא לסמוך על מידת השכנוע שלהם.

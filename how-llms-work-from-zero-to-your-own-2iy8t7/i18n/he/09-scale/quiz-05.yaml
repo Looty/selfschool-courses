@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: q42
+title: "בוחן: מעבדה 9"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q42-1
+    type: mcq
+    text: "במעבדה 9, איזה משתנה שונה בין הריצות?"
+    concepts: [scaling-laws, experiments]
+    sources: [2]
+    options:
+      - {text: "גודל המודל (גודל הווקטור n_embd).", correct: true, explanation: "הנתונים ומספר הצעדים נשמרו קבועים."}
+      - {text: "כמות נתוני האימון.", correct: false, explanation: "הנתונים נשארו קבועים."}
+      - {text: "הזרע האקראי (random seed).", correct: false, explanation: "הזרע נקבע מראש כדי שרק הגודל ישתנה."}
+  - id: q42-2
+    type: mcq
+    text: "מדוע שלוש נקודות מדידה אינן יכולות להוכיח חוק קנה מידה (scaling law)?"
+    concepts: [scaling-laws, evidence]
+    sources: [2]
+    options:
+      - {text: "המגמות במאמר פרושות על יותר משבעה סדרי גודל, ואילו המעבדה מכסה בערך סדר גודל אחד וקובעת מראש את מספר הצעדים ואת כמות הנתונים.", correct: true, explanation: "שלוש נקודות מראות כיוון בלבד."}
+      - {text: "חוקי קנה מידה אינם חלים על מודלים קטנים.", correct: false, explanation: "ייתכן שהם חלים; המעבדה פשוט אינה יכולה להראות זאת."}
+      - {text: "אי אפשר למדוד loss במודלים קטנים.", correct: false, explanation: "ה-loss נמדד."}
+  - id: q42-3
+    type: open
+    text: "נסחו את תוצאת המעבדה, ותארו שינוי אחד בניסוי שהיה הופך אותו למבחן הוגן יותר של העצה מהמאמר Chinchilla."
+    concepts: [scaling-laws, chinchilla]
+    sources: [2, 8]
+    rubric: |
+      - מציין שמודלים גדולים יותר הגיעו ל-loss נמוך יותר על קבוצת ההערכה (held-out) באותו מספר צעדים (לדוגמה 2.431, 2.253, 2.025).
+      - מציע לאפשר לכמות האימון (צעדים/נתונים) לגדול יחד עם גודל המודל, כפי שמאמר Chinchilla טוען, במקום להשאיר אותה קבועה.

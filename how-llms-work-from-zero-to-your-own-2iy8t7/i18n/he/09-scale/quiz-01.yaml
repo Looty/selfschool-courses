@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: q38
+title: "בדיקה: מ-GPT-1 ועד GPT-3"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q38-1
+    type: match
+    text: "התאימו לכל מודל את העובדה המתאימה."
+    concepts: [gpt-family]
+    sources: [28, 3]
+    pairs:
+      - {left: "GPT-2", right: "1.5 מיליארד פרמטרים (parameters), שוחרר בשלבים ב-2019", explanation: "הוכרז בפברואר 2019 ושוחרר במלואו בנובמבר."}
+      - {left: "GPT-3", right: "175 מיליארד פרמטרים (parameters), זמין דרך API", explanation: "מתואר במאמר מ-2020."}
+      - {left: "WebText", right: "קורפוס האימון של GPT-2, שנבנה מדפי אינטרנט שקושרו מ-Reddit", explanation: "כ-40 GB של טקסט, ללא ויקיפדיה."}
+    distractors:
+      - "אומן רק על ויקיפדיה"
+  - id: q38-2
+    type: mcq
+    text: "מה משמעות המונח 'שחרור מדורג' (staged release) של GPT-2?"
+    concepts: [staged-release]
+    sources: [28]
+    options:
+      - {text: "גרסאות קטנות יותר שוחררו תחילה, והמודל המלא שוחרר מאוחר יותר, לאחר מעקב אחר שימוש לרעה.", correct: true, explanation: "גרסה של 774M שוחררה באוגוסט, והמודל המלא בנובמבר 2019."}
+      - {text: "המודל שוחרר בשלבים של האימון.", correct: false, explanation: "הכוונה היא לפרסום המודל, לא לאימון."}
+      - {text: "הוא שוחרר רק לאוניברסיטאות.", correct: false, explanation: "גישה מוגבלת ניתנה תחילה לכלי תקשורת נבחרים."}
+  - id: q38-3
+    type: open
+    text: "מאמר GPT-3 מציג גם מגבלות ולא רק תוצאות. ציינו שתי מגבלות מתוך השיעור."
+    concepts: [gpt3, limitations, contamination]
+    sources: [3]
+    rubric: |
+      - מזכיר שלמידה מעטת דוגמאות (few-shot learning) עדיין התקשתה בחלק ממערכי הנתונים.
+      - מזכיר שאימון על קורפוסי אינטרנט גדולים עורר חששות מתודולוגיים (כגון הופעת נתוני בחינה בתוך נתוני האימון).

@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: q44
+title: "בדיקה: למידת חיזוק ממשוב אנושי (RLHF)"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q44-1
+    type: fill
+    text: "סדרו את שלושת השלבים של RLHF לפי הסדר."
+    concepts: [rlhf]
+    sources: [4, 21]
+    template: |
+      {{1}}, אחר כך {{2}}, ואחר כך {{3}}.
+    chips:
+      - {text: "כוונון עדין מונחה (supervised fine-tuning) על דוגמאות התנהגות שכתבו בני אדם", slot: 1, explanation: "המתייגים כותבים את ההתנהגות הרצויה, והמודל מאומן עליה."}
+      - {text: "אימון מודל תגמול (reward model) על דירוגי פלטים שנעשו בידי בני אדם", slot: 2, explanation: "המודל לומד אילו תשובות אנשים מעדיפים."}
+      - {text: "כוונון מודל השפה בלמידת חיזוק (RL) מול מודל התגמול", slot: 3, explanation: "מייצרים, מדרגים ומעדכנים."}
+      - {text: "אימון מחדש מאפס על עוד טקסט מהרשת", explanation: "זה אימון מקדים (pretraining), ולא חלק מ-RLHF."}
+  - id: q44-2
+    type: mcq
+    text: "מה מצא המאמר של InstructGPT כשבני אדם השוו בין InstructGPT בן 1.3B פרמטרים ל-GPT-3 בן 175B?"
+    concepts: [instructgpt]
+    sources: [4]
+    options:
+      - {text: "המדרגים העדיפו את InstructGPT בן 1.3B, אף שיש בו פי 100 פחות פרמטרים בקירוב.", correct: true, explanation: "במדד הזה היישור (alignment) היה חשוב יותר מהגודל."}
+      - {text: "GPT-3 זכה להעדפה בכל המקרים.", correct: false, explanation: "דווח בדיוק ההפך."}
+      - {text: "שניהם דורגו באותה מידה.", correct: false, explanation: "המודל הקטן והמיושר זכה להעדפה."}
+  - id: q44-3
+    type: open
+    text: "מדוע RLHF משתמש בדירוגים של תשובות ולא רק בתשובות אידיאליות, ומהו סיכון אחד במודל התגמול (reward model) המתקבל?"
+    concepts: [rlhf, reward-model]
+    sources: [4]
+    rubric: |
+      - מציין שדירוג פלטים זול וקל יותר מכתיבת תשובות אידיאליות.
+      - מציין סיכון, כגון שמודל התגמול מקודד את הדעות של המתייגים, או שהמודל "מרמה" את הציון הנלמד (gaming).

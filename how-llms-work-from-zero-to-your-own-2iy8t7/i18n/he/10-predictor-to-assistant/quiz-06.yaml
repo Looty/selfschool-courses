@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: q65
+title: "בדיקה: Constitutional AI"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q65-1
+    type: fill
+    text: "סדרו את שני השלבים של Constitutional AI (בינה מלאכותית חוקתית) לפי הסדר."
+    concepts: [constitutional-ai, rlaif]
+    sources: [50]
+    template: |
+      {{1}}, ואחר כך {{2}}, ואחר כך {{3}}, ואחר כך {{4}}.
+    chips:
+      - {text: "המודל מבקר את התשובות של עצמו ומתקן אותן", slot: 1, explanation: "בעזרת העקרונות הכתובים."}
+      - {text: "המודל עובר כוונון עדין (fine-tuning) על התשובות המתוקנות", slot: 2, explanation: "סוף השלב המונחה (supervised)."}
+      - {text: "שופט בינה מלאכותית בוחר את התשובה הטובה מבין שתי תשובות שנדגמו, ובכך מאמן מודל העדפות (preference model)", slot: 3, explanation: "שלב המשוב מבינה מלאכותית (AI feedback)."}
+      - {text: "למידת חיזוק (RL) מול מודל ההעדפות", slot: 4, explanation: "RLAIF."}
+  - id: q65-2
+    type: match
+    text: "התאימו כל שיטה למקור נתוני ההעדפה שלה."
+    concepts: [rlhf, dpo, rlaif]
+    sources: [4, 14, 50]
+    pairs:
+      - {left: "RLHF", right: "דירוגים אנושיים של פלטים", explanation: "מתייגים אנושיים משווים בין פלטים."}
+      - {left: "DPO", right: "זוגות העדפה אנושיים המשמשים ישירות בפונקציית ההפסד", explanation: "אין מודל תגמול (reward model) נפרד."}
+      - {left: "Constitutional AI", right: "שופט בינה מלאכותית הפועל לפי עקרונות כתובים", explanation: "RLAIF."}
+    distractors:
+      - "מסנן מילות מפתח מבוסס כללים"
+  - id: q65-3
+    type: open
+    text: "חוקה (constitution) הופכת את ערכי המודל לגלויים. מדוע זה אינו מבטל את השאלה 'ערכים של מי?'"
+    concepts: [values, alignment]
+    sources: [50, 4]
+    rubric: |
+      - מציין שעדיין מישהו בוחר וכותב את העקרונות, ולכן הם משקפים את שיקול הדעת של קבוצה מסוימת.
+      - מציין שהפיכתם לגלויים ולניתנים לעריכה מסייעת לביקורת ולבחינה, אך כשלעצמה אינה הופכת אותם לניטרליים או לאוניברסליים.
