@@ -1,0 +1,10 @@
+[package]
+name = "checksums"
+version = "0.1.0"
+edition = "2024"
+default-run = "checksums"
+
+[dependencies]
+
+[profile.release]
+debug = false

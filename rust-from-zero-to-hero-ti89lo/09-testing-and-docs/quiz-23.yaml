@@ -1,0 +1,60 @@
+schemaVersion: 1
+id: q23
+title: "Check: testing"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q23-1
+    type: sort
+    text: "Unit test or integration test?"
+    concepts: [test-organization]
+    buckets: ["Unit test", "Integration test"]
+    items:
+      - {text: "Lives in src/parser.rs inside #[cfg(test)] mod tests", bucket: "Unit test", explanation: "Unit tests sit beside the code."}
+      - {text: "Can call a private helper function", bucket: "Unit test", explanation: "As a child module it sees its parent's private items."}
+      - {text: "Lives in tests/api.rs", bucket: "Integration test", explanation: "Files in tests/ are integration tests."}
+      - {text: "Is compiled as its own separate crate", bucket: "Integration test", explanation: "Each tests/ file is a crate using only the public API."}
+      - {text: "Needs `use mycrate::...` to reach the code", bucket: "Integration test", explanation: "It is outside the library crate."}
+  - id: q23-2
+    type: match
+    text: "Match each command to its effect."
+    concepts: [running-tests]
+    pairs:
+      - {left: "cargo test parse", right: "Runs only tests whose names contain 'parse'", explanation: "A name filter."}
+      - {left: "cargo test -- --test-threads=1", right: "Runs tests one at a time", explanation: "Passed to the test binary after --."}
+      - {left: "cargo test -- --show-output", right: "Shows println! output of passing tests too", explanation: "Output is captured by default."}
+      - {left: "cargo test -- --ignored", right: "Runs only tests marked #[ignore]", explanation: "For slow tests you run on purpose."}
+  - id: q23-3
+    type: mcq
+    text: "Two tests both write to and read from ./out.txt and fail randomly. What is the most likely cause?"
+    concepts: [running-tests]
+    sources: [10]
+    options:
+      - {text: "Tests run in parallel by default, so they interfere through the shared file.", correct: true, explanation: "Use a separate file per test, or --test-threads=1."}
+      - {text: "assert_eq! is not reliable with files.", correct: false, explanation: "The assertions are fine; the shared state is the problem."}
+      - {text: "Tests run in a random order once per day.", correct: false, explanation: "They run concurrently, which is the issue."}
+  - id: q23-4
+    type: short
+    text: "Which attribute makes a test pass only if its body panics?"
+    answers: ["should_panic", "#[should_panic]", "#[should_panic(expected = ...)]"]
+    concepts: [should-panic]
+  - id: q23-5
+    type: mcq
+    text: "Why put shared integration-test helpers in tests/common/mod.rs instead of tests/common.rs?"
+    concepts: [test-organization]
+    sources: [10]
+    options:
+      - {text: "Files directly in tests/ are compiled as test crates; files in subdirectories are not.", correct: true, explanation: "common.rs would show up as an empty test crate in the output."}
+      - {text: "mod.rs files run before the tests.", correct: false, explanation: "No special ordering; it is just a module."}
+      - {text: "common.rs is a reserved name.", correct: false, explanation: "It is allowed, only noisy."}
+  - id: q23-6
+    type: open
+    text: "Your should_panic test passes, but a teammate notices the function panics for a different reason than intended. How do you make the test precise?"
+    concepts: [should-panic]
+    sources: [10]
+    rubric: |
+      - Adds expected = "..." with a substring of the intended panic message.
+      - Explains the test then fails if the code panics with a different message.
+      - Optionally mentions returning Result and checking for a specific error instead of panicking.

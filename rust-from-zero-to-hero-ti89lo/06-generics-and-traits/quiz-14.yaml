@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q14
+title: "Check: generics"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q14-1
+    type: mcq
+    text: "`fn largest<T>(list: &[T]) -> &T` uses `item > largest` in its body and fails to compile. Why?"
+    concepts: [trait-bounds, generics]
+    sources: [9]
+    options:
+      - {text: "Nothing says T can be compared; add the bound T: PartialOrd.", correct: true, explanation: "The body may only use what the bounds allow, and > comes from PartialOrd."}
+      - {text: "Generic functions cannot return references.", correct: false, explanation: "They can; the problem is the comparison."}
+      - {text: "Slices of generic types are not allowed.", correct: false, explanation: "&[T] is fine."}
+  - id: q14-2
+    type: mcq
+    text: "What does monomorphization mean for a generic function called with i32 and with f64?"
+    concepts: [monomorphization]
+    sources: [9]
+    options:
+      - {text: "The compiler generates two specialized copies, one per type, so there is no runtime cost.", correct: true, explanation: "Each use gets code as if written by hand for that type."}
+      - {text: "One copy is generated and types are checked at run time.", correct: false, explanation: "That describes dynamic dispatch, not generics."}
+      - {text: "The values are boxed so one copy can handle both.", correct: false, explanation: "No boxing happens for generics."}
+  - id: q14-3
+    type: spot
+    text: "Which line does not compile?"
+    concepts: [generic-structs]
+    code: |
+      struct Point<T> { x: T, y: T }
+      struct Pair<T, U> { a: T, b: U }
+      let p1 = Point { x: 1, y: 2 };
+      let p2 = Pair { a: 1, b: 2.5 };
+      let p3 = Point { x: 1, y: 2.5 };
+    correct: [5]
+    explanation: "Point uses one T for both fields, so an integer and a float cannot share it. Pair has two parameters, so line 4 is fine."
+  - id: q14-4
+    type: short
+    text: "Which bound lets a generic function accept unsized types such as str, when used behind &T?"
+    answers: ["?Sized", "T: ?Sized"]
+    concepts: [sized]
+  - id: q14-5
+    type: mcq
+    text: "You write `impl Point<f32> { fn distance(&self) -> f32 { ... } }`. Which values have the distance method?"
+    concepts: [generic-impls]
+    sources: [9]
+    options:
+      - {text: "Only Point<f32> values.", correct: true, explanation: "An impl for a concrete type adds methods only to that type."}
+      - {text: "Every Point<T>.", correct: false, explanation: "That would need impl<T> Point<T>."}
+      - {text: "Every Point<T> where T is a float, f32 or f64.", correct: false, explanation: "Only exactly f32; f64 is a different type."}
+  - id: q14-6
+    type: open
+    text: "Monomorphization makes generics free at run time. What does it cost instead, and when might that matter?"
+    concepts: [monomorphization]
+    sources: [9]
+    rubric: |
+      - Says each concrete type gets its own copy of the code, so binary size (and compile time) grows.
+      - Says this matters when a generic is used with many types or is large, e.g. size-constrained or embedded targets.
+      - Mentions trait objects / dynamic dispatch as the alternative that shares one copy.

@@ -1,0 +1,55 @@
+schemaVersion: 1
+id: q36
+title: "Check: Lab 5"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q36-1
+    type: match
+    text: "Match each request to the lab's response status."
+    concepts: [lab-kv]
+    pairs:
+      - {left: "PUT /kv/lang (new key)", right: "201 Created", explanation: "insert returned None: a new entry."}
+      - {left: "PUT /kv/lang (existing key)", right: "200 OK", explanation: "insert returned the old value."}
+      - {left: "DELETE /kv/lang (existing key)", right: "204 No Content", explanation: "Removed, nothing to return."}
+      - {left: "GET /kv/missing", right: "404 Not Found", explanation: "ok_or(StatusCode::NOT_FOUND)."}
+    distractors: ["500 Internal Server Error"]
+  - id: q36-2
+    type: mcq
+    text: "Why is a std::sync::RwLock acceptable in these async handlers?"
+    concepts: [mutex-across-await]
+    sources: [49]
+    options:
+      - {text: "Each guard is dropped before the handler returns, and no guard is held across an .await.", correct: true, explanation: "That is the Tokio tutorial's condition for using a synchronous lock."}
+      - {text: "std locks are always faster than Tokio's, so they are always the right choice.", correct: false, explanation: "They are cheaper, but holding one across .await breaks Send and can deadlock."}
+      - {text: "axum runs handlers on a single thread.", correct: false, explanation: "Tokio's default runtime is multi-threaded."}
+  - id: q36-3
+    type: fill
+    text: "Complete the handler that returns a value or 404."
+    concepts: [axum-extractors]
+    template: |
+      async fn get_value(State(db): {{1}}<Db>, Path(key): {{2}}<String>) -> Result<String, {{3}}> {
+          db.read().unwrap().get(&key).cloned().ok_or(StatusCode::NOT_FOUND)
+      }
+    chips:
+      - {text: "State", slot: 1, explanation: "The State extractor hands in the shared Db."}
+      - {text: "Path", slot: 2, explanation: "Path extracts the {key} segment of the URL."}
+      - {text: "StatusCode", slot: 3, explanation: "A StatusCode converts into a response, so Err(NOT_FOUND) becomes a 404."}
+      - {text: "Query", explanation: "Query parses ?a=b parameters, not path segments."}
+      - {text: "Json", explanation: "Json would parse or produce a JSON body, not a path segment."}
+  - id: q36-4
+    type: short
+    text: "Which tower trait method lets the tests send one request directly to the Router without opening a port?"
+    answers: ["oneshot", "ServiceExt::oneshot", "oneshot()"]
+    concepts: [testing-services]
+  - id: q36-5
+    type: open
+    text: "What happens, and why, if you add `tokio::time::sleep(Duration::from_millis(10)).await;` inside put_value while the write guard is still alive?"
+    concepts: [send-bound, mutex-across-await]
+    sources: [48, 49]
+    rubric: |
+      - Says it fails to compile because the handler's future is no longer Send.
+      - Explains the std RwLock guard is not Send and is alive across the .await, while the runtime may move the task to another thread there.
+      - Gives a fix: drop the guard (end its scope) before the await, or use tokio::sync::RwLock.

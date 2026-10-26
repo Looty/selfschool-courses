@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: q29
+title: "Check: Lab 3"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q29-1
+    type: short
+    text: "What combined checksum does the lab print for the generated data? (16 hex digits)"
+    answers: ["7ae813a0ca3662a4", "0x7ae813a0ca3662a4"]
+    concepts: [lab-checksums]
+  - id: q29-2
+    type: mcq
+    text: "What happens if you delete `drop(tx);` after the scope?"
+    concepts: [channels]
+    sources: [15]
+    options:
+      - {text: "The program hangs: the original sender is still alive, so the receiver never sees the channel close.", correct: true, explanation: "rx.into_iter() ends only when every Sender is dropped."}
+      - {text: "It fails to compile.", correct: false, explanation: "It compiles; the bug only shows at run time."}
+      - {text: "Nothing changes; the workers' senders are enough.", correct: false, explanation: "The workers' clones are dropped, but the original tx is not."}
+  - id: q29-3
+    type: mcq
+    text: "Why can the workers use `chunk` (a slice of the caller's Vec) without copying it?"
+    concepts: [scoped-threads]
+    sources: [32]
+    options:
+      - {text: "thread::scope joins every worker before it returns, so the borrow cannot outlive the Vec.", correct: true, explanation: "Scoped threads may borrow non-'static data."}
+      - {text: "Slices are always 'static.", correct: false, explanation: "This slice borrows a local Vec."}
+      - {text: "move copies the slice's elements.", correct: false, explanation: "move moves the slice reference itself, not the elements."}
+  - id: q29-4
+    type: mcq
+    text: "Replacing wrapping_mul with * makes the debug build panic but not the release build. Why?"
+    concepts: [integer-overflow, profiles]
+    sources: [2, 45]
+    options:
+      - {text: "Debug builds check for overflow and panic; release builds wrap silently.", correct: true, explanation: "dev has overflow-checks on; release has them off."}
+      - {text: "The release build uses a different hash function.", correct: false, explanation: "Same code, different overflow checking."}
+      - {text: "Multiplication of u64 is UB in debug builds.", correct: false, explanation: "Overflow is never UB in Rust."}
+  - id: q29-5
+    type: open
+    text: "In your own run, how did the parallel time compare with the sequential time, and what limits the speedup?"
+    concepts: [lab-checksums, parallelism]
+    rubric: |
+      - Reports the two times (or the ratio) from their own release-build run.
+      - Names at least one limit: disk or file-cache reads, uneven chunk sizes or finishing times, thread start-up cost, or memory bandwidth.
+      - Notes that benchmarks should be run with --release and repeated (first run may include cold cache).

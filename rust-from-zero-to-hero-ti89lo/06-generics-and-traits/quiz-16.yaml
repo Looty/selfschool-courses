@@ -1,0 +1,62 @@
+schemaVersion: 1
+id: q16
+title: "Check: trait objects"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q16-1
+    type: mcq
+    text: "You need a Vec holding both Circle and Square values, both implementing Shape. Which type works?"
+    concepts: [trait-objects]
+    sources: [17]
+    options:
+      - {text: "Vec<Box<dyn Shape>>", correct: true, explanation: "Each Box holds one concrete type behind the same trait object type."}
+      - {text: "Vec<T> where T: Shape", correct: false, explanation: "A generic T is one concrete type per Vec."}
+      - {text: "Vec<dyn Shape>", correct: false, explanation: "dyn Shape is unsized; it must be behind a pointer."}
+  - id: q16-2
+    type: sort
+    text: "Is each property true of static dispatch or of dynamic dispatch?"
+    concepts: [static-vs-dynamic-dispatch]
+    buckets: ["Static dispatch (generics)", "Dynamic dispatch (dyn Trait)"]
+    items:
+      - {text: "One compiled copy per concrete type", bucket: "Static dispatch (generics)", explanation: "Monomorphization."}
+      - {text: "Function pointer looked up in a vtable", bucket: "Dynamic dispatch (dyn Trait)", explanation: "The concrete method is found at run time."}
+      - {text: "Calls can be inlined", bucket: "Static dispatch (generics)", explanation: "The compiler knows the exact function."}
+      - {text: "One Vec can hold several concrete types", bucket: "Dynamic dispatch (dyn Trait)", explanation: "Each element is a pointer plus vtable for its own type."}
+  - id: q16-3
+    type: mcq
+    text: "Why can't you write Box<dyn Clone>?"
+    concepts: [dyn-compatibility]
+    sources: [26]
+    options:
+      - {text: "clone returns Self, whose size is unknown behind a trait object, so Clone is not dyn compatible.", correct: true, explanation: "Methods that return Self cannot be called through dyn."}
+      - {text: "Clone is a marker trait with no methods.", correct: false, explanation: "Clone has the clone method; Copy is the marker."}
+      - {text: "Box cannot hold trait objects.", correct: false, explanation: "Box<dyn Trait> is the most common trait object."}
+  - id: q16-4
+    type: short
+    text: "What is the table of function pointers that a trait object's wide pointer refers to called?"
+    answers: ["vtable", "virtual method table", "v-table", "virtual table"]
+    concepts: [trait-objects]
+  - id: q16-5
+    type: sort
+    text: "Would each method keep the trait dyn compatible?"
+    concepts: [dyn-compatibility]
+    buckets: ["Dyn compatible", "Breaks dyn compatibility"]
+    items:
+      - {text: "fn area(&self) -> f64", bucket: "Dyn compatible", explanation: "&self receiver, no generics, no Self in the return."}
+      - {text: "fn scale(&mut self, by: f64)", bucket: "Dyn compatible", explanation: "&mut self is an allowed receiver."}
+      - {text: "fn duplicate(&self) -> Self", bucket: "Breaks dyn compatibility", explanation: "Returns Self (unless it has where Self: Sized)."}
+      - {text: "fn convert<T>(&self) -> T", bucket: "Breaks dyn compatibility", explanation: "Generic methods cannot go in a vtable."}
+      - {text: "fn new() -> Self where Self: Sized", bucket: "Dyn compatible", explanation: "where Self: Sized excludes it from the trait object, which stays usable."}
+  - id: q16-6
+    type: open
+    text: "A C++ developer asks how to model 'a base class Shape with subclasses Circle and Square' in Rust. Describe the options and when you would pick each."
+    concepts: [trait-objects, static-vs-dynamic-dispatch, generics]
+    sources: [17]
+    rubric: |
+      - Says Rust has no inheritance; Shape becomes a trait that Circle and Square implement.
+      - Describes generics with a bound (static dispatch, zero cost, one type per use) for homogeneous code.
+      - Describes Box<dyn Shape> or &dyn Shape (dynamic dispatch via vtable) for mixed collections or open sets of types.
+      - Mentions an enum as a further option when the set of shapes is fixed and known.

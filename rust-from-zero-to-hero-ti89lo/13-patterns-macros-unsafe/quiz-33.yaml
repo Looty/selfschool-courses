@@ -1,0 +1,64 @@
+schemaVersion: 1
+id: q33
+title: "Check: macros"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q33-1
+    type: mcq
+    text: "Which of these can a macro do that a function cannot?"
+    concepts: [macros-vs-functions]
+    sources: [19]
+    options:
+      - {text: "Take a variable number of arguments and generate a trait impl at compile time.", correct: true, explanation: "Macros expand before type checking and are not bound to a fixed signature."}
+      - {text: "Run faster at run time.", correct: false, explanation: "Expanded code is ordinary code; the difference is at compile time."}
+      - {text: "Be called before it is defined anywhere in the file.", correct: false, explanation: "The opposite: macros must be defined or imported before use."}
+  - id: q33-2
+    type: fill
+    text: "Complete the macro so `sum![1, 2, 3]` expands to `0 + 1 + 2 + 3`."
+    concepts: [macro-rules]
+    template: |
+      macro_rules! sum {
+          ( $( $x:{{1}} ),* ) => {
+              0 $( {{2}} $x )*
+          };
+      }
+    chips:
+      - {text: "expr", slot: 1, explanation: "The fragment specifier for an expression, so 1, 2, 3 all match."}
+      - {text: "+", slot: 2, explanation: "Emitted before each $x, giving 0 + 1 + 2 + 3."}
+      - {text: "ident", explanation: "Would only match identifiers, not numbers."}
+      - {text: ",", explanation: "The comma is the separator in the matcher; the body needs the operator."}
+  - id: q33-3
+    type: match
+    text: "Match each procedural macro kind to its definition attribute."
+    concepts: [procedural-macros]
+    pairs:
+      - {left: "Custom derive: #[derive(HelloMacro)]", right: "#[proc_macro_derive(HelloMacro)]", explanation: "Generates code for structs and enums."}
+      - {left: "Attribute-like: #[route(GET, \"/\")]", right: "#[proc_macro_attribute]", explanation: "Receives the attribute and the item."}
+      - {left: "Function-like: sql!(...)", right: "#[proc_macro]", explanation: "Receives the tokens inside the parentheses."}
+    distractors: ["#[macro_export]"]
+  - id: q33-4
+    type: short
+    text: "Which crate type must a crate have to define procedural macros?"
+    answers: ["proc-macro", "proc_macro", "proc-macro = true"]
+    concepts: [procedural-macros]
+  - id: q33-5
+    type: mcq
+    text: "Why does the HelloMacro derive need a macro at all to print the type's name?"
+    concepts: [procedural-macros]
+    sources: [19]
+    options:
+      - {text: "Rust has no runtime reflection, so the name must be inserted into the code at compile time.", correct: true, explanation: "The macro reads the ident from the syntax tree and generates code containing it."}
+      - {text: "Traits cannot have default methods.", correct: false, explanation: "They can, but a default method cannot know the implementing type's name."}
+      - {text: "println! does not accept type names.", correct: false, explanation: "The issue is getting the name, not printing it."}
+  - id: q33-6
+    type: open
+    text: "When would you write a macro rather than a generic function? Give one good and one bad reason."
+    concepts: [macros-vs-functions]
+    sources: [19]
+    rubric: |
+      - Good reason: something functions cannot do, e.g. variadic arguments, generating impls or items, or custom syntax.
+      - Bad reason: something a function or generic already handles, e.g. avoiding a little typing for normal logic.
+      - Mentions the cost: macros are harder to read, debug and maintain.

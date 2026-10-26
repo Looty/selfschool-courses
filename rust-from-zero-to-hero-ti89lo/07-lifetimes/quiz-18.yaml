@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: q18
+title: "Check: struct lifetimes and 'static"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q18-1
+    type: mcq
+    text: "Which value satisfies the bound T: 'static?"
+    concepts: [static-lifetime]
+    sources: [70]
+    options:
+      - {text: "A String created at run time from user input", correct: true, explanation: "It owns its data and borrows nothing, so it meets the bound even though it can be dropped any time."}
+      - {text: "A &str pointing into a local String", correct: false, explanation: "It borrows data that lives only as long as that local."}
+      - {text: "An Excerpt<'a> borrowing from a local novel", correct: false, explanation: "It contains a non-static borrow."}
+  - id: q18-2
+    type: fill
+    text: "Complete the struct and its impl so it can hold a borrowed &str."
+    concepts: [struct-lifetimes]
+    template: |
+      struct Token{{1}} {
+          text: {{2}},
+      }
+      impl{{3}} Token<'a> {
+          fn len(&self) -> usize { self.text.len() }
+      }
+    chips:
+      - {text: "<'a>", slot: 1, explanation: "The struct declares the lifetime parameter."}
+      - {text: "&'a str", slot: 2, explanation: "The field uses it."}
+      - {text: "<'a>", slot: 3, explanation: "The impl must declare it again before using Token<'a>."}
+      - {text: "&'static str", explanation: "That would only accept literals and other static strings."}
+  - id: q18-3
+    type: mcq
+    text: "An error message suggests changing a parameter to &'static str. What does the Book advise?"
+    concepts: [static-lifetime]
+    sources: [9]
+    options:
+      - {text: "Check for a dangling reference or a lifetime mismatch and fix that; 'static is rarely the real fix.", correct: true, explanation: "The suggestion compiles only if the data truly lives for the whole program."}
+      - {text: "Always accept it; 'static references are fastest.", correct: false, explanation: "Lifetimes have no runtime cost; 'static would just restrict callers."}
+      - {text: "Replace every reference in the program with 'static ones.", correct: false, explanation: "That would make most callers unable to pass local data."}
+  - id: q18-4
+    type: short
+    text: "Which HashMap API is the idiomatic fix for 'look up, insert if missing, return a mutable reference'?"
+    answers: ["entry", "entry API", "the entry API", "entry().or_default()", "entry().or_insert()"]
+    concepts: [borrow-checker-limits, entry-api]
+  - id: q18-5
+    type: mcq
+    text: "On stable Rust 1.99.1, the first get_default in the lesson (match on get_mut, insert on None) does what?"
+    concepts: [borrow-checker-limits]
+    sources: [60, 74]
+    options:
+      - {text: "Fails with E0499, although the code is actually memory safe.", correct: true, explanation: "This is NLL problem case #3; the checker treats map as borrowed for 'r on every path."}
+      - {text: "Compiles, because NLL fixed all such cases.", correct: false, explanation: "RFC 2094 explicitly left this case open."}
+      - {text: "Compiles but panics at run time.", correct: false, explanation: "It does not compile on stable."}
+  - id: q18-6
+    type: open
+    text: "Explain why the borrow checker may reject a program that is actually safe, and why the Rust designers accept that trade-off."
+    concepts: [borrow-checker-limits]
+    sources: [60, 61]
+    rubric: |
+      - Says the checker is a conservative static analysis: it cannot know everything about run-time behavior.
+      - Says rejecting some correct programs is preferred to accepting incorrect ones, because accepting unsafe code would break the guarantee.
+      - Mentions a concrete example or improvement path, such as NLL problem case #3, the entry API workaround, or Polonius.

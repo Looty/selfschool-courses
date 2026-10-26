@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: q35
+title: "Check: Lab 4"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q35-1
+    type: sort
+    text: "In the lab's design, where does each piece belong?"
+    concepts: [lab-tasks, library-vs-application-errors]
+    buckets: ["src/lib.rs (library)", "src/main.rs (binary)"]
+    items:
+      - {text: "The StoreError enum", bucket: "src/lib.rs (library)", explanation: "Typed errors callers and tests can match on."}
+      - {text: "#[derive(Parser)] struct Cli", bucket: "src/main.rs (binary)", explanation: "Argument parsing is the binary's job."}
+      - {text: "Store::complete", bucket: "src/lib.rs (library)", explanation: "Domain logic, testable from tests/."}
+      - {text: ".with_context(|| format!(\"failed to load ...\"))", bucket: "src/main.rs (binary)", explanation: "anyhow context belongs to the application layer."}
+      - {text: "println! of the task list", bucket: "src/main.rs (binary)", explanation: "The library never prints."}
+  - id: q35-2
+    type: mcq
+    text: "Why does Store::load treat ErrorKind::NotFound differently from other I/O errors?"
+    concepts: [error-handling]
+    sources: [8]
+    options:
+      - {text: "A missing file is expected on first use, so it means an empty store; other errors are real failures.", correct: true, explanation: "Recoverable cases are handled, the rest propagate."}
+      - {text: "NotFound errors cannot be propagated with ?.", correct: false, explanation: "They can; the lab chooses to handle this one."}
+      - {text: "serde_json cannot parse missing files.", correct: false, explanation: "The file is never parsed if it is missing."}
+  - id: q35-3
+    type: short
+    text: "What does `cargo run -- done 9` print when task 9 does not exist?"
+    answers: ["Error: no task with id 9", "no task with id 9"]
+    concepts: [lab-tasks]
+  - id: q35-4
+    type: mcq
+    text: "What does #[from] on `Io(#[from] io::Error)` give you?"
+    concepts: [thiserror]
+    sources: [56]
+    options:
+      - {text: "An impl From<io::Error> for StoreError, so ? converts automatically, and the field becomes source().", correct: true, explanation: "#[from] implies #[source]."}
+      - {text: "It reads the error message from a file.", correct: false, explanation: "Unrelated to files."}
+      - {text: "It makes Io the default variant.", correct: false, explanation: "Enums have no default variant through #[from]."}
+  - id: q35-5
+    type: open
+    text: "Describe how you added (or would add) an `edit <id> <title>` subcommand, including the test you wrote."
+    concepts: [lab-tasks, testing]
+    sources: [54, 10]
+    rubric: |
+      - Adds a variant Edit { id: u32, title: String } to the Subcommand enum and a match arm in main.
+      - Adds a Store method in lib.rs that finds the task (NotFound if missing), validates the title (EmptyTitle) and updates it.
+      - Adds an integration test in tests/ calling the new method, including an error case.

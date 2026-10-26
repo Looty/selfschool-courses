@@ -1,0 +1,70 @@
+schemaVersion: 1
+id: q30
+title: "Check: futures and Pin"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q30-1
+    type: trace
+    text: "In what order are the lines printed? Write the output after each step."
+    concepts: [laziness, async-await]
+    code: |
+      async fn say(word: &str) { println!("{word}"); }
+      #[tokio::main]
+      async fn main() {
+          let a = say("A");
+          let b = say("B");
+          println!("C");
+          b.await;
+          a.await;
+      }
+    variables: [printed_so_far]
+    steps:
+      - {label: "after line 5", values: {printed_so_far: ["nothing", "none", "(nothing)", "-"]}}
+      - {label: "after line 6", values: {printed_so_far: "C"}}
+      - {label: "after line 7", values: {printed_so_far: ["C B", "C, B", "CB"]}}
+      - {label: "after line 8", values: {printed_so_far: ["C B A", "C, B, A", "CBA"]}}
+    explanation: "Calling an async fn only creates a future; the body runs when it is awaited, in the order of the awaits."
+  - id: q30-2
+    type: mcq
+    text: "Why does `async fn main()` without #[tokio::main] fail with E0752?"
+    concepts: [runtimes]
+    sources: [16]
+    options:
+      - {text: "Something must poll the top-level future, and Rust ships no built-in runtime to do it.", correct: true, explanation: "A runtime's block_on drives it; #[tokio::main] generates that call."}
+      - {text: "main must return i32.", correct: false, explanation: "main may return () or a Result."}
+      - {text: "async is only allowed in libraries.", correct: false, explanation: "Async works in binaries with a runtime."}
+  - id: q30-3
+    type: match
+    text: "Match each term to its role."
+    concepts: [futures, executors]
+    pairs:
+      - {left: "Poll::Pending", right: "Not ready yet; the future will wake the task later", explanation: "It must arrange for the waker to be called."}
+      - {left: "Poll::Ready(v)", right: "Finished, with result v", explanation: "Do not poll it again."}
+      - {left: "Waker", right: "Tells the executor to poll the task again", explanation: "Obtained from the Context passed to poll."}
+      - {left: "Executor", right: "Polls futures that have been woken", explanation: "Part of the runtime."}
+  - id: q30-4
+    type: short
+    text: "Which auto trait marks types that are fine to move even after being pinned?"
+    answers: ["Unpin", "std::marker::Unpin"]
+    concepts: [pin]
+  - id: q30-5
+    type: mcq
+    text: "An async task runs a 2-second CPU-heavy loop with no .await inside. What happens to other futures on the same thread?"
+    concepts: [starvation, cooperative-multitasking]
+    sources: [16]
+    options:
+      - {text: "They make no progress for those 2 seconds: futures only yield at await points.", correct: true, explanation: "Async is cooperative; break the work up or run it elsewhere."}
+      - {text: "The runtime pre-empts the loop every few milliseconds.", correct: false, explanation: "Futures are not pre-empted; the OS pre-empts threads, not tasks."}
+      - {text: "The compiler inserts await points automatically.", correct: false, explanation: "Only your .await expressions are yield points."}
+  - id: q30-6
+    type: open
+    text: "Explain why a compiler-generated future may need to be pinned, using the idea of a self-reference."
+    concepts: [pin]
+    sources: [16, 37]
+    rubric: |
+      - Says async state machines store variables that live across .await, possibly including a reference to another field of the same future.
+      - Says moving the future would move that field while the reference still points to the old address.
+      - Says Pin guarantees the future will not move until dropped, so such references stay valid; Unpin types are unaffected.

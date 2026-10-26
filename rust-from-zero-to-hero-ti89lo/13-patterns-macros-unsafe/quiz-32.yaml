@@ -1,0 +1,63 @@
+schemaVersion: 1
+id: q32
+title: "Check: patterns"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q32-1
+    type: sort
+    text: "Refutable or irrefutable?"
+    concepts: [refutability]
+    buckets: ["Irrefutable", "Refutable"]
+    items:
+      - {text: "x", bucket: "Irrefutable", explanation: "A name matches anything."}
+      - {text: "(a, b) for a 2-tuple", bucket: "Irrefutable", explanation: "Every 2-tuple has this shape."}
+      - {text: "Some(n)", bucket: "Refutable", explanation: "Fails on None."}
+      - {text: "3..=9", bucket: "Refutable", explanation: "Fails for other numbers."}
+      - {text: "Point { x, y } for a Point", bucket: "Irrefutable", explanation: "Every Point has both fields."}
+  - id: q32-2
+    type: mcq
+    text: "What does `Some(4)` match in `match v { Some(x) if x > 5 => \"big\", Some(_) => \"small\", None => \"none\" }`?"
+    concepts: [match-guards]
+    sources: [18]
+    options:
+      - {text: "\"small\": the first pattern matches but its guard is false.", correct: true, explanation: "A failed guard moves on to the next arm."}
+      - {text: "\"big\": the pattern Some(x) matches.", correct: false, explanation: "The guard x > 5 must also hold."}
+      - {text: "It does not compile, because guards break exhaustiveness.", correct: false, explanation: "The Some(_) and None arms make it exhaustive."}
+  - id: q32-3
+    type: spot
+    text: "Which line does not compile on edition 2024?"
+    concepts: [patterns, refutability]
+    code: |
+      let opt: Option<i32> = Some(3);
+      if let Some(n) = opt && n > 2 { println!("{n}"); }
+      let Some(m) = opt else { return; };
+      let Some(k) = opt;
+      println!("{m}");
+    correct: [4]
+    explanation: "A plain let needs an irrefutable pattern; Some(k) can fail. Line 2 is a let chain (fine in 2024) and line 3 is let-else (fine)."
+  - id: q32-4
+    type: short
+    text: "In which Rust version were let chains stabilized for the 2024 edition?"
+    answers: ["1.88", "1.88.0", "Rust 1.88"]
+    concepts: [let-chains]
+  - id: q32-5
+    type: mcq
+    text: "Which is true of `_` versus `_s` in `let _ = s;` and `let _s = s;` where s is a String?"
+    concepts: [patterns]
+    sources: [18]
+    options:
+      - {text: "`let _ = s;` does not move s; `let _s = s;` moves s into _s.", correct: true, explanation: "_ never binds; _s is a real binding that just silences the unused warning."}
+      - {text: "Both move s.", correct: false, explanation: "_ does not bind, so nothing moves."}
+      - {text: "Neither moves s.", correct: false, explanation: "_s is an ordinary variable and takes ownership."}
+  - id: q32-6
+    type: open
+    text: "Rewrite this nested code with a let chain and explain the benefit: `if let Some(user) = find(id) { if let Some(email) = user.email { if email.ends_with(\".org\") { send(email); } } }`"
+    concepts: [let-chains]
+    sources: [22]
+    rubric: |
+      - Writes a single if with `let Some(user) = find(id) && let Some(email) = user.email && email.ends_with(".org")`.
+      - Says it removes nesting and keeps the happy path flat and readable.
+      - Mentions it requires the 2024 edition (Rust 1.88 or later).

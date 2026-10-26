@@ -1,0 +1,66 @@
+schemaVersion: 1
+id: q12
+title: "Check: panic, Result and ?"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q12-1
+    type: sort
+    text: "Should this failure be a panic or a returned Result?"
+    concepts: [panic-vs-result]
+    buckets: ["Return a Result", "Panic"]
+    items:
+      - {text: "The config file the user named does not exist", bucket: "Return a Result", explanation: "Expected and recoverable: the caller can report it or use defaults."}
+      - {text: "A parser receives malformed input from the network", bucket: "Return a Result", explanation: "Bad input is expected; the Book lists parsers as a Result case."}
+      - {text: "An internal index computed by your own code is out of range", bucket: "Panic", explanation: "That is a bug: an invariant of your code is broken."}
+      - {text: "An HTTP request hits a rate limit", bucket: "Return a Result", explanation: "The caller may retry; the Book uses this example."}
+      - {text: "A test's setup step fails", bucket: "Panic", explanation: "In tests, unwrap/expect panicking is how a test fails."}
+  - id: q12-2
+    type: mcq
+    text: "What does `?` do that a hand-written `match` returning `Err(e)` does not?"
+    concepts: [question-mark-operator]
+    sources: [8]
+    options:
+      - {text: "It converts the error with From::from into the function's error type.", correct: true, explanation: "That is why `?` can turn an io::Error into your own error type automatically."}
+      - {text: "It retries the operation once.", correct: false, explanation: "No retry; it returns early."}
+      - {text: "It logs the error to stderr.", correct: false, explanation: "Nothing is printed; the error is returned."}
+  - id: q12-3
+    type: spot
+    text: "Which line does not compile?"
+    concepts: [question-mark-operator]
+    code: |
+      fn first_char_upper(s: &str) -> Option<char> {
+          let c = s.chars().next()?;
+          Some(c.to_ascii_uppercase())
+      }
+      fn parse_port(s: &str) -> Option<u16> {
+          let n: u16 = s.parse()?;
+          Some(n)
+      }
+    correct: [6]
+    explanation: "parse returns a Result, but parse_port returns an Option; ? does not convert between them. Use s.parse().ok()? instead. Line 2 is fine: next() returns an Option."
+  - id: q12-4
+    type: short
+    text: "Which environment variable makes a panicking program print a backtrace?"
+    answers: ["RUST_BACKTRACE", "RUST_BACKTRACE=1"]
+    concepts: [panic]
+  - id: q12-5
+    type: mcq
+    text: "main is declared `fn main() -> Result<(), Box<dyn Error>>` and returns an Err. What does the shell see?"
+    concepts: [main-result]
+    sources: [8]
+    options:
+      - {text: "A nonzero exit status.", correct: true, explanation: "Ok(()) exits with 0; Err exits nonzero, following the C convention."}
+      - {text: "Exit status 0, with the error printed.", correct: false, explanation: "The status is nonzero so scripts can detect the failure."}
+      - {text: "It does not compile: main must return ().", correct: false, explanation: "main may return any type implementing Termination, including this Result."}
+  - id: q12-6
+    type: open
+    text: "The Book's Guess type only accepts 1..=100. Explain how such a type reduces error handling elsewhere in a program."
+    concepts: [validation-types, panic-vs-result]
+    sources: [8]
+    rubric: |
+      - Says the check happens once, in the constructor (Guess::new), which rejects out-of-range values.
+      - Says the field is private, so code outside the module cannot create an invalid Guess another way.
+      - Says functions that take a Guess can rely on it being valid and need no further checks.

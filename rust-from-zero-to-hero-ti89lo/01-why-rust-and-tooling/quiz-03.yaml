@@ -1,0 +1,55 @@
+schemaVersion: 1
+id: q03
+title: "Check: Lab 1"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q03-1
+    type: spot
+    text: "Which line causes the compile error?"
+    concepts: [moves, borrow-checker]
+    code: |
+      fn main() {
+          let name = String::from("Ada");
+          let other = name;
+          println!("{other}");
+          println!("{name}");
+      }
+    correct: [5]
+    explanation: "Line 3 moves the String into `other`; using `name` afterwards on line 5 is error E0382. Line 4 is fine because `other` owns the value now."
+  - id: q03-2
+    type: mcq
+    text: "Why does Rust reject pushing onto a vector while a reference to one of its elements is still used?"
+    concepts: [borrow-checker, vec-reallocation]
+    sources: [7]
+    options:
+      - {text: "push may move the elements to a new buffer, leaving the reference dangling.", correct: true, explanation: "Vectors keep elements contiguous; growing can reallocate and free the old memory."}
+      - {text: "Vectors are immutable once created.", correct: false, explanation: "A `mut` vector can grow freely; the problem is only the reference that is still in use."}
+      - {text: "push is slow and the compiler forbids slow operations near borrows.", correct: false, explanation: "Speed has nothing to do with it; it is a memory-safety rule."}
+  - id: q03-3
+    type: short
+    text: "What error code does the compiler give for using a value after it was moved?"
+    answers: ["E0382", "e0382", "error[E0382]"]
+    concepts: [moves]
+  - id: q03-4
+    type: sort
+    text: "Sort these fixes by the error they address."
+    concepts: [moves, borrow-checker, type-inference]
+    buckets: ["Moved value (E0382)", "Borrow conflict (E0502)", "Type needed (E0284)"]
+    items:
+      - {text: "Borrow with &value instead of assigning the value", bucket: "Moved value (E0382)", explanation: "A reference reads the value without taking ownership."}
+      - {text: "Call .clone() before handing the value over", bucket: "Moved value (E0382)", explanation: "A clone gives the other variable its own copy, at the cost of copying."}
+      - {text: "Finish using the shared reference before mutating", bucket: "Borrow conflict (E0502)", explanation: "Once the last use of the reference is past, the mutable borrow is allowed."}
+      - {text: "Write let n: u32 = text.parse()...", bucket: "Type needed (E0284)", explanation: "The annotation tells parse which type to produce."}
+      - {text: "Write text.parse::<u32>()", bucket: "Type needed (E0284)", explanation: "The turbofish ::<u32> names the type at the call instead."}
+  - id: q03-5
+    type: open
+    text: "In your own words, why does Rust make the old variable unusable after `let b = a;` when `a` is a String, but not when `a` is an i32?"
+    concepts: [moves, copy-types]
+    sources: [3]
+    rubric: |
+      - Says a String owns heap memory and copying only the pointer would give two owners of the same memory.
+      - Says two owners would free the memory twice (double free), so Rust moves instead and invalidates the old name.
+      - Says an i32 lives entirely on the stack and implements Copy, so it is simply copied and both stay valid.

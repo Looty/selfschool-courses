@@ -1,0 +1,67 @@
+schemaVersion: 1
+id: q34
+title: "Check: unsafe Rust"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q34-1
+    type: sort
+    text: "Does this operation require an unsafe block?"
+    concepts: [unsafe-superpowers]
+    buckets: ["Requires unsafe", "Allowed in safe code"]
+    items:
+      - {text: "Creating a raw pointer with &raw const x", bucket: "Allowed in safe code", explanation: "Creating raw pointers is safe; using them is not."}
+      - {text: "Dereferencing a *mut i32", bucket: "Requires unsafe", explanation: "Superpower 1."}
+      - {text: "Calling a function declared unsafe fn", bucket: "Requires unsafe", explanation: "Superpower 2."}
+      - {text: "Reading an AtomicU64 in a static", bucket: "Allowed in safe code", explanation: "Atomics are safe; only static mut needs unsafe."}
+      - {text: "Writing to a static mut", bucket: "Requires unsafe", explanation: "Superpower 3."}
+      - {text: "Calling an item marked `safe fn` in an unsafe extern block", bucket: "Allowed in safe code", explanation: "The `safe` marker lets callers skip unsafe; the author promised it."}
+  - id: q34-2
+    type: mcq
+    text: "Which statement about an unsafe block is true?"
+    concepts: [unsafe-superpowers]
+    sources: [19, 58]
+    options:
+      - {text: "The borrow checker still checks references inside it.", correct: true, explanation: "unsafe only unlocks five extra operations."}
+      - {text: "It disables all of Rust's safety checks.", correct: false, explanation: "Google's Android team and the Book both stress that it does not."}
+      - {text: "Code inside it may cause undefined behavior as long as it is documented.", correct: false, explanation: "Rust programs must never cause UB; unsafe just makes avoiding it your job."}
+  - id: q34-3
+    type: spot
+    text: "This safe function wraps unsafe code. Which line makes it unsound?"
+    concepts: [soundness]
+    code: |
+      fn get(idx: usize, arr: &[u8]) -> Option<u8> {
+          if idx <= arr.len() {
+              // SAFETY: idx is in bounds
+              unsafe { Some(*arr.get_unchecked(idx)) }
+          } else {
+              None
+          }
+      }
+    correct: [2]
+    explanation: "<= lets idx == len through, which is one past the end, so get_unchecked reads out of bounds. The bug is in safe code: safety is non-local."
+  - id: q34-4
+    type: short
+    text: "Which tool detects undefined behavior by interpreting your tests (run with cargo +nightly ...)?"
+    answers: ["Miri", "miri", "cargo miri"]
+    concepts: [miri]
+  - id: q34-5
+    type: mcq
+    text: "In the 2024 edition, how must you declare a C function you want to call?"
+    concepts: [ffi]
+    sources: [22]
+    options:
+      - {text: "Inside an `unsafe extern \"C\" { ... }` block.", correct: true, explanation: "extern blocks must now be marked unsafe; items can be marked safe or unsafe."}
+      - {text: "Inside a plain `extern \"C\" { ... }` block.", correct: false, explanation: "Allowed before 2024; the 2024 edition requires unsafe extern."}
+      - {text: "With #[no_mangle] on a Rust function of the same name.", correct: false, explanation: "#[unsafe(no_mangle)] exports Rust functions to C; it does not import."}
+  - id: q34-6
+    type: open
+    text: "Explain why the Rustonomicon says unsafe code can 'pollute' a whole module, and how you limit that."
+    concepts: [soundness, privacy]
+    sources: [27]
+    rubric: |
+      - Says unsafe code often relies on invariants of data (e.g. a struct's len/cap fields) that safe code in the same module can change.
+      - Gives an example such as a safe method that changes a field and breaks the invariant, making the unsafe code unsound.
+      - Says privacy at the module boundary (private fields, small modules, safe public API) limits who can break the invariant.

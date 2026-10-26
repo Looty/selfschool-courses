@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: q10
+title: "Check: crates and modules"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q10-1
+    type: mcq
+    text: "A package contains src/main.rs, src/lib.rs and src/bin/admin.rs. How many crates does it build?"
+    concepts: [packages-crates]
+    sources: [6]
+    options:
+      - {text: "Three: one library and two binaries.", correct: true, explanation: "lib.rs is the library; main.rs and each file in src/bin are binaries."}
+      - {text: "One: a package is one crate.", correct: false, explanation: "A package can hold several crates."}
+      - {text: "It does not build: a package may have only one binary.", correct: false, explanation: "The limit is one library; binaries are unlimited."}
+  - id: q10-2
+    type: spot
+    text: "This code is in src/lib.rs. Which line fails to compile because of privacy?"
+    concepts: [privacy]
+    code: |
+      mod shop {
+          pub struct Order { pub item: String, price: u32 }
+          impl Order { pub fn new(item: &str) -> Order { Order { item: item.into(), price: 10 } } }
+      }
+      pub fn demo() {
+          let o = shop::Order::new("tea");
+          println!("{}", o.item);
+          println!("{}", o.price);
+      }
+    correct: [8]
+    explanation: "The struct and its `item` field are pub, but `price` is private to module shop, so reading it from demo (line 8) is an error."
+  - id: q10-3
+    type: short
+    text: "Which keyword at the start of a path refers to the parent module?"
+    answers: ["super", "super::"]
+    concepts: [paths]
+  - id: q10-4
+    type: mcq
+    text: "You write `mod parser;` in src/main.rs. Where does the compiler look for the module's code?"
+    concepts: [module-files]
+    sources: [6]
+    options:
+      - {text: "src/parser.rs, or the older layout src/parser/mod.rs", correct: true, explanation: "Those are the two file locations for a module declared in the crate root."}
+      - {text: "Anywhere in the project; mod works like #include of a file named parser", correct: false, explanation: "mod is not an include; the location is fixed by the module tree."}
+      - {text: "In a crate called parser on crates.io", correct: false, explanation: "External crates come from Cargo.toml dependencies, not mod."}
+  - id: q10-5
+    type: open
+    text: "Why do many Rust projects keep nearly all code in lib.rs and only a few lines in main.rs?"
+    concepts: [packages-crates, testing]
+    sources: [6, 10]
+    rubric: |
+      - Says the binary then uses the library through its public API like an external user, which helps API design.
+      - Says integration tests in tests/ can only use a library crate, so logic in lib.rs can be tested and logic in main.rs cannot be imported.
+      - Says the remaining main.rs code is small enough not to need tests, or that other programs can reuse the library.

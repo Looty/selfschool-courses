@@ -1,0 +1,63 @@
+schemaVersion: 1
+id: q27
+title: "Check: threads and channels"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q27-1
+    type: mcq
+    text: "Why does `thread::spawn(|| println!(\"{v:?}\"))` (without move) fail to compile when v is a local Vec?"
+    concepts: [move-closures, threads]
+    sources: [15]
+    options:
+      - {text: "The thread might outlive v, so a borrow of v cannot be proven valid.", correct: true, explanation: "spawn requires the closure to own its data; move fixes it."}
+      - {text: "Vec cannot be printed from another thread.", correct: false, explanation: "It can once the thread owns or safely borrows it."}
+      - {text: "Closures cannot capture variables when spawned.", correct: false, explanation: "They can, by move."}
+  - id: q27-2
+    type: mcq
+    text: "What lets the closures in thread::scope borrow local variables without move?"
+    concepts: [scoped-threads]
+    sources: [32]
+    options:
+      - {text: "All scoped threads are joined before scope returns, so the borrows cannot outlive the data.", correct: true, explanation: "The scope bounds the threads' lifetime."}
+      - {text: "Scoped threads copy the variables.", correct: false, explanation: "They borrow; nothing is copied."}
+      - {text: "Scoped threads turn off the borrow checker.", correct: false, explanation: "The normal rules still apply, e.g. only one thread may mutate x."}
+  - id: q27-3
+    type: spot
+    text: "Which line does not compile?"
+    concepts: [channels, ownership]
+    code: |
+      let (tx, rx) = mpsc::channel();
+      thread::spawn(move || {
+          let val = String::from("hi");
+          tx.send(val).unwrap();
+          println!("sent {val}");
+      });
+      println!("{}", rx.recv().unwrap());
+    correct: [5]
+    explanation: "send took ownership of val on line 4, so using it on line 5 is a use of a moved value. This stops the sender from touching data the receiver now owns."
+  - id: q27-4
+    type: short
+    text: "What does mpsc stand for?"
+    answers: ["multiple producer, single consumer", "multiple producer single consumer", "multi-producer single-consumer", "multiple producers, single consumer"]
+    concepts: [channels]
+  - id: q27-5
+    type: mcq
+    text: "When does `for msg in rx` stop?"
+    concepts: [channels]
+    sources: [15]
+    options:
+      - {text: "When every Sender (including clones) has been dropped and the queue is empty.", correct: true, explanation: "The channel closes when no sender remains."}
+      - {text: "After the first message.", correct: false, explanation: "It keeps receiving until the channel closes."}
+      - {text: "Never; it must be broken out of manually.", correct: false, explanation: "It ends when the channel closes."}
+  - id: q27-6
+    type: open
+    text: "Compare passing data to worker threads with move closures, with scoped threads, and with channels. When would you use each?"
+    concepts: [threads, scoped-threads, channels]
+    sources: [15, 32]
+    rubric: |
+      - move: the thread takes ownership; good when the data is only needed by that thread and the thread may outlive the caller.
+      - scope: threads borrow local data and are all joined at the end; good for splitting work on data the caller keeps, without copying.
+      - channels: send owned values between running threads; good for producer/consumer pipelines or collecting results.

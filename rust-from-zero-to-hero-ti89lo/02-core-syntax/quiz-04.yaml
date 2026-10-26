@@ -1,0 +1,64 @@
+schemaVersion: 1
+id: q04
+title: "Check: variables, types and overflow"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q04-1
+    type: mcq
+    text: "A u8 holding 255 has 1 added with the + operator. What happens in a build made with cargo build --release, using default profile settings?"
+    concepts: [integer-overflow, profiles]
+    sources: [2, 45]
+    options:
+      - {text: "The value wraps to 0.", correct: true, explanation: "Release has overflow-checks off, so arithmetic wraps in two's complement."}
+      - {text: "The program panics.", correct: false, explanation: "That is the debug-build behavior, where overflow checks are on."}
+      - {text: "Undefined behavior: anything can happen.", correct: false, explanation: "The Reference requires a well-defined wrapped result; overflow is an error but not UB."}
+      - {text: "The value saturates at 255.", correct: false, explanation: "Only saturating_add clamps; + wraps in release."}
+  - id: q04-2
+    type: match
+    text: "Match each call on `let x: u8 = 250;` to its result."
+    concepts: [integer-overflow]
+    pairs:
+      - {left: "x.checked_add(10)", right: "None", explanation: "checked_ reports overflow as None."}
+      - {left: "x.wrapping_add(10)", right: "4", explanation: "260 wraps to 260 - 256 = 4."}
+      - {left: "x.overflowing_add(10)", right: "(4, true)", explanation: "The wrapped value plus a flag saying overflow happened."}
+      - {left: "x.saturating_add(10)", right: "255", explanation: "Clamps at u8::MAX."}
+    distractors: ["260", "Some(4)"]
+  - id: q04-3
+    type: spot
+    text: "Which line does not compile?"
+    concepts: [mutability, shadowing]
+    code: |
+      let a = 1;
+      let a = a + 1;
+      let mut b = 10;
+      b += a;
+      let c = 3;
+      c = c * 2;
+    correct: [6]
+    explanation: "Line 2 is shadowing (a new variable), which is allowed. Line 6 assigns to `c`, which was declared without `mut`."
+  - id: q04-4
+    type: short
+    text: "What is the default integer type when nothing else decides it?"
+    answers: ["i32"]
+    concepts: [scalar-types]
+  - id: q04-5
+    type: mcq
+    text: "Which of these compiles?"
+    concepts: [scalar-types]
+    sources: [2]
+    options:
+      - {text: "let n: u32 = 7; if n != 0 { }", correct: true, explanation: "The comparison produces a bool, which is what if requires."}
+      - {text: "let n: u32 = 7; if n { }", correct: false, explanation: "Rust never converts integers to bool; the condition must be a bool."}
+      - {text: "let f: f64 = 3; ", correct: false, explanation: "3 is an integer literal; write 3.0 for a float. There is no implicit conversion."}
+  - id: q04-6
+    type: open
+    text: "Explain the difference between `let mut x` followed by reassignment, and shadowing `x` with a second `let`. When would you prefer shadowing?"
+    concepts: [shadowing, mutability]
+    sources: [2]
+    rubric: |
+      - Says mut lets the same variable change value but keeps its type.
+      - Says shadowing creates a new variable, which may have a different type.
+      - Gives a reasonable use of shadowing, such as converting a parsed string into a number while keeping the name, or keeping the final value immutable.

@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: q15
+title: "Check: traits"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q15-1
+    type: sort
+    text: "In your crate `app`, which implementations does the orphan rule allow?"
+    concepts: [orphan-rule]
+    buckets: ["Allowed", "Not allowed"]
+    items:
+      - {text: "impl std::fmt::Display for app::Invoice", bucket: "Allowed", explanation: "The type is local."}
+      - {text: "impl app::Summary for Vec<String>", bucket: "Allowed", explanation: "The trait is local."}
+      - {text: "impl std::fmt::Display for Vec<String>", bucket: "Not allowed", explanation: "Both trait and type come from std."}
+      - {text: "impl std::fmt::Display for app::Wrapper(Vec<String>)", bucket: "Allowed", explanation: "A local newtype around Vec works around the rule."}
+      - {text: "impl serde::Serialize for std::time::Duration", bucket: "Not allowed", explanation: "Neither serde's trait nor std's type is local to app."}
+  - id: q15-2
+    type: mcq
+    text: "Which signature forces both arguments to be the same type?"
+    concepts: [trait-bounds, impl-trait]
+    sources: [9]
+    options:
+      - {text: "fn pair<T: Summary>(a: &T, b: &T)", correct: true, explanation: "One type parameter T is used for both."}
+      - {text: "fn pair(a: &impl Summary, b: &impl Summary)", correct: false, explanation: "Each impl Summary is its own hidden type parameter, so they may differ."}
+      - {text: "fn pair(a: &dyn Summary, b: &dyn Summary)", correct: false, explanation: "Trait objects can hold different concrete types."}
+  - id: q15-3
+    type: mcq
+    text: "Why can you call `42.to_string()` even though nobody implemented ToString for i32 by hand?"
+    concepts: [blanket-impls]
+    sources: [9]
+    options:
+      - {text: "std has a blanket impl: ToString for every T that implements Display.", correct: true, explanation: "impl<T: Display> ToString for T covers i32 because i32 implements Display."}
+      - {text: "The compiler adds to_string to every type.", correct: false, explanation: "It comes from a library impl, not the compiler."}
+      - {text: "i32 derives ToString.", correct: false, explanation: "ToString is not derivable."}
+  - id: q15-4
+    type: short
+    text: "Which commonly wanted formatting trait cannot be derived, because only you know how a value should look to users?"
+    answers: ["Display", "std::fmt::Display", "fmt::Display"]
+    concepts: [derive]
+  - id: q15-5
+    type: spot
+    text: "Which line fails to compile?"
+    concepts: [impl-trait]
+    code: |
+      fn make(flag: bool) -> impl std::fmt::Display {
+          if flag {
+              42
+          } else {
+              "forty-two"
+          }
+      }
+    correct: [5]
+    explanation: "-> impl Trait must be one concrete type. The first branch fixes it as i32, so the &str on line 5 is a type mismatch. Use Box<dyn Display> to return different types."
+  - id: q15-6
+    type: open
+    text: "Explain what problem the orphan rule prevents, with an example of what could go wrong without it."
+    concepts: [orphan-rule]
+    sources: [9]
+    rubric: |
+      - Says that without it, two different crates could each implement the same trait for the same type.
+      - Says the compiler would then not know which implementation to use when both crates are in one program, or adding a dependency could break code.
+      - Mentions the rule: the trait or the type must be local (and optionally the newtype workaround).

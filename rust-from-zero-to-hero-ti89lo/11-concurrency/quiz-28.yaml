@@ -1,0 +1,68 @@
+schemaVersion: 1
+id: q28
+title: "Check: shared state"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q28-1
+    type: sort
+    text: "Is each type Sync (safe to share by reference between threads)?"
+    concepts: [send-sync]
+    buckets: ["Sync", "Not Sync"]
+    items:
+      - {text: "Mutex<Vec<u8>>", bucket: "Sync", explanation: "The lock serializes access."}
+      - {text: "AtomicUsize", bucket: "Sync", explanation: "Atomics are designed for sharing."}
+      - {text: "RefCell<i32>", bucket: "Not Sync", explanation: "Its borrow tracking is not thread-safe."}
+      - {text: "Rc<String>", bucket: "Not Sync", explanation: "Non-atomic reference count."}
+      - {text: "Arc<Mutex<i32>>", bucket: "Sync", explanation: "Arc of a Sync + Send type is Sync."}
+      - {text: "Cell<bool>", bucket: "Not Sync", explanation: "No cell type is Sync."}
+  - id: q28-2
+    type: mcq
+    text: "Why is `Arc<RefCell<T>>` not a way to get thread-safe shared mutation?"
+    concepts: [arc, interior-mutability]
+    sources: [41]
+    options:
+      - {text: "Arc only makes ownership shareable; RefCell is not Sync, so Arc<RefCell<T>> is not Send.", correct: true, explanation: "Pair Arc with Mutex or RwLock instead."}
+      - {text: "Arc cannot hold types with interior mutability.", correct: false, explanation: "Arc<Mutex<T>> is the standard example of exactly that."}
+      - {text: "It works but is slow.", correct: false, explanation: "It does not compile when sent to another thread."}
+  - id: q28-3
+    type: fill
+    text: "Complete the shared counter."
+    concepts: [mutex, arc]
+    template: |
+      let counter = {{1}}::new(Mutex::new(0));
+      let c = Arc::{{2}}(&counter);
+      thread::spawn(move || {
+          *c.{{3}}().unwrap() += 1;
+      });
+    chips:
+      - {text: "Arc", slot: 1, explanation: "Shared ownership across threads."}
+      - {text: "clone", slot: 2, explanation: "Arc::clone increments the count for the new owner."}
+      - {text: "lock", slot: 3, explanation: "lock() returns a guard that derefs to the data."}
+      - {text: "Rc", explanation: "Rc is not Send; the spawn would not compile."}
+      - {text: "borrow_mut", explanation: "That is RefCell's method, not Mutex's."}
+  - id: q28-4
+    type: short
+    text: "What is a mutex called after a thread panicked while holding its lock?"
+    answers: ["poisoned", "poison", "a poisoned mutex"]
+    concepts: [poisoning]
+  - id: q28-5
+    type: mcq
+    text: "You only need a request counter shared by many threads. What is the simplest correct choice?"
+    concepts: [atomics]
+    sources: [36, 22]
+    options:
+      - {text: "A static AtomicU64 updated with fetch_add.", correct: true, explanation: "Atomics are Sync, need no lock and can live in a plain static."}
+      - {text: "static mut COUNTER: u64 with += in unsafe blocks.", correct: false, explanation: "Unsynchronized writes are a data race (UB); the 2024 edition denies references to static mut."}
+      - {text: "An Rc<Cell<u64>> cloned into every thread.", correct: false, explanation: "Neither Rc nor Cell may be shared across threads."}
+  - id: q28-6
+    type: open
+    text: "Explain how Rust turns 'I accidentally shared a non-thread-safe type between threads' from a runtime bug into a compile error."
+    concepts: [send-sync]
+    sources: [15]
+    rubric: |
+      - Names the Send and Sync marker traits and what each means.
+      - Says thread::spawn (and similar APIs) require the closure and its captures to be Send.
+      - Says types like Rc or RefCell do not implement Send/Sync, and the traits are derived automatically from a type's parts, so the check covers user types too.

@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: rust-from-zero-to-hero-ti89lo
+title: Rust from Zero to Hero
+short_intro: "Ownership, traits, lifetimes, concurrency and async: Rust for C and C++ programmers, with tested projects."
+description: |
+  A practical path from your first `cargo new` to shipping a command-line tool and an async web service in Rust.
+  It covers the toolchain, core syntax, ownership and borrowing, modules and Cargo, error handling, generics and
+  traits, lifetimes, collections, closures and iterators, testing, smart pointers, threads, async with Tokio,
+  patterns, macros and unsafe Rust, then five hands-on labs and a capstone.
+
+  Who it is for: programmers with a systems background (C or C++), who know pointers, the stack and the heap.
+  Ownership is explained against RAII and `std::move`, `Box` against `unique_ptr`, `Rc` against `shared_ptr`.
+  Written for Rust 1.99.1 and the 2024 edition; every lab was built and tested on that version. Every factual
+  claim cites a source read during research (see sources.md).
+language: en
+level: Beginner
+hue: orange
+monogram: RS
+tags: [rust, systems-programming, ownership, concurrency, async]
+budget_minutes: 720
+chapters:
+  - dir: 01-why-rust-and-tooling
+    title: Why Rust, and the toolchain
+  - dir: 02-core-syntax
+    title: Core syntax for C and C++ programmers
+  - dir: 03-ownership-and-borrowing
+    title: Ownership and borrowing
+  - dir: 04-modules-crates-cargo
+    title: Modules, crates and Cargo
+  - dir: 05-error-handling
+    title: Error handling
+  - dir: 06-generics-and-traits
+    title: Generics and traits
+  - dir: 07-lifetimes
+    title: Lifetimes
+  - dir: 08-collections-closures-iterators
+    title: Collections, closures and iterators
+  - dir: 09-testing-and-docs
+    title: Testing and documentation
+  - dir: 10-smart-pointers
+    title: Smart pointers
+  - dir: 11-concurrency
+    title: Concurrency
+  - dir: 12-async
+    title: Async Rust
+  - dir: 13-patterns-macros-unsafe
+    title: Patterns, macros and unsafe
+  - dir: 14-projects
+    title: Projects and capstone
+exams:
+  - {id: mid, file: exams/mid.yaml, after: 07-lifetimes}
+  - {id: final, file: exams/final.yaml}

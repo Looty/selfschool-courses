@@ -1,0 +1,60 @@
+schemaVersion: 1
+id: q24
+title: "Check: documentation and API design"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q24-1
+    type: mcq
+    text: "What is the difference between `///` and `//!`?"
+    concepts: [doc-comments]
+    sources: [13]
+    options:
+      - {text: "/// documents the item after it; //! documents the item that contains it, such as the crate.", correct: true, explanation: "//! at the top of lib.rs describes the whole crate."}
+      - {text: "//! comments are not included in the HTML docs.", correct: false, explanation: "Both appear in generated docs."}
+      - {text: "/// is for private items, //! for public ones.", correct: false, explanation: "The difference is which item is documented."}
+  - id: q24-2
+    type: match
+    text: "Match each doc section to what it should describe."
+    concepts: [doc-comments]
+    pairs:
+      - {left: "# Panics", right: "The situations in which the function panics", explanation: "Callers can avoid those inputs."}
+      - {left: "# Errors", right: "Which Err values it returns, and when", explanation: "Lets callers handle each case."}
+      - {left: "# Safety", right: "What a caller of an unsafe fn must guarantee", explanation: "The contract the compiler cannot check."}
+      - {left: "# Examples", right: "Code showing how to use it, run by cargo test", explanation: "Doc tests keep examples correct."}
+  - id: q24-3
+    type: mcq
+    text: "Which API follows the guideline C-CUSTOM-TYPE?"
+    concepts: [api-guidelines]
+    sources: [66]
+    options:
+      - {text: "fn connect(addr: &str, mode: Mode) where enum Mode { Plain, Tls }", correct: true, explanation: "The argument's meaning is in its type, not a bare bool."}
+      - {text: "fn connect(addr: &str, tls: bool)", correct: false, explanation: "connect(\"x\", true) does not say what true means."}
+      - {text: "fn connect(addr: &str, tls: Option<()>)", correct: false, explanation: "Option<()> is a bool in disguise."}
+  - id: q24-4
+    type: short
+    text: "Which Clippy lint group should never be enabled as a whole, according to its docs?"
+    answers: ["restriction", "clippy::restriction"]
+    concepts: [clippy]
+  - id: q24-5
+    type: sort
+    text: "Default level of each Clippy group"
+    concepts: [clippy, lint-levels]
+    buckets: ["deny", "warn", "allow (off)"]
+    items:
+      - {text: "clippy::correctness", bucket: "deny", explanation: "Code that is outright wrong."}
+      - {text: "clippy::style", bucket: "warn", explanation: "Unidiomatic code."}
+      - {text: "clippy::perf", bucket: "warn", explanation: "Code that could be faster."}
+      - {text: "clippy::pedantic", bucket: "allow (off)", explanation: "Strict, occasional false positives."}
+      - {text: "clippy::nursery", bucket: "allow (off)", explanation: "Lints still in development."}
+  - id: q24-6
+    type: open
+    text: "Why are runnable examples in doc comments better than examples in a README, from a maintenance point of view?"
+    concepts: [doc-tests]
+    sources: [13]
+    rubric: |
+      - Says cargo test compiles and runs doc examples, so a broken example fails the test suite.
+      - Says README examples are not checked and silently go stale as the API changes.
+      - Mentions that examples should use ? rather than unwrap (C-QUESTION-MARK) or that docs show up in cargo doc.
