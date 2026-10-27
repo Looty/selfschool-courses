@@ -1,0 +1,66 @@
+schemaVersion: 1
+id: q38
+title: "Check: Rust and AI coding agents"
+max_attempts: 0
+passing_percentage: 70
+show_answers: true
+shuffle: false
+questions:
+  - id: q38-1
+    type: mcq
+    text: "According to Anthropic's guide to building agents, what does an agent need at each step to judge its progress?"
+    concepts: [agent-feedback-loop]
+    sources: [84]
+    options:
+      - {text: "Ground truth from its environment, such as tool results or code execution.", correct: true, explanation: "That is why compiler output and test results are so useful to a coding agent."}
+      - {text: "A longer prompt describing the whole program in advance.", correct: false, explanation: "The guide stresses feedback from the environment, not more upfront description."}
+      - {text: "A second model that rewrites every answer.", correct: false, explanation: "Not what the guide names; it points to signals from tools and execution."}
+      - {text: "Access to the program's production logs only.", correct: false, explanation: "Production is the latest and most expensive place to find out."}
+  - id: q38-2
+    type: sort
+    text: "With default settings, is each mistake rejected before the program runs, or can it reach run time?"
+    concepts: [compile-time-checks, language-comparison]
+    buckets: ["Rejected before the program runs", "Can reach run time"]
+    items:
+      - {text: "Rust: using a String after it was moved", bucket: "Rejected before the program runs", explanation: "Error E0382; the borrow checker refuses to build it."}
+      - {text: "Rust: sending an Rc to another thread", bucket: "Rejected before the program runs", explanation: "Rc is not Send, so thread::spawn will not accept it."}
+      - {text: "Go: two goroutines writing one variable without a lock", bucket: "Can reach run time", explanation: "Only the race detector finds it, and only on paths that actually run."}
+      - {text: "Python: passing a str to a function hinted to take an int", bucket: "Can reach run time", explanation: "Hints are not checked at run time; only a separate checker would report it."}
+      - {text: "TypeScript: a type error in a file compiled with plain tsc", bucket: "Can reach run time", explanation: "tsc reports the error but still writes the JavaScript unless noEmitOnError is set."}
+      - {text: "C++: reading through a pointer after delete", bucket: "Can reach run time", explanation: "Undefined behavior; the compiler is not required to diagnose it."}
+  - id: q38-3
+    type: mcq
+    text: "A rustc suggestion is marked MachineApplicable. What does that tell an agent?"
+    concepts: [diagnostics-json, applicability]
+    sources: [77]
+    options:
+      - {text: "The edit can be applied mechanically, though it may not be the best design.", correct: true, explanation: "A .clone() fix compiles, but a borrow may still be the better answer."}
+      - {text: "The edit is guaranteed to make every test pass.", correct: false, explanation: "Applicability is about whether the edit applies cleanly, not whether the logic is right."}
+      - {text: "The edit contains placeholder text the agent must fill in.", correct: false, explanation: "That is HasPlaceholders, which cannot be applied mechanically."}
+      - {text: "The compiler is unsure whether the edit is a good one.", correct: false, explanation: "That is MaybeIncorrect."}
+  - id: q38-4
+    type: short
+    text: "Which flag makes cargo build or cargo check print its messages as JSON, one object per line?"
+    answers: ["--message-format=json", "--message-format json", "message-format=json"]
+    concepts: [diagnostics-json]
+  - id: q38-5
+    type: mcq
+    text: "What did the MultiPL-E benchmark (2022, Codex) find about static type checking?"
+    concepts: [evidence-limits]
+    sources: [83]
+    options:
+      - {text: "It neither helped nor hindered code generation; performance tracked language popularity.", correct: true, explanation: "One reason this lesson treats the case for Rust as reasoning, not a measured result."}
+      - {text: "Statically typed languages always scored higher than Python.", correct: false, explanation: "Python scored higher than Rust in that study."}
+      - {text: "Rust scored highest of all the languages tested.", correct: false, explanation: "Rust scored below Python."}
+      - {text: "Type annotations made Python results much worse.", correct: false, explanation: "The paper found they did not affect Python."}
+  - id: q38-6
+    type: open
+    text: "Your team is choosing a language for a new service that will be written mostly by an AI coding agent. Argue for or against Rust, using at least one comparison with Python, TypeScript, Go or C++ and at least one weakness of Rust."
+    concepts: [agent-feedback-loop, language-comparison, evidence-limits]
+    sources: [79, 81, 82, 83, 85]
+    rubric: |
+      - Explains that the agent improves its code through a write, check and fix loop, and that earlier, clearer errors make that loop cheaper.
+      - Names a specific mistake Rust rejects at compile time that another named language lets reach run time (for example a data race in Go, a type error in Python or TypeScript, undefined behavior in C++).
+      - Mentions machine-readable diagnostics or the uniform Cargo commands as a practical advantage for tools.
+      - Names at least one weakness: slower builds per round, weaker benchmark evidence or less training data, or fixes like .clone() or unsafe that silence the compiler.
+      - Notes that tests are still needed, because the compiler cannot catch logic errors.

@@ -6,7 +6,7 @@ Course packages for Selfschool, a personal, AI-native course platform. Each fold
 |---|---|---|
 | `how-llms-work-from-zero-to-your-own-2iy8t7` | Engineer new to ML | about 13 h, 13 chapters, 65 lessons, Python labs |
 | `mlops-from-zero-to-production-gblt3l` | Beginner to practitioner | 52 lessons, hands-on labs |
-| `rust-from-zero-to-hero-ti89lo` | C/C++ programmer new to Rust | about 12 h, 14 chapters, 37 lessons, 5 Cargo labs and a capstone |
+| `rust-from-zero-to-hero-ti89lo` | C/C++ programmer new to Rust | about 12 h, 14 chapters, 38 lessons, 5 Cargo labs and a capstone |
 | `typescript-fundamentals` | Beginner | 12 short lessons, plus a demo of every question type |
 
 ## Use a course
@@ -14,6 +14,10 @@ Course packages for Selfschool, a personal, AI-native course platform. Each fold
 In Selfschool, open Settings → Course packages and add this repo with the course folder as the path, pinned to a commit. Or clone the repo into the app's `courses/` folder and the app lists every course in it.
 
 Check a course on its own with `school validate <folder>`.
+
+## Contribute
+
+Add or edit courses through a pull request. CI runs `python scripts/validate.py` (needs PyYAML), which checks every course's YAML, ids, quiz and resource links, and source numbers. Each new pull request has auto-merge turned on, so it is squash-merged into `main` as soon as that check passes. Open it as a draft to hold it back.
 
 ## Layout
 
