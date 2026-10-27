@@ -15,6 +15,10 @@ In Selfschool, open Settings → Course packages and add this repo with the cour
 
 Check a course on its own with `school validate <folder>`.
 
+## Contribute
+
+Add or edit courses through a pull request. CI runs `python scripts/validate.py` (needs PyYAML), which checks every course's YAML, ids, quiz and resource links, and source numbers. Each new pull request has auto-merge turned on, so it is squash-merged into `main` as soon as that check passes. Open it as a draft to hold it back.
+
 ## Layout
 
 ```
