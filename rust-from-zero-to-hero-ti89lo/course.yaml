@@ -4,7 +4,7 @@ title: Rust from Zero to Hero
 short_intro: "Ownership, traits, lifetimes, concurrency and async: Rust for C and C++ programmers, with tested projects."
 description: |
   A practical path from your first `cargo new` to shipping a command-line tool and an async web service in Rust.
-  It covers the toolchain, core syntax, ownership and borrowing, modules and Cargo, error handling, generics and
+  It covers why Rust suits AI coding agents, the toolchain, core syntax, ownership and borrowing, modules and Cargo, error handling, generics and
   traits, lifetimes, collections, closures and iterators, testing, smart pointers, threads, async with Tokio,
   patterns, macros and unsafe Rust, then five hands-on labs and a capstone.
 
@@ -17,7 +17,7 @@ level: Beginner
 hue: orange
 monogram: RS
 tags: [rust, systems-programming, ownership, concurrency, async]
-budget_minutes: 720
+budget_minutes: 735
 chapters:
   - dir: 01-why-rust-and-tooling
     title: Why Rust, and the toolchain

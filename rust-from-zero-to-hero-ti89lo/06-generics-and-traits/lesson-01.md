@@ -55,7 +55,7 @@ impl Point<f32> {
 
 ## Monomorphization: zero runtime cost
 
-The compiler generates a separate, specialized copy of generic code for each concrete type it is used with. [9] For `Some(5)` and `Some(5.0)` it effectively produces an `Option_i32` and an `Option_f64`. [9] This **monomorphization** means generic code runs exactly as fast as code you duplicated by hand. [9] The trade-off is more machine code when a generic is used with many types; trait objects, in lesson 16, trade the other way.
+The compiler generates a separate, specialized copy of generic code for each concrete type it is used with. [9] For `Some(5)` and `Some(5.0)` it effectively produces an `Option_i32` and an `Option_f64`. [9] This **monomorphization** means generic code runs exactly as fast as code you duplicated by hand. [9] The trade-off is more machine code when a generic is used with many types; trait objects, in lesson 3 of this chapter, trade the other way.
 
 ## A note on sizes
 
