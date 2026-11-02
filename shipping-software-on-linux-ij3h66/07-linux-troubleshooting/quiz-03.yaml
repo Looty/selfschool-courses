@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: q27
+title: "Check: memory and OOM"
+questions:
+  - id: q27-1
+    type: spot
+    text: "Which line proves the process was killed because of a cgroup limit rather than host-wide memory exhaustion?"
+    concepts: [oom-killer, cgroup-v2]
+    sources: [57, 55]
+    code: |
+      [ 1472.200154] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name
+      [ 1472.200865] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),oom_memcg=/docker/9ad2f5...,task=python3,pid=15602
+      [ 1472.201806] Memory cgroup out of memory: Killed process 15602 (python3) total-vm:300748kB, anon-rss:289024kB
+    correct: [2, 3]
+    explanation: "CONSTRAINT_MEMCG with oom_memcg names the memory cgroup, and 'Memory cgroup out of memory' states it directly. Line 1 is just the table header of the task dump."
+  - id: q27-2
+    type: mcq
+    text: "A container was OOM-killed, but `free -m` on the same machine shows 5 GB free. How is that possible?"
+    concepts: [cgroup-v2, memory-max]
+    sources: [57]
+    options:
+      - {text: "The container's cgroup reached memory.max and could not reclaim, so the OOM killer ran inside that cgroup", correct: true, explanation: "The kill is scoped to the cgroup, whatever the host's free memory."}
+      - {text: "free -m is always wrong in containers", correct: false, explanation: "free reports system-wide memory; it is right, just answering a different question."}
+      - {text: "memory.high was exceeded", correct: false, explanation: "Going over memory.high throttles but never invokes the OOM killer."}
+      - {text: "The kubelet evicted it", correct: false, explanation: "Eviction is a different mechanism and is not a kernel OOM kill."}
+  - id: q27-3
+    type: match
+    text: "Match each cgroup v2 file to what it tells you."
+    concepts: [cgroup-v2, memory-files]
+    sources: [57]
+    pairs:
+      - {left: "memory.current", right: "Memory used now by the cgroup and its descendants", explanation: "The live usage figure."}
+      - {left: "memory.max", right: "The hard limit; reaching it can invoke the OOM killer", explanation: "The main limit mechanism."}
+      - {left: "memory.events oom_kill", right: "How many processes in the cgroup were OOM-killed", explanation: "Counts kills by any OOM killer."}
+      - {left: "memory.stat anon", right: "Anonymous memory, such as heaps", explanation: "What a leak grows."}
+    distractors:
+      - "Free memory on the host"
+  - id: q27-4
+    type: mcq
+    text: "On a Kubernetes node under memory pressure, which pods' containers does the kernel OOM killer prefer, all else equal?"
+    concepts: [oom-score-adj, qos]
+    sources: [79, 69]
+    options:
+      - {text: "BestEffort pods, whose containers get oom_score_adj 1000", correct: true, explanation: "The highest adjustment makes them the first candidates."}
+      - {text: "Guaranteed pods, with oom_score_adj -997", correct: false, explanation: "-997 makes them the last candidates."}
+      - {text: "The oldest pods", correct: false, explanation: "Age is not part of the score."}
+      - {text: "Pods with the most replicas", correct: false, explanation: "The kernel knows nothing about replicas."}
+  - id: q27-5
+    type: open
+    text: "Explain the difference between a kubelet eviction and a kernel OOM kill of a container, and how you would tell which one happened."
+    concepts: [eviction, oom-killer, kubernetes]
+    sources: [79, 57]
+    rubric: |
+      - Eviction: the kubelet stops the pod when node signals such as memory.available cross a threshold.
+      - OOM kill: the kernel kills a process when a cgroup limit (or the node) runs out of memory; the container may restart in place per restartPolicy.
+      - Evidence: pod status and events (Evicted vs OOMKilled), memory.events oom_kill, dmesg 'Memory cgroup out of memory'.

@@ -1,0 +1,5 @@
+# Labs build packages locally; never commit build outputs.
+*.deb
+*.whl
+*.tar.gz
+dist/

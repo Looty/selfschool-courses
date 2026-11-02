@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: q25
+title: "Check: USE, load and process states"
+questions:
+  - id: q25-1
+    type: sort
+    text: "Sort each observation into the USE category it belongs to."
+    concepts: [use-method]
+    sources: [54, 55]
+    buckets: ["Utilization", "Saturation", "Errors"]
+    items:
+      - {text: "iostat -xz shows %util at 95 for sda", bucket: "Utilization", explanation: "Percent of time the device was busy."}
+      - {text: "vmstat r is 24 on an 8-CPU host", bucket: "Saturation", explanation: "More runnable tasks than CPUs means work is queued."}
+      - {text: "vmstat si/so are non-zero", bucket: "Saturation", explanation: "Swapping is the memory saturation signal in Gregg's checklist."}
+      - {text: "ip -s link shows rising RX errors", bucket: "Errors", explanation: "An error count."}
+      - {text: "strace shows accept() returning EMFILE", bucket: "Errors", explanation: "Gregg lists EMFILE as the file descriptor error signal."}
+      - {text: "free -m shows 90% of memory in use", bucket: "Utilization", explanation: "Capacity in use."}
+  - id: q25-2
+    type: mcq
+    text: "A host reports load average 38 on 8 CPUs, but `vmstat 1` shows `id` around 90 and `r` around 1. What is the most likely explanation?"
+    concepts: [load-average, d-state]
+    sources: [56, 67]
+    options:
+      - {text: "Many tasks are in uninterruptible sleep, for example waiting on a slow disk or a hung network filesystem", correct: true, explanation: "Linux load averages count D-state tasks, so load can be high while CPUs are idle."}
+      - {text: "The CPUs are saturated", correct: false, explanation: "r is low and the CPUs are mostly idle."}
+      - {text: "Load average only counts zombies", correct: false, explanation: "Zombies are not what load counts; runnable and uninterruptible tasks are."}
+      - {text: "vmstat is broken inside containers", correct: false, explanation: "Nothing points to that; the two numbers measure different things."}
+  - id: q25-3
+    type: match
+    text: "Match each process state letter to its meaning."
+    concepts: [process-states]
+    sources: [58]
+    pairs:
+      - {left: "R", right: "Running or runnable", explanation: "On a CPU or waiting for one."}
+      - {left: "S", right: "Sleeping in an interruptible wait", explanation: "Can be woken by a signal."}
+      - {left: "D", right: "Waiting in uninterruptible disk sleep", explanation: "Not woken by signals until the wait ends."}
+      - {left: "Z", right: "Zombie", explanation: "Exited, not yet reaped by its parent."}
+    distractors:
+      - "Deleted but still open"
+  - id: q25-4
+    type: short
+    text: "Which column of `vmstat 1` counts processes that are running or waiting for run time?"
+    concepts: [vmstat, cpu-saturation]
+    sources: [67]
+    answers: ["r", "procs r", "the r column"]
+  - id: q25-5
+    type: open
+    text: "Explain why `kill -9` on a process in D state can appear to do nothing, and what you would investigate instead."
+    concepts: [d-state, troubleshooting]
+    sources: [58, 56]
+    rubric: |
+      - Says a D-state process is waiting in the kernel (usually on I/O) and does not handle signals until the wait ends.
+      - Proposes finding what it waits for (wchan, the device or mount, iostat or storage health).
+      - Mentions that such tasks also raise the load average.

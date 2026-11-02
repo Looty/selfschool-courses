@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q24
+title: "Check: Lab 4"
+questions:
+  - id: q24-1
+    type: match
+    text: "Match each symptom from the lab to the first command that explains it."
+    concepts: [lab-4, apt-debugging]
+    sources: [36, 37, 39, 41, 42]
+    pairs:
+      - {left: "dependency problems - leaving unconfigured", right: "apt-get check", explanation: "Lists the unmet dependency by name."}
+      - {left: "post-installation script subprocess returned error exit status 1", right: "dpkg --audit", explanation: "Reports half-configured packages."}
+      - {left: "trying to overwrite '/usr/bin/lab4-tool'", right: "dpkg -S /usr/bin/lab4-tool", explanation: "Names the package that owns the file."}
+      - {left: "apt upgrade exits cleanly but the version does not change", right: "apt-cache policy libdemo", explanation: "Shows the pin priority that keeps the old version as candidate."}
+    distractors:
+      - "apt-get autoremove"
+  - id: q24-2
+    type: mcq
+    text: "In scenario 3, why did `dpkg -i tool-b_2.0-1_all.deb` still fail even though tool-b 2.0-1 declares Replaces?"
+    concepts: [breaks-replaces, file-conflicts]
+    sources: [31]
+    options:
+      - {text: "It also declares Breaks: tool-a (<< 1.1), and the installed tool-a 1.0-1 would have to be deconfigured, which dpkg will not do on its own", correct: true, explanation: "The output said 'deconfiguration is not permitted'; installing tool-a 1.1-1 together through apt solved it."}
+      - {text: "Replaces only works with --force-overwrite", correct: false, explanation: "Replaces lets the package take over the file without force options."}
+      - {text: "The version 2.0-1 sorts lower than 1.0-1", correct: false, explanation: "2.0-1 is newer."}
+      - {text: "tool-b must be removed first", correct: false, explanation: "The fix upgraded tool-a; tool-b did not need removing."}
+  - id: q24-3
+    type: spot
+    text: "Which line in this preferences file explains scenario 5's stuck upgrade?"
+    concepts: [apt-preferences, pinning]
+    sources: [39]
+    code: |
+      Package: libdemo
+      Pin: version 1.0-1
+      Pin-Priority: 1001
+    correct: [3]
+    explanation: "A priority of 1000 or more makes apt install that version even if it is a downgrade, so newer versions are never chosen. Line 2 selects the version; line 3 makes it win."
+  - id: q24-4
+    type: open
+    text: "Pick one scenario from your own run. Write the incident note you would leave for a teammate: the symptom, the evidence command and its output, the root cause, and the fix."
+    concepts: [lab-4, incident-notes]
+    sources: [36, 37, 40]
+    rubric: |
+      - Quotes a real symptom line from the run.
+      - Names an evidence command and what it showed.
+      - States the root cause in one sentence.
+      - Gives the fix and how it was verified (for example dpkg -l showing ii).

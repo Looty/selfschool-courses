@@ -31,5 +31,9 @@ chapters:
     title: Python packaging
   - dir: 03-dependencies-and-indexes
     title: Dependencies and private indexes
+  - dir: 06-debugging-apt-and-dpkg
+    title: Debugging apt and dpkg
+  - dir: 07-linux-troubleshooting
+    title: Linux troubleshooting beyond top
 exams:
   - {id: mid, file: exams/mid.yaml, after: 03-dependencies-and-indexes}
