@@ -1,0 +1,63 @@
+schemaVersion: 1
+id: q05
+title: "Check: pyproject.toml"
+questions:
+  - id: q05-1
+    type: spot
+    text: "The backend refuses to build this file. Which line breaks a rule of the pyproject.toml specification?"
+    concepts: [pyproject, dynamic-metadata]
+    sources: [11]
+    code: |
+      [project]
+      name = "shiplab-devenv"
+      version = "0.1.0"
+      dynamic = ["version"]
+      dependencies = ["packaging>=23"]
+    correct: [4]
+    explanation: "`version` is set statically on line 3 and also listed in `dynamic`. That is an error for any key that is not a list the backend may append to. Remove one of the two."
+  - id: q05-2
+    type: spot
+    text: "Which line will make a compliant backend raise an error?"
+    concepts: [pyproject, entry-points]
+    sources: [11]
+    code: |
+      [project]
+      name = "tool"
+      version = "1.0"
+
+      [project.entry-points.console_scripts]
+      tool = "tool.cli:main"
+    correct: [5]
+    explanation: "Console scripts belong in `[project.scripts]`. Backends must error on `[project.entry-points.console_scripts]` because it is ambiguous with that table."
+  - id: q05-3
+    type: mcq
+    text: "Which `[project]` key must always be written statically, never listed in `dynamic`?"
+    concepts: [pyproject, required-fields]
+    sources: [11]
+    options:
+      - {text: "name", correct: true, explanation: "The only key required to be static; a backend must raise an error if it appears in dynamic."}
+      - {text: "version", correct: false, explanation: "version is required but may be static or dynamic."}
+      - {text: "dependencies", correct: false, explanation: "dependencies may be dynamic; it is even one of the keys a backend may extend."}
+      - {text: "requires-python", correct: false, explanation: "Optional, and may be dynamic."}
+  - id: q05-4
+    type: mcq
+    text: "A repository has a `pyproject.toml` with only a `[tool.black]` table and a `setup.py`. What does a build frontend assume for the build system?"
+    concepts: [build-system, defaults]
+    sources: [11, 13]
+    options:
+      - {text: "requires = [\"setuptools\"], as if the table were written out", correct: true, explanation: "A missing [build-system] table means the default configuration applies."}
+      - {text: "It refuses to build until [build-system] is added", correct: false, explanation: "Only a table that exists but lacks required fields is an error."}
+      - {text: "It uses hatchling, the newest backend", correct: false, explanation: "The default is setuptools."}
+      - {text: "It installs nothing and runs setup.py with the system interpreter", correct: false, explanation: "The defaults still name setuptools as the build requirement."}
+  - id: q05-5
+    type: match
+    text: "Match each pyproject.toml field to what it becomes in the built package's metadata."
+    concepts: [pyproject, core-metadata]
+    sources: [11]
+    pairs:
+      - {left: "dependencies", right: "Requires-Dist lines", explanation: "Each dependency specifier maps to one Requires-Dist entry."}
+      - {left: "optional-dependencies keys", right: "Provides-Extra lines", explanation: "Each extra name becomes a Provides-Extra value."}
+      - {left: "[project.scripts]", right: "console_scripts entry points", explanation: "The table maps to the console_scripts group."}
+      - {left: "license-files", right: "License-File entries", explanation: "Each matched file is included and listed as License-File."}
+    distractors:
+      - "Classifier: Private :: Do Not Upload"

@@ -1,0 +1,59 @@
+# Lab 6 workloads: two web pods spread over both nodes, a Service in front, and a debug client.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web}
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels: {app: web}
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: {app: web}
+  ports: [{port: 80, targetPort: 80}]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+spec:
+  containers:
+    - name: client
+      image: nicolaka/netshoot:v0.13
+      command: ["sleep", "infinity"]
+---
+# The same client with a hand-written DNS config that drops the cluster search domains.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client-nosearch
+spec:
+  dnsPolicy: "None"
+  dnsConfig:
+    nameservers: ["10.43.0.10"]
+    searches: []
+    options:
+      - name: ndots
+        value: "5"
+  containers:
+    - name: client
+      image: nicolaka/netshoot:v0.13
+      command: ["sleep", "infinity"]

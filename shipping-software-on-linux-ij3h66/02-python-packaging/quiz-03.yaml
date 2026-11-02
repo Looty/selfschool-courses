@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q07
+title: "Check: layout, entry points, editable installs"
+questions:
+  - id: q07-1
+    type: mcq
+    text: "With a flat layout, CI runs `pip install .` then `pytest` from the repository root. The wheel is missing a module, yet every test passes. Why?"
+    concepts: [src-layout, sys-path]
+    sources: [16]
+    options:
+      - {text: "The tests import the working copy from the current directory, not the installed wheel", correct: true, explanation: "The current directory comes first on the import path, so the in-development copy shadows the installed one."}
+      - {text: "pip install . always copies the whole repository", correct: false, explanation: "It installs what the backend put in the wheel; the missing module really is missing there."}
+      - {text: "pytest disables site-packages", correct: false, explanation: "It does not; the shadowing comes from sys.path order."}
+      - {text: "Editable mode is the default for pip install .", correct: false, explanation: "Editable installs need -e."}
+  - id: q07-2
+    type: fill
+    text: "Complete the entry_points.txt that a backend writes for `[project.scripts] devenv = \"devenv.cli:main\"`."
+    concepts: [entry-points, console-scripts]
+    sources: [19, 11]
+    template: |
+      [{{1}}]
+      devenv {{2}} devenv.cli{{3}}main
+    chips:
+      - {text: "console_scripts", slot: 1, explanation: "[project.scripts] maps to the console_scripts group."}
+      - {text: "=", slot: 2, explanation: "The file must always use = between name and value."}
+      - {text: ":", slot: 3, explanation: "The colon separates the module from the attribute path."}
+      - {text: "project.scripts", explanation: "That is the pyproject.toml table name, not the entry-point group."}
+      - {text: ".", explanation: "A dot would make main part of the module path."}
+  - id: q07-3
+    type: sort
+    text: "You installed the project with `pip install -e .`. Which changes appear without reinstalling?"
+    concepts: [editable-install]
+    sources: [17]
+    buckets: ["Picked up automatically", "Needs a fresh pip install -e ."]
+    items:
+      - {text: "Fixing a bug in an existing .py file", bucket: "Picked up automatically", explanation: "Editable installs point at the source, so edits are seen."}
+      - {text: "Adding a dependency to pyproject.toml", bucket: "Needs a fresh pip install -e .", explanation: "New dependencies require reinstallation."}
+      - {text: "Adding a new [project.scripts] command", bucket: "Needs a fresh pip install -e .", explanation: "New entry points require reinstallation."}
+      - {text: "Changing the description", bucket: "Needs a fresh pip install -e .", explanation: "Metadata changes require reinstallation."}
+  - id: q07-4
+    type: mcq
+    text: "Which mechanisms may setuptools use to make an editable install importable?"
+    concepts: [editable-install, pth-files]
+    sources: [17]
+    options:
+      - {text: "A .pth file in site-packages", correct: true, explanation: "One of the two techniques the docs name."}
+      - {text: "A custom import hook", correct: true, explanation: "The other technique; setuptools does not promise which it uses."}
+      - {text: "A symlink from /usr/lib/python3 to the source tree", correct: false, explanation: "Not described, and would touch the system interpreter."}
+      - {text: "Copying the source into site-packages on every import", correct: false, explanation: "Editable installs avoid copying the package."}
+  - id: q07-5
+    type: open
+    text: "Explain the difference between a distribution name and an import name using the lab project, and one way the difference can bite you."
+    concepts: [distribution-name, import-name]
+    sources: [11, 19]
+    rubric: |
+      - Says the distribution name is what pip installs (shiplab-devenv) and the import name is what code imports (devenv).
+      - Notes that metadata lookups such as importlib.metadata.version need the distribution name.
+      - Gives a risk, such as a different public distribution with a clashing name, or a version lookup failing.

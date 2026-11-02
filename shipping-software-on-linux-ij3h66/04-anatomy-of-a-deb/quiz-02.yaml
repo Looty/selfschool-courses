@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: q15
+title: "Check: relationship fields"
+questions:
+  - id: q15-1
+    type: match
+    text: "Match each need to the field that expresses it."
+    concepts: [relationship-fields]
+    sources: [31]
+    pairs:
+      - {left: "The app cannot run at all without libfoo", right: "Depends", explanation: "An absolute dependency, enforced at configure time."}
+      - {left: "The preinst itself needs a tool installed", right: "Pre-Depends", explanation: "The named packages are installed before this one is even unpacked."}
+      - {left: "Docs that most users want but the app runs without", right: "Recommends", explanation: "Strong but not absolute."}
+      - {left: "Old versions of tool-a must be upgraded before this is unpacked", right: "Breaks", explanation: "Usually with an earlier-than version."}
+    distractors:
+      - "Enhances"
+  - id: q15-2
+    type: spot
+    text: "`foo` is being split into `foo` and `foo-data` at version 1.2-3. Which line in foo-data's control file is wrong?"
+    concepts: [breaks-replaces, package-split]
+    sources: [31]
+    code: |
+      Package: foo-data
+      Version: 1.2-3
+      Replaces: foo (<< 1.2-3)
+      Breaks: foo (>= 1.2-3)
+    correct: [4]
+    explanation: "Breaks must target the old versions that still ship the files: foo (<< 1.2-3), the same range as Replaces. As written it would break the new foo instead."
+  - id: q15-3
+    type: mcq
+    text: "Package A says `Provides: mail-transport-agent`. Package B says `Depends: mail-transport-agent (>= 2)`. Is B's dependency satisfied by A?"
+    concepts: [virtual-packages, versioned-provides]
+    sources: [31]
+    options:
+      - {text: "No: an unversioned Provides does not satisfy a versioned dependency", correct: true, explanation: "A would need Provides: mail-transport-agent (= 2) or later."}
+      - {text: "Yes: any provider satisfies any dependency on the virtual name", correct: false, explanation: "Only for unversioned dependencies."}
+      - {text: "Only if A's own version is >= 2", correct: false, explanation: "A's version is irrelevant to the virtual name's version."}
+      - {text: "Only with Pre-Depends", correct: false, explanation: "The field type does not change how Provides is matched."}
+  - id: q15-4
+    type: mcq
+    text: "Why does Policy prefer Breaks over Conflicts in most cases?"
+    concepts: [breaks-vs-conflicts]
+    sources: [31]
+    options:
+      - {text: "Conflicts forbids both packages being unpacked at the same time, a stronger restriction than usually needed", correct: true, explanation: "Breaks only stops the broken package from staying configured, so upgrades are easier to order."}
+      - {text: "Conflicts is deprecated", correct: false, explanation: "It is still a valid field for packages that really cannot coexist."}
+      - {text: "Breaks also installs the other package", correct: false, explanation: "Breaks never installs anything."}
+      - {text: "apt ignores Conflicts", correct: false, explanation: "apt and dpkg both honour it."}
+  - id: q15-5
+    type: open
+    text: "Your product ships `core`, `agent` and `ui` packages plus a meta-package. Write the meta-package's Depends line and explain how it lets you hotfix `agent` alone without breaking compatibility."
+    concepts: [meta-package, version-ranges, hotfix]
+    sources: [31]
+    rubric: |
+      - Uses version ranges (>= and <<) for each component, not exact = pins.
+      - Explains a hotfix within the range installs without rebuilding the meta-package.
+      - Explains the upper bound stops an incompatible new major from being pulled in.

@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: q11
+title: "Check: resolver conflicts"
+questions:
+  - id: q11-1
+    type: spot
+    text: "Which line shows the requirement that came from a package's metadata rather than from you?"
+    concepts: [resolution-impossible, reading-errors]
+    sources: [29]
+    code: |
+      ERROR: Cannot install requests==2.32.3 and urllib3<1.21 because these package versions have conflicting dependencies.
+
+      The conflict is caused by:
+          The user requested urllib3<1.21
+          requests 2.32.3 depends on urllib3<3 and >=1.21.1
+    correct: [5]
+    explanation: "'X depends on' lines come from package metadata; 'The user requested' lines come from your command or requirements file."
+  - id: q11-2
+    type: mcq
+    text: "You own the requirement `urllib3<1.21` and nothing else needs it that low. Which of pip's strategies fits?"
+    concepts: [resolution-strategies]
+    sources: [29]
+    options:
+      - {text: "Loosen your top-level requirement", correct: true, explanation: "Widen or drop your own specifier so pip can find a compatible version."}
+      - {text: "Fork requests and change its metadata", correct: false, explanation: "Forking a dependency is for when its own constraint is wrong, and it costs maintainer support."}
+      - {text: "Install with --no-deps", correct: false, explanation: "That skips resolution and leaves a broken environment, as pip check would show."}
+      - {text: "Choose an alternative to requests", correct: false, explanation: "That is the last resort when every requirement is appropriate and no solution exists."}
+  - id: q11-3
+    type: match
+    text: "Match each question to the command that answers it."
+    concepts: [pip-check, pipdeptree]
+    sources: [9, 28]
+    pairs:
+      - {left: "Are any installed packages' requirements unmet?", right: "pip check", explanation: "Reports inconsistencies in installed packages."}
+      - {left: "Which installed packages require urllib3?", right: "pipdeptree --reverse --packages urllib3", explanation: "The reverse tree shows the consumers."}
+      - {left: "What exactly is installed, as a flat list?", right: "pip freeze", explanation: "pipdeptree's page describes pip freeze as the flat view."}
+    distractors:
+      - "pip install --dry-run --no-deps"
+  - id: q11-4
+    type: mcq
+    text: "A Docker build runs `pip install -r requirements.txt` and later `pip install --no-deps ./vendor/patched_lib.whl`. What should come after both?"
+    concepts: [pip-check, ci]
+    sources: [9]
+    options:
+      - {text: "`pip check`, so the build fails if the patched wheel broke another package's requirements", correct: true, explanation: "pip only considers the packages in each command, so it may break already-installed ones."}
+      - {text: "Nothing; pip guarantees consistency after every install", correct: false, explanation: "pip explicitly does not guarantee that."}
+      - {text: "`pip freeze > requirements.txt`, to fix the conflict", correct: false, explanation: "Freezing records the broken state; it does not detect it."}
+      - {text: "`pipdeptree --reverse`, which repairs broken dependencies", correct: false, explanation: "pipdeptree reports; it does not repair."}
+  - id: q11-5
+    type: open
+    text: "pip has been 'looking at multiple versions of botocore' for ten minutes. Explain what is happening and two ways to shorten it."
+    concepts: [backtracking, resolver]
+    sources: [29, 9]
+    rubric: |
+      - Explains backtracking: pip is trying candidate versions because an earlier choice did not fit.
+      - Suggests narrowing a range (an explicit lower or upper bound) on the package or its consumer.
+      - Suggests a constraints file or a lock so resolution is not repeated.

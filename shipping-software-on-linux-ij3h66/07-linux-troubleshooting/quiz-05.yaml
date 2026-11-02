@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: q29
+title: "Check: Lab 5"
+questions:
+  - id: q29-1
+    type: sort
+    text: "Sort each piece of evidence from the lab into the incident it belongs to."
+    concepts: [lab-5, troubleshooting]
+    sources: [57, 62, 64, 65]
+    buckets: ["CPU hog", "Memory leak", "Descriptor leak", "Deleted log"]
+    items:
+      - {text: "checksum_forever (cpu_hog.py:8) in py-spy dump", bucket: "CPU hog", explanation: "The live stack of the busy process."}
+      - {text: "memory.events: oom_kill 1", bucket: "Memory leak", explanation: "The cgroup's OOM kill counter."}
+      - {text: "253 ESTABLISHED sockets for one PID in ss -tanp", bucket: "Descriptor leak", explanation: "Connections that were never closed."}
+      - {text: "lsof +L1 shows NLINK 0 and (deleted)", bucket: "Deleted log", explanation: "An unlinked file still held open."}
+      - {text: "[Errno 28] No space left on device", bucket: "Deleted log", explanation: "The writer filled the tmpfs."}
+      - {text: "accept4() = -1 EMFILE", bucket: "Descriptor leak", explanation: "The per-process descriptor limit was reached."}
+  - id: q29-2
+    type: mcq
+    text: "Why did the lab need `--privileged` (or at least `--cap-add SYS_PTRACE`)?"
+    concepts: [containers, ptrace]
+    sources: [65]
+    options:
+      - {text: "py-spy and strace attach to other processes, which needs SYS_PTRACE", correct: true, explanation: "py-spy's docs name SYS_PTRACE for Docker and Kubernetes."}
+      - {text: "vmstat cannot read /proc without it", correct: false, explanation: "vmstat worked from ordinary /proc data."}
+      - {text: "Python refuses to start in unprivileged containers", correct: false, explanation: "It does not."}
+      - {text: "tmpfs mounts need it", correct: false, explanation: "--tmpfs works without --privileged."}
+  - id: q29-3
+    type: mcq
+    text: "In incident 4, why is `truncate -s 0 /proc/PID/fd/3` a stop-gap and not the fix?"
+    concepts: [deleted-open-files, log-rotation]
+    sources: [64]
+    options:
+      - {text: "The service keeps writing to the deleted file, so space fills up again until it reopens its log", correct: true, explanation: "The descriptor still points at the unlinked file."}
+      - {text: "truncate does not free any space", correct: false, explanation: "In the lab df went back to 0% used."}
+      - {text: "It deletes the service's binary", correct: false, explanation: "fd 3 is the log file."}
+      - {text: "It only works on tmpfs", correct: false, explanation: "Nothing in the mechanism is tmpfs-specific."}
+  - id: q29-4
+    type: open
+    text: "Write the short incident summary for one of the four scenarios as you ran it: symptom, the two most useful evidence lines from your own output, root cause and fix."
+    concepts: [lab-5, incident-notes]
+    sources: [57, 62, 64, 65]
+    rubric: |
+      - States the symptom as a user or monitor would see it.
+      - Quotes two evidence lines from the learner's own run.
+      - Names the root cause in the code or configuration.
+      - Gives a lasting fix, not only the stop-gap.

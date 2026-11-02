@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: q04
+title: "Check: Lab 1"
+questions:
+  - id: q04-1
+    type: match
+    text: "Match each symptom from the lab to its cause."
+    concepts: [pep-668, interpreter-selection, system-site-packages]
+    sources: [1, 2, 3]
+    pairs:
+      - {left: "error: externally-managed-environment", right: "pip ran outside a venv on an interpreter with the EXTERNALLY-MANAGED marker", explanation: "The installer refuses when both conditions hold."}
+      - {left: "ModuleNotFoundError although pip said it installed the package", right: "The code ran on a different interpreter than the one pip installed into", explanation: "Check sys.executable and whether sys.prefix differs from sys.base_prefix."}
+      - {left: "A module loads from /usr/lib/python3/dist-packages inside a venv", right: "include-system-site-packages = true", explanation: "site then searches the system prefixes too."}
+    distractors:
+      - "The venv's pyvenv.cfg is missing the version key"
+  - id: q04-2
+    type: trace
+    text: "Trace what the script sees. For each step give `sys.prefix == sys.base_prefix` (True/False) and whether `import requests` succeeds (yes/no)."
+    concepts: [venv-detection, interpreter-selection]
+    sources: [2]
+    code: |
+      python3 -m venv /opt/app/.venv
+      /opt/app/.venv/bin/python -m pip install requests
+      python3 main.py                  # system interpreter
+      /opt/app/.venv/bin/python main.py
+      . /opt/app/.venv/bin/activate; python main.py
+    variables: [same_prefix, imports]
+    steps:
+      - {label: "line 3", values: {same_prefix: ["True", "true"], imports: ["no"]}}
+      - {label: "line 4", values: {same_prefix: ["False", "false"], imports: ["yes"]}}
+      - {label: "line 5", values: {same_prefix: ["False", "false"], imports: ["yes"]}}
+    explanation: "Only the system interpreter has sys.prefix equal to sys.base_prefix, and only the venv's site-packages holds requests. Activation simply makes `python` resolve to the venv interpreter."
+  - id: q04-3
+    type: mcq
+    text: "In break 3, why is `pip list` showing `PyYAML 6.0` misleading?"
+    concepts: [system-site-packages, dependency-declaration]
+    sources: [3, 4]
+    options:
+      - {text: "It lists the apt-installed copy visible through the system site-packages, not something the venv owns", correct: true, explanation: "The module path pointed at /usr/lib/python3/dist-packages; once the leak was off, the import failed."}
+      - {text: "pip list never shows PyYAML", correct: false, explanation: "It showed it, which is the point: it lists everything visible on the path."}
+      - {text: "The version number is wrong; it was really 6.0.3", correct: false, explanation: "6.0 was the apt copy; 6.0.3 came later from PyPI after the fix."}
+      - {text: "pip list only works inside activated venvs", correct: false, explanation: "It was run through /opt/leaky/bin/python without activation."}
+  - id: q04-4
+    type: open
+    text: "Describe what you saw when you ran the lab: one of the three breaks, the exact error or output, and the command that proved the cause."
+    concepts: [lab-1, debugging]
+    sources: [1, 2, 3]
+    rubric: |
+      - Names one break and quotes its error or output.
+      - Names the evidence command (marker file, sys.executable/sys.prefix check, or the module's file path).
+      - Describes the fix that worked.

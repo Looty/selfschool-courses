@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q22
+title: "Check: asking apt why"
+questions:
+  - id: q22-1
+    type: spot
+    text: "`apt-get upgrade` never moves libdemo to 1.0-2. Which line of this output explains why?"
+    concepts: [apt-cache-policy, pinning]
+    sources: [39, 42]
+    code: |
+      libdemo:
+        Installed: 1.0-1
+        Candidate: 1.0-1
+        Version table:
+           1.0-2 500
+              500 file:/srv/lab4-repo ./ Packages
+       *** 1.0-1 1001
+              500 file:/srv/lab4-repo ./ Packages
+              100 /var/lib/dpkg/status
+    correct: [7]
+    explanation: "The installed version has priority 1001 from a pin, higher than 1.0-2's 500, so it stays the candidate (line 3 is the consequence, line 7 the cause). A priority of 1000 or more even forces downgrades."
+  - id: q22-2
+    type: match
+    text: "Match each pin priority to its effect."
+    concepts: [apt-preferences, pin-priority]
+    sources: [39]
+    pairs:
+      - {left: "1001", right: "Installed even if that means a downgrade", explanation: "P >= 1000."}
+      - {left: "500", right: "Installed unless the target release has a version", explanation: "The default for sources that are not the target release."}
+      - {left: "100", right: "The priority the installed version gets by default", explanation: "From /var/lib/dpkg/status."}
+      - {left: "-10", right: "Never installed", explanation: "P < 0 prevents installation."}
+    distractors:
+      - "Undefined behaviour, do not use"
+  - id: q22-3
+    type: mcq
+    text: "You see `E: Unable to correct problems, you have held broken packages.` Which checks belong in your first minute?"
+    concepts: [held-broken-packages, apt-mark, apt-cache-policy]
+    sources: [40, 41, 42]
+    options:
+      - {text: "apt-mark showhold", correct: true, explanation: "An explicit hold is one common cause."}
+      - {text: "apt-cache policy on the package that cannot be satisfied", correct: true, explanation: "Shows pins and which versions exist in which sources."}
+      - {text: "dpkg --force-depends -i the package", correct: false, explanation: "That turns dependency errors into warnings and leaves a broken system."}
+      - {text: "rm /var/lib/dpkg/status", correct: false, explanation: "That destroys dpkg's record of what is installed."}
+  - id: q22-4
+    type: short
+    text: "Which apt-get option shows what an install would do without changing the system?"
+    concepts: [apt-simulate]
+    sources: [40]
+    answers: ["-s", "--simulate", "apt-get -s", "apt-get --simulate"]
+  - id: q22-5
+    type: open
+    text: "Before removing a library package from a fleet, describe which apt commands you run to make sure nothing important breaks, and what each one tells you."
+    concepts: [rdepends, apt-simulate]
+    sources: [40, 42]
+    rubric: |
+      - Uses apt-cache rdepends to list packages that depend on the library.
+      - Uses apt-get -s remove to see which packages would be removed (Remv lines).
+      - Explains that the simulation changes nothing and is safe on production.

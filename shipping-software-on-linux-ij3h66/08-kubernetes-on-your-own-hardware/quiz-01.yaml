@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q30
+title: "Check: the node view"
+questions:
+  - id: q30-1
+    type: match
+    text: "Match each part of the network model to the component that implements it."
+    concepts: [k8s-network-model]
+    sources: [72]
+    pairs:
+      - {left: "Pod network namespace setup", right: "The container runtime (CRI)", explanation: "System-level software implementing the CRI."}
+      - {left: "The pod network itself", right: "A CNI plugin", explanation: "Most runtimes use CNI to talk to the pod network implementation."}
+      - {left: "Routing Service traffic to backends", right: "kube-proxy (or a CNI's own proxy)", explanation: "The service proxy programs the data plane."}
+    distractors:
+      - "The API server"
+  - id: q30-2
+    type: fill
+    text: "Complete the commands to run `ss` inside pod `client`'s network namespace from the node."
+    concepts: [crictl, nsenter]
+    sources: [78, 83]
+    template: |
+      POD=$(crictl {{1}} --name '^client$' -q)
+      PID=...   # the sandbox PID, from crictl inspectp $POD
+      nsenter -t $PID {{2}} ss -tanp
+    chips:
+      - {text: "pods", slot: 1, explanation: "Lists pod sandboxes; -q prints only IDs."}
+      - {text: "-n", slot: 2, explanation: "Enter the network namespace of the target process."}
+      - {text: "ps", explanation: "Lists containers, not pod sandboxes."}
+      - {text: "-m", explanation: "That is the mount namespace."}
+  - id: q30-3
+    type: mcq
+    text: "A node shows DiskPressure while `df -h` reports 40% free space on the root filesystem. What should you check next?"
+    concepts: [node-conditions, inodes]
+    sources: [79]
+    options:
+      - {text: "Inodes: nodefs.inodesFree is also a DiskPressure signal", correct: true, explanation: "Millions of small files exhaust inodes while space remains."}
+      - {text: "Memory: DiskPressure is driven by memory.available", correct: false, explanation: "That drives MemoryPressure."}
+      - {text: "Nothing, DiskPressure is cosmetic", correct: false, explanation: "The kubelet evicts pods under it."}
+      - {text: "The PID limit", correct: false, explanation: "That is PIDPressure."}
+  - id: q30-4
+    type: mcq
+    text: "You set only `evictionHard: {memory.available: 500Mi}` in the kubelet config, without MergeDefaultEvictionSettings. What happens to the default nodefs.available<10% threshold?"
+    concepts: [eviction-thresholds]
+    sources: [79]
+    options:
+      - {text: "It becomes zero, so disk eviction is effectively off", correct: true, explanation: "Changing any parameter stops the others from inheriting their defaults."}
+      - {text: "It stays at 10%", correct: false, explanation: "Only with MergeDefaultEvictionSettings enabled."}
+      - {text: "It doubles to 20%", correct: false, explanation: "No such rule."}
+      - {text: "The kubelet refuses to start", correct: false, explanation: "It starts with the other thresholds at zero."}
+  - id: q30-5
+    type: open
+    text: "The API server of an on-prem cluster is down. Describe how you would find out from a worker node which containers are crash-looping and why."
+    concepts: [crictl, node-debugging]
+    sources: [78]
+    rubric: |
+      - Uses crictl ps -a to see exited or restarting containers.
+      - Uses crictl logs on the failing container.
+      - Mentions crictl needs the runtime endpoint (/etc/crictl.yaml) and works without the API server.

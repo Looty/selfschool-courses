@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q26
+title: "Check: CPU and disk tools"
+questions:
+  - id: q26-1
+    type: spot
+    text: "This 8-CPU host 'feels slow'. Which line best shows a storage problem rather than a CPU problem?"
+    concepts: [vmstat, io-wait]
+    sources: [67]
+    code: |
+      procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+       r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+       1  0      0 5794820 187816 1631560    0    0     0     0  624  537 12  1 87  0  0
+       1  9      0 5790112 187816 1631990    0    0  8400 52100 1910 2200  3  2 40 55  0
+    correct: [4]
+    explanation: "Nine tasks blocked on I/O (b), heavy block I/O (bi/bo) and 55% of CPU time waiting for I/O (wa), with r low. That is storage, not CPU."
+  - id: q26-2
+    type: mcq
+    text: "`iostat -x` shows an NVMe device at `%util` 100 with `r_await` 0.2 ms and `aqu-sz` 0.4. What should you conclude?"
+    concepts: [iostat, util-caveat]
+    sources: [68]
+    options:
+      - {text: "Probably not saturated: %util does not reflect the limits of devices that serve requests in parallel", correct: true, explanation: "Low await and a short queue say the device keeps up."}
+      - {text: "The device is saturated because %util is 100", correct: false, explanation: "That holds for devices that serve requests one at a time, not modern SSDs."}
+      - {text: "The device is failing", correct: false, explanation: "Nothing here is an error signal."}
+      - {text: "iostat cannot measure NVMe devices", correct: false, explanation: "It reports them; only %util needs care."}
+  - id: q26-3
+    type: fill
+    text: "Complete the path from a slow host to a code line in a Python service."
+    concepts: [cpu-triage, py-spy]
+    sources: [65, 67, 71]
+    template: |
+      {{1}}   # is the host CPU-saturated, or is one CPU busy?
+      {{2}}   # which PID uses the CPU?
+      {{3}}   # which function is it in right now?
+    chips:
+      - {text: "vmstat 1", slot: 1, explanation: "r against the CPU count, and us/sy."}
+      - {text: "pidstat -u 1", slot: 2, explanation: "Per-process %CPU."}
+      - {text: "py-spy dump --pid PID", slot: 3, explanation: "Prints the live stack of each thread."}
+      - {text: "iostat -xz 1", explanation: "That is for disks, not this CPU question."}
+  - id: q26-4
+    type: mcq
+    text: "`py-spy dump` fails inside a container with a permission error. What fixes it?"
+    concepts: [py-spy, containers]
+    sources: [65]
+    options:
+      - {text: "Run the container with --cap-add SYS_PTRACE", correct: true, explanation: "py-spy needs SYS_PTRACE to read process memory, in Docker and in Kubernetes."}
+      - {text: "Restart the Python process with py-spy as its parent", correct: false, explanation: "py-spy attaches to running processes; no restart needed."}
+      - {text: "Install py-spy into the application's venv", correct: false, explanation: "Where py-spy is installed does not change permissions."}
+      - {text: "Set PYTHONUNBUFFERED=1", correct: false, explanation: "Unrelated to ptrace permissions."}
+  - id: q26-5
+    type: open
+    text: "On an 8-CPU host, vmstat shows us about 12 and r about 2, and users report one endpoint hangs. Explain what this pattern suggests and how you would confirm it."
+    concepts: [cpu-triage, single-threaded]
+    sources: [67, 71, 65]
+    rubric: |
+      - Notes 12% of 8 CPUs is roughly one CPU fully used, so a single thread is busy, not the whole host.
+      - Uses pidstat to find the process (and -t for the thread).
+      - Uses py-spy dump (or perf) to find the code location.

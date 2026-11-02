@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: q14
+title: "Check: inside a .deb"
+questions:
+  - id: q14-1
+    type: fill
+    text: "Put the members of a .deb in the order the format requires."
+    concepts: [deb-format]
+    sources: [38]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+    chips:
+      - {text: "debian-binary", slot: 1, explanation: "Holds the format version, 2.0, and must come first."}
+      - {text: "control.tar.xz", slot: 2, explanation: "The control archive: control file and maintainer scripts."}
+      - {text: "data.tar.xz", slot: 3, explanation: "The files to install, last."}
+      - {text: "md5sums", explanation: "An optional file inside the control archive, not a member of the ar archive."}
+  - id: q14-2
+    type: short
+    text: "With this control file, `dpkg-deb --build` stops with `error: package architecture is missing or empty`. Which field do you add? (Package: hello-ship / Version: 1.0-1 / Maintainer: ... / Depends: bash / Description: ...)"
+    concepts: [control-file, mandatory-fields]
+    sources: [34]
+    answers: ["Architecture", "Architecture: all", "Architecture: amd64"]
+  - id: q14-3
+    type: sort
+    text: "Which archive member holds each item?"
+    concepts: [deb-format, control-archive]
+    sources: [38]
+    buckets: ["control.tar", "data.tar"]
+    items:
+      - {text: "postinst", bucket: "control.tar", explanation: "Maintainer scripts live in the control archive."}
+      - {text: "conffiles", bucket: "control.tar", explanation: "The list of conffiles is control information."}
+      - {text: "./usr/bin/hello-ship", bucket: "data.tar", explanation: "Installed files are in the data archive."}
+      - {text: "./etc/hello-ship.conf", bucket: "data.tar", explanation: "The conffile itself is a normal file in the data archive."}
+      - {text: "control", bucket: "control.tar", explanation: "The mandatory control file."}
+  - id: q14-4
+    type: mcq
+    text: "You build on a laptop as UID 1000. Inside the .deb, installed files show as owned by 1000/1000. What fixes it?"
+    concepts: [dpkg-deb, file-ownership]
+    sources: [43]
+    options:
+      - {text: "dpkg-deb --root-owner-group --build", correct: true, explanation: "Sets owner and group to root for every entry in the data archive."}
+      - {text: "chmod 0755 DEBIAN", correct: false, explanation: "Permissions are not ownership."}
+      - {text: "-Z none", correct: false, explanation: "That only changes compression."}
+      - {text: "Architecture: all", correct: false, explanation: "Unrelated to file ownership."}
+  - id: q14-5
+    type: short
+    text: "Which dpkg-deb option lists the files a package would install, without installing it?"
+    concepts: [dpkg-deb]
+    sources: [43]
+    answers: ["--contents", "-c", "dpkg-deb --contents", "dpkg-deb -c"]

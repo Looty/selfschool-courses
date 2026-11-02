@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: q19
+title: "Check: Python into a .deb"
+questions:
+  - id: q19-1
+    type: spot
+    text: "This .deb bundles a venv built with Debian 12's /usr/bin/python3. It installs fine, but `devenv` fails with `cannot execute: required file not found` on a minimal host. Which line is the cause?"
+    concepts: [bundled-venv, depends]
+    sources: [2]
+    code: |
+      Package: shiplab-devenv
+      Version: 0.1.0-1
+      Architecture: all
+      Depends: python3.11
+      Description: devenv CLI with a bundled virtualenv
+    correct: [4]
+    explanation: "The venv's bin/python3 links to /usr/bin/python3, which comes in through the python3 package (via python3-minimal); python3.11 alone did not provide it in the lab. Depend on python3 (>= 3.11), python3 (<< 3.12)."
+  - id: q19-2
+    type: mcq
+    text: "Why must the bundled venv be created at /opt/shiplab-devenv during the build, not in a temporary directory that is copied there?"
+    concepts: [venv-portability]
+    sources: [2]
+    options:
+      - {text: "Installed scripts hold the absolute path of the venv's interpreter, so a venv cannot be moved", correct: true, explanation: "The venv docs call environments non-portable for this reason."}
+      - {text: "dpkg-deb only accepts files under /opt", correct: false, explanation: "dpkg-deb packages any tree."}
+      - {text: "pip refuses to install outside /opt", correct: false, explanation: "pip installs anywhere."}
+      - {text: "Debian Policy requires /opt for Python", correct: false, explanation: "Not stated; /opt/venvs is dh-virtualenv's default."}
+  - id: q19-3
+    type: match
+    text: "Match each tool to what it does."
+    concepts: [packaging-tools]
+    sources: [45, 46, 48]
+    pairs:
+      - {left: "pybuild", right: "Builds Python modules for the distribution's Python into dist-packages", explanation: "dh-python's build system."}
+      - {left: "dh-virtualenv", right: "Adds a dh_virtualenv step that ships a prebuilt virtualenv in the package", explanation: "Self-contained Python deployment."}
+      - {left: "nFPM", right: "Packages prepared files into deb, rpm and other formats", explanation: "A single Go binary."}
+    distractors:
+      - "Resolves PyPI dependencies into Debian packages automatically"
+  - id: q19-4
+    type: mcq
+    text: "Why does the bundled-venv package also need an upper bound, `python3 (<< 3.12)`?"
+    concepts: [bundled-venv, interpreter-range]
+    sources: [2]
+    options:
+      - {text: "The venv's packages live under lib/python3.11/, so a 3.12 interpreter would not see them", correct: true, explanation: "The bound stops apt from moving the host to an interpreter the venv was not built for without also upgrading the package."}
+      - {text: "Python 3.12 cannot run any venv", correct: false, explanation: "It can run venvs built for 3.12."}
+      - {text: "dpkg needs both bounds to parse the field", correct: false, explanation: "A single clause is valid."}
+      - {text: "To make the package Architecture: any", correct: false, explanation: "Unrelated."}
+  - id: q19-5
+    type: open
+    text: "A CVE is published for a library your bundled-venv package ships. Describe what has to happen before hosts are fixed, and how that differs from a dh-python package."
+    concepts: [bundled-dependencies, security-updates]
+    sources: [45, 47]
+    rubric: |
+      - Bundled venv: rebuild the package with the fixed library and ship a new version (for example a new Debian revision).
+      - dh-python: the distribution's updated python3-library package fixes it without rebuilding your package (if the dependency is packaged).
+      - Mentions publishing to the repository and upgrading hosts (apt) in either case.

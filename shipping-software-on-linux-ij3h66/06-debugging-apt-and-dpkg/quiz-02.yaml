@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: q23
+title: "Check: broken states"
+questions:
+  - id: q23-1
+    type: match
+    text: "Match each `dpkg -l` prefix to its meaning."
+    concepts: [dpkg-status-flags]
+    sources: [37]
+    pairs:
+      - {left: "ii", right: "Wanted installed and correctly installed", explanation: "Desired install, status installed."}
+      - {left: "rc", right: "Removed, configuration files remain", explanation: "Desired remove, status config-files."}
+      - {left: "iU", right: "Wanted installed, unpacked but not configured", explanation: "Uppercase U: unpacked."}
+      - {left: "iF", right: "Wanted installed, configuration started but failed", explanation: "Uppercase F: half-configured."}
+    distractors:
+      - "Held at an older version by a pin"
+  - id: q23-2
+    type: sort
+    text: "Which recovery step fits each situation?"
+    concepts: [dpkg-recovery]
+    sources: [31, 32, 36, 40]
+    buckets: ["dpkg --configure -a", "apt-get -f install", "Ship a fixed package version"]
+    items:
+      - {text: "postinst failed because a directory was missing; you created it", bucket: "dpkg --configure -a", explanation: "Retries configuration of unpacked and half-configured packages."}
+      - {text: "dpkg -i left a package iU because a dependency is not installed", bucket: "apt-get -f install", explanation: "apt fetches the missing dependency and configures the package."}
+      - {text: "'trying to overwrite ... which is also in package tool-a'", bucket: "Ship a fixed package version", explanation: "The packaging must declare Breaks + Replaces (and the old owner drop the file)."}
+      - {text: "postinst has a bug that fails on every host", bucket: "Ship a fixed package version", explanation: "Rerunning the same script fails again; fix the package."}
+  - id: q23-3
+    type: trace
+    text: "Trace the state of `needs-jq` (as shown by `dpkg -l`) after each command in Lab 4 scenario 1."
+    concepts: [dpkg-states, depends]
+    sources: [31, 37, 40]
+    code: |
+      dpkg -i needs-jq_1.0-1_all.deb     # jq is not installed
+      apt-get -f install -y
+      apt-get remove -y needs-jq
+    variables: [flags]
+    steps:
+      - {label: "after line 1", values: {flags: ["iU"]}}
+      - {label: "after line 2", values: {flags: ["ii"]}}
+      - {label: "after line 3", values: {flags: ["not listed", "none", "no packages found"]}}
+    explanation: "Depends are only checked at configure time, so the package is unpacked but unconfigured (iU). apt -f install fetches jq and configures it (ii). needs-jq ships no conffiles, so after remove nothing is left: in the lab, dpkg -l answered 'no packages found matching needs-jq'. A package with conffiles would show rc instead."
+  - id: q23-4
+    type: mcq
+    text: "Why does Debian Policy require maintainer scripts to be idempotent?"
+    concepts: [maintainer-scripts, idempotency]
+    sources: [32]
+    options:
+      - {text: "Error recovery reruns them, for example dpkg --configure -a after a failed postinst", correct: true, explanation: "Policy ties idempotency to the error recovery procedures."}
+      - {text: "So they run faster", correct: false, explanation: "Speed is not the reason."}
+      - {text: "Because apt runs every script twice", correct: false, explanation: "It does not; reruns happen on recovery."}
+      - {text: "So they can be skipped on upgrade", correct: false, explanation: "Scripts are not skipped; they are called with different arguments."}
+  - id: q23-5
+    type: open
+    text: "A colleague 'fixed' a half-configured package by editing /var/lib/dpkg/info/app.postinst to `exit 0`. Explain the risk and the better fix."
+    concepts: [maintainer-scripts, dpkg-recovery]
+    sources: [32, 36]
+    rubric: |
+      - Says the edit hides the real failure and the package may be configured without its setup done.
+      - Says the next upgrade or reinstall runs the packaged script again, so the problem returns.
+      - Proposes fixing the cause (or shipping a fixed package) and then dpkg --configure -a.

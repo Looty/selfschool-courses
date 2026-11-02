@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shiplab-devenv"
+version = "0.1.0"
+description = "A tiny developer CLI used in the Shipping Software on Linux course labs"
+requires-python = ">=3.9"
+dependencies = [
+    "packaging>=23",
+]
+license = "MIT"
+
+[project.scripts]
+devenv = "devenv.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/devenv"]

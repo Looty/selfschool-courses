@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q02
+title: "Check: virtual environments and PEP 668"
+questions:
+  - id: q02-1
+    type: spot
+    text: "This `pyvenv.cfg` belongs to a venv whose application unexpectedly imports an old `yaml` from `/usr/lib/python3/dist-packages`. Which line causes it?"
+    concepts: [venv-internals, system-site-packages]
+    sources: [2, 3]
+    code: |
+      home = /usr/bin
+      include-system-site-packages = true
+      version = 3.11.2
+      executable = /usr/bin/python3.11
+      command = /usr/bin/python3 -m venv --system-site-packages /opt/app/.venv
+    correct: [2]
+    explanation: "With `include-system-site-packages = true`, `site` also searches the system prefixes, so apt-installed modules in dist-packages leak into the venv. Line 5 only records the command that created the venv; Python reads line 2."
+  - id: q02-2
+    type: mcq
+    text: "Which check reliably tells a Python program that it is running inside a venv, whether or not the venv was activated?"
+    concepts: [venv-detection]
+    sources: [2]
+    options:
+      - {text: "`sys.prefix != sys.base_prefix`", correct: true, explanation: "The venv documentation says this check is sufficient."}
+      - {text: "`'VIRTUAL_ENV' in os.environ`", correct: false, explanation: "VIRTUAL_ENV is only set by activation, and activation is optional, so it cannot be relied on."}
+      - {text: "`'.venv' in sys.executable`", correct: false, explanation: "The directory can have any name; this is a naming habit, not a mechanism."}
+      - {text: "`os.path.exists('pyvenv.cfg')`", correct: false, explanation: "This checks the current directory, which says nothing about the running interpreter."}
+  - id: q02-3
+    type: sort
+    text: "On a Debian 12 host, sort each install method by whether it respects PEP 668."
+    concepts: [pep-668, externally-managed]
+    sources: [1, 4, 23]
+    buckets: ["Respects the marker", "Overrides or fights the marker"]
+    items:
+      - {text: "`apt install python3-requests`", bucket: "Respects the marker", explanation: "The distro's own package manager owns that directory."}
+      - {text: "`.venv/bin/python -m pip install requests`", bucket: "Respects the marker", explanation: "Inside a venv the marker does not apply."}
+      - {text: "`sudo pip install --break-system-packages requests`", bucket: "Overrides or fights the marker", explanation: "The flag exists to allow pip to modify an externally managed installation."}
+      - {text: "`pipx install httpie`", bucket: "Respects the marker", explanation: "pipx creates a dedicated venv for the application."}
+      - {text: "`pip install --user requests` outside a venv", bucket: "Overrides or fights the marker", explanation: "It is still an install outside a venv, which the marker forbids."}
+  - id: q02-4
+    type: mcq
+    text: "You copy `/opt/app/.venv` from a build host to `/srv/app/.venv` on a server with the same Python. `pytest` from that venv fails with `bad interpreter`. Why?"
+    concepts: [venv-portability, shebang]
+    sources: [2]
+    options:
+      - {text: "Installed scripts have shebangs with the absolute path of the original venv interpreter", correct: true, explanation: "That is why the documentation calls venvs non-portable and says to recreate them."}
+      - {text: "pyvenv.cfg is encrypted with the host key", correct: false, explanation: "pyvenv.cfg is plain text."}
+      - {text: "Venvs contain a full copy of the standard library compiled for one host", correct: false, explanation: "A venv reuses the base installation's standard library."}
+      - {text: "pytest refuses to run outside an activated venv", correct: false, explanation: "Scripts in a venv run without activation."}
+  - id: q02-5
+    type: open
+    text: "A teammate wants to fix the `externally-managed-environment` error on a build server by adding `break-system-packages = true` to `/etc/pip.conf`. Explain what that would risk and what you would do instead."
+    concepts: [pep-668, venv, apt]
+    sources: [1, 2, 4]
+    rubric: |
+      - Says the setting lets pip write into the interpreter directories that apt manages.
+      - Says PEP 668 recommends the override not be enabled by default.
+      - Proposes a venv (or pipx for tools, or an apt package for system needs) instead.

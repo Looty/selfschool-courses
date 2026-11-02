@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: q32
+title: "Check: DNS, air-gap and versioning"
+questions:
+  - id: q32-1
+    type: trace
+    text: "With `search default.svc.cluster.local svc.cluster.local cluster.local` and `options ndots:5`, what is the first name the resolver asks for in each case?"
+    concepts: [ndots, search-list]
+    sources: [75, 74]
+    code: |
+      lookup("web")
+      lookup("api.example.com")
+      lookup("api.example.com.")
+    variables: [first_query]
+    steps:
+      - {label: "web", values: {first_query: ["web.default.svc.cluster.local", "web.default.svc.cluster.local."]}}
+      - {label: "api.example.com", values: {first_query: ["api.example.com.default.svc.cluster.local", "api.example.com.default.svc.cluster.local."]}}
+      - {label: "api.example.com.", values: {first_query: ["api.example.com", "api.example.com."]}}
+    explanation: "Names with fewer dots than ndots go through the search list first; a trailing dot makes a name absolute, so it is asked as-is."
+  - id: q32-2
+    type: mcq
+    text: "In a pod, `nslookup web.default.svc.cluster.local` works but `nslookup web` fails. What do you check first?"
+    concepts: [dns-debugging]
+    sources: [80]
+    options:
+      - {text: "The pod's /etc/resolv.conf search line", correct: true, explanation: "The search line must include a suffix that completes the short name."}
+      - {text: "kube-proxy's iptables rules", correct: false, explanation: "Name resolution already works for the FQDN, so the Service path is not the issue."}
+      - {text: "The node's MTU", correct: false, explanation: "Unrelated to name expansion."}
+      - {text: "The EndpointSlices", correct: false, explanation: "The FQDN resolving proves the Service exists in DNS."}
+  - id: q32-3
+    type: sort
+    text: "Sort each upgrade plan by whether the skew policy allows it."
+    concepts: [version-skew]
+    sources: [84]
+    buckets: ["Allowed", "Not allowed"]
+    items:
+      - {text: "kube-apiserver 1.35 → 1.36 → 1.37", bucket: "Allowed", explanation: "One minor at a time."}
+      - {text: "kube-apiserver 1.35 → 1.37 directly", bucket: "Not allowed", explanation: "The API server must not skip minor versions."}
+      - {text: "Control plane 1.37 with kubelets still on 1.35", bucket: "Allowed", explanation: "kubelet may be up to three minors older."}
+      - {text: "kubelets upgraded to 1.37 before the API server", bucket: "Not allowed", explanation: "kubelet must not be newer than kube-apiserver."}
+      - {text: "Minor kubelet upgrade in place without draining", bucket: "Not allowed", explanation: "Drain first; in-place minor kubelet upgrades are not supported."}
+  - id: q32-4
+    type: short
+    text: "In RKE2's tarball air-gap method, which directory on each node receives the images tarball?"
+    concepts: [air-gap, rke2]
+    sources: [77]
+    answers: ["/var/lib/rancher/rke2/agent/images/", "/var/lib/rancher/rke2/agent/images"]
+  - id: q32-5
+    type: open
+    text: "Draft a versioning and patch policy for a product that ships its own Kubernetes distribution to customers' data centres. Cover how a CVE fix in one component is shipped and how a minor Kubernetes upgrade is done."
+    concepts: [product-versioning, version-skew, hotfix]
+    sources: [84, 77]
+    rubric: |
+      - Ties each product release to one tested Kubernetes minor and pinned component versions.
+      - Ships a CVE fix as a patch that changes only the affected component (package or image), keeping the rest pinned.
+      - Describes minor upgrades in the skew-policy order (API server first, no skipping, drain before kubelet) and latest patch first.
+      - Mentions offline delivery (image tarballs or a private registry) and pinning settings such as the kube-proxy mode.

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Runs after the files are unpacked. $1 is the action, $2 the previously configured version (empty on first install).
+set -e
+case "$1" in
+  configure)
+    echo "hello-ship postinst: configure (previous version: '${2:-none}')"
+    ;;
+esac
+exit 0

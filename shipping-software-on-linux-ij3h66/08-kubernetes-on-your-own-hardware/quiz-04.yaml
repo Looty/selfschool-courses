@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: q33
+title: "Check: Lab 6"
+questions:
+  - id: q33-1
+    type: match
+    text: "Match each question from the lab to the command that answered it."
+    concepts: [lab-6, node-debugging]
+    sources: [73, 78, 82, 83]
+    pairs:
+      - {left: "What is the client pod sandbox's PID?", right: "crictl inspectp", explanation: "The info.pid field of the sandbox."}
+      - {left: "Which node interface is the other end of the pod's eth0?", right: "nsenter -t PID -n ip link show eth0, then ip -o link on the node", explanation: "eth0@ifN names the peer's index."}
+      - {left: "Which backend did kube-proxy choose for a connection?", right: "conntrack -L -d <clusterIP>", explanation: "The reply tuple shows the pod."}
+      - {left: "What MTU and UDP port does the overlay use?", right: "ip -d link show flannel.1", explanation: "Shows vxlan id, dstport and mtu."}
+    distractors:
+      - "kubectl get nodes"
+  - id: q33-2
+    type: mcq
+    text: "`ping -M do -s 1423` to a pod on another node fails with `message too long, mtu=1450`. Is anything broken?"
+    concepts: [mtu, overlay]
+    sources: [82]
+    options:
+      - {text: "No: 1423 bytes plus 28 bytes of headers is 1451, one byte over the pod's correct 1450 MTU with DF set", correct: true, explanation: "-s 1422 worked, which confirms the path carries 1450."}
+      - {text: "Yes: the overlay is dropping all traffic", correct: false, explanation: "Smaller packets and curl worked."}
+      - {text: "Yes: kube-proxy blocks ICMP", correct: false, explanation: "The error is local to the pod, before any rules."}
+      - {text: "Yes: the node MTU must be raised to 1450", correct: false, explanation: "The node is at 1500 already."}
+  - id: q33-3
+    type: sort
+    text: "Sort the lab's interfaces by the MTU they had during the mismatch."
+    concepts: [mtu, lab-6]
+    sources: [82]
+    buckets: ["1500", "1450"]
+    items:
+      - {text: "Pod eth0 after the script changed it", bucket: "1500", explanation: "The deliberate misconfiguration."}
+      - {text: "cni0", bucket: "1450", explanation: "Set by the CNI."}
+      - {text: "flannel.1", bucket: "1450", explanation: "VXLAN overhead taken from the node's 1500."}
+      - {text: "Node eth0", bucket: "1500", explanation: "The underlying network."}
+  - id: q33-4
+    type: open
+    text: "From your own run, describe the DNS part: the queries dig sent for example.com, what changed when the search list was empty, and which fix you would use for a pod that calls many external APIs."
+    concepts: [ndots, dns-debugging, lab-6]
+    sources: [74, 75]
+    rubric: |
+      - Reports the three search-suffix NXDOMAIN queries before the real answer.
+      - Reports that `web` failed and the FQDN worked without a search list.
+      - Proposes trailing-dot FQDNs or a lower ndots via dnsConfig for the external-heavy pod.

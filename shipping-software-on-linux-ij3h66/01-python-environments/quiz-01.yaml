@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: q01
+title: "Check: how Python finds packages"
+questions:
+  - id: q01-1
+    type: mcq
+    text: "A repository has a folder named `requests/` at its root, and the venv also has the real `requests` installed. You run `python -c 'import requests; print(requests.__file__)'` from the repository root. Which copy is imported?"
+    concepts: [sys-path, import-order, flat-layout]
+    sources: [16, 3]
+    options:
+      - {text: "The local `requests/` folder", correct: true, explanation: "With `-c` the current directory is the first entry on the import path, so a same-named folder there shadows the installed package."}
+      - {text: "The installed copy, because site-packages always wins", correct: false, explanation: "site-packages comes after the script directory and the standard library, so it does not always win."}
+      - {text: "Python raises an ImportError because two copies exist", correct: false, explanation: "Python takes the first match on `sys.path`; it does not detect duplicates."}
+      - {text: "Whichever copy has the higher version number", correct: false, explanation: "Import resolution knows nothing about versions; only the order of `sys.path` matters."}
+  - id: q01-2
+    type: sort
+    text: "Sort each item by what it does to `sys.path`."
+    concepts: [site-module, pth-files, user-site]
+    sources: [3]
+    buckets: ["Adds entries", "Removes or blocks entries", "Only reports"]
+    items:
+      - {text: "A `.pth` file in site-packages", bucket: "Adds entries", explanation: "Each line naming an existing directory is appended to `sys.path`."}
+      - {text: "`python -s`", bucket: "Removes or blocks entries", explanation: "`-s` keeps the user site-packages directory off the path."}
+      - {text: "`PYTHONNOUSERSITE=1`", bucket: "Removes or blocks entries", explanation: "Same effect as `-s`: the user site is disabled."}
+      - {text: "`python -m site`", bucket: "Only reports", explanation: "Prints `sys.path`, the user base and site, and whether the user site is enabled."}
+      - {text: "`python -S`", bucket: "Removes or blocks entries", explanation: "`-S` stops the automatic import of `site`, so no site-packages are added."}
+  - id: q01-3
+    type: short
+    text: "On Debian, which directory holds Python modules installed by apt packages? Give the path."
+    concepts: [debian-dist-packages]
+    sources: [4]
+    answers: ["/usr/lib/python3/dist-packages", "/usr/lib/python3/dist-packages/"]
+  - id: q01-4
+    type: mcq
+    text: "`python3 -m site` exits with status 2. What does that tell you?"
+    concepts: [site-module, user-site]
+    sources: [3]
+    options:
+      - {text: "The user site-packages directory is disabled for security reasons or by an administrator", correct: true, explanation: "The documented exit codes are 0 enabled, 1 disabled by the user, 2 disabled for security or by an administrator."}
+      - {text: "The user disabled the user site with `-s`", correct: false, explanation: "That case gives exit code 1."}
+      - {text: "`sys.path` is empty", correct: false, explanation: "The exit code only reports the state of the user site."}
+      - {text: "The command failed with an error", correct: false, explanation: "Errors give a value greater than 2."}
+  - id: q01-5
+    type: open
+    text: "A cron job fails with `ModuleNotFoundError` while the same script works in your shell. Describe the two commands you would run first, in the cron environment, and what each one would tell you."
+    concepts: [sys-path, interpreter-selection, debugging]
+    sources: [3]
+    rubric: |
+      - Prints `sys.executable` (or `command -v python3`) to find which interpreter cron runs.
+      - Prints `sys.path` or runs `python -m site` to see where that interpreter looks.
+      - Explains that a different interpreter or a different path (PATH, user site, venv) is the likely cause.
