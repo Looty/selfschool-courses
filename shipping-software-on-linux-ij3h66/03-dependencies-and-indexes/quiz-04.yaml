@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: q13
+title: "Check: Lab 2"
+questions:
+  - id: q13-1
+    type: fill
+    text: "Put the lab's release steps in order."
+    concepts: [lab-2, release-flow]
+    sources: [18, 26, 6]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "Bump version in pyproject.toml", slot: 1, explanation: "The version is static in the lab project, so it changes first."}
+      - {text: "python -m build", slot: 2, explanation: "Builds the new wheel."}
+      - {text: "twine upload --repository-url http://localhost:8080/", slot: 3, explanation: "Publishes it to the private index."}
+      - {text: "pipx upgrade shiplab-devenv", slot: 4, explanation: "pipx reuses the recorded --index-url."}
+      - {text: "pip install --break-system-packages", explanation: "Never part of this flow; pipx uses its own venv."}
+  - id: q13-2
+    type: mcq
+    text: "With `--disable-fallback`, the first `pipx install` in an early draft of the lab failed while pipx was refreshing its shared pip. Why?"
+    concepts: [offline-index, pipx-shared-pip]
+    sources: [5, 86]
+    options:
+      - {text: "pipx installs its shared pip from the same --index-url, and the local index had no pip wheel", correct: true, explanation: "Adding pip to the mirror fixed it."}
+      - {text: "pipx cannot work with pypiserver", correct: false, explanation: "It worked once pip was mirrored."}
+      - {text: "--disable-fallback blocks uploads", correct: false, explanation: "Uploads worked; the failure was on install."}
+      - {text: "The wheel was platform-specific", correct: false, explanation: "shiplab-devenv is a py3-none-any wheel."}
+  - id: q13-3
+    type: mcq
+    text: "`devenv doctor` printed `PEP 668 mark  absent` in the lab container. Why?"
+    concepts: [pep-668, container-images]
+    sources: [1]
+    options:
+      - {text: "The python:3.12-slim-bookworm image's Python lives under /usr/local and is not Debian's apt-managed interpreter", correct: true, explanation: "Only the distro's interpreter carries the EXTERNALLY-MANAGED file."}
+      - {text: "pipx deletes the marker", correct: false, explanation: "pipx never touches the base interpreter."}
+      - {text: "PEP 668 was withdrawn", correct: false, explanation: "It is in force; Lab 1 hit it on debian:bookworm."}
+      - {text: "The check only works inside venvs", correct: false, explanation: "The tool checks the base interpreter's stdlib directory."}
+  - id: q13-4
+    type: open
+    text: "Describe the three results of step 5 in your own run and explain what each one shows about how pip and pypiserver choose packages."
+    concepts: [dependency-confusion, lab-2]
+    sources: [23, 86]
+    rubric: |
+      - Reports the local-only result (only the internal version).
+      - Reports that adding PyPI as an extra index made the public version win, because pip has no index priority.
+      - Reports that a default pypiserver leaked the public package through its fallback.

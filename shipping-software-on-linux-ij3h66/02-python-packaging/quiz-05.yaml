@@ -1,0 +1,69 @@
+schemaVersion: 1
+id: q09
+title: "Check: PEP 440 versions"
+questions:
+  - id: q09-1
+    type: fill
+    text: "Put these versions in PEP 440 order, earliest first."
+    concepts: [pep-440, version-ordering]
+    sources: [14]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+    chips:
+      - {text: "2.0.dev1", slot: 1, explanation: "Dev releases come before pre-releases of the same version."}
+      - {text: "2.0b1", slot: 2, explanation: "Beta comes after alpha and dev, before rc."}
+      - {text: "2.0rc1", slot: 3, explanation: "The release candidate is the last pre-release."}
+      - {text: "2.0", slot: 4, explanation: "The final release."}
+      - {text: "2.0.post1", slot: 5, explanation: "Post-releases sort after the final release."}
+      - {text: "1.9.post1", explanation: "Belongs to 1.9, so it would come before every 2.0 version."}
+  - id: q09-2
+    type: mcq
+    text: "Which versions satisfy `~=1.4.5`?"
+    concepts: [pep-440, compatible-release]
+    sources: [14]
+    options:
+      - {text: "1.4.9", correct: true, explanation: "~=1.4.5 means >=1.4.5 and ==1.4.*."}
+      - {text: "1.4.5.post1", correct: true, explanation: "It is >=1.4.5 and starts with 1.4."}
+      - {text: "1.5.0", correct: false, explanation: "Outside the 1.4.* prefix."}
+      - {text: "1.4.4", correct: false, explanation: "Below the lower bound 1.4.5."}
+  - id: q09-3
+    type: trace
+    text: "For each version, does it match the specifier `== 1.1` and the specifier `== 1.1.*`? Answer yes or no."
+    concepts: [pep-440, prefix-matching]
+    sources: [14]
+    code: |
+      versions = ["1.1", "1.1.post1", "1.10"]
+      for v in versions:
+          check(v, "== 1.1")
+          check(v, "== 1.1.*")
+    variables: [exact, prefix]
+    steps:
+      - {label: "1.1", values: {exact: ["yes"], prefix: ["yes"]}}
+      - {label: "1.1.post1", values: {exact: ["no"], prefix: ["yes"]}}
+      - {label: "1.10", values: {exact: ["no"], prefix: ["no"]}}
+    explanation: "== 1.1 is a strict comparison, so 1.1.post1 does not match it. Prefix matching compares release segments, so 1.10 does not start with the segment 1.1."
+  - id: q09-4
+    type: match
+    text: "Match each loose spelling to its normalised PEP 440 form."
+    concepts: [pep-440, normalisation]
+    sources: [14]
+    pairs:
+      - {left: "1.1RC1", right: "1.1rc1", explanation: "Case is normalised."}
+      - {left: "1.0-1", right: "1.0.post1", explanation: "A bare -N is an implicit post-release."}
+      - {left: "1.2dev2", right: "1.2.dev2", explanation: "The dev separator is normalised to a dot."}
+      - {left: "1.0+ubuntu-1", right: "1.0+ubuntu.1", explanation: "Separators in local versions become dots."}
+    distractors:
+      - "1.0-1 stays 1.0-1, a Debian revision"
+  - id: q09-5
+    type: open
+    text: "You published 3.0rc1 of an internal library, but `pip install mylib` on a test host still installs 2.8. Explain why and give two ways to test the candidate."
+    concepts: [pre-releases, pep-440]
+    sources: [14]
+    rubric: |
+      - States that pre-releases are implicitly excluded from version specifiers.
+      - Gives an explicit pin such as mylib==3.0rc1.
+      - Gives a second way, such as the installer's pre-release flag or a specifier that names the pre-release.

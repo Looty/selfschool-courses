@@ -1,0 +1,50 @@
+schemaVersion: 1
+id: q08
+title: "Check: sdists, wheels and tags"
+questions:
+  - id: q08-1
+    type: sort
+    text: "Sort each wheel by what it needs from the target host."
+    concepts: [wheel-tags, pure-wheel, platform-wheel]
+    sources: [15]
+    buckets: ["Any Python 3 on any OS", "Specific Python and platform"]
+    items:
+      - {text: "shiplab_devenv-0.1.0-py3-none-any.whl", bucket: "Any Python 3 on any OS", explanation: "py3, no ABI requirement, any platform."}
+      - {text: "pkg-1.0-py2.py3-none-any.whl", bucket: "Any Python 3 on any OS", explanation: "A compressed tag set; the py3 tag matches."}
+      - {text: "pyyaml-6.0.3-cp312-cp312-manylinux_2_17_x86_64.whl", bucket: "Specific Python and platform", explanation: "CPython 3.12 ABI on x86-64 glibc Linux."}
+      - {text: "pkg-2.0-cp39-abi3-manylinux_2_28_aarch64.whl", bucket: "Specific Python and platform", explanation: "Stable ABI from 3.9 on, but only on aarch64 Linux with glibc 2.28+."}
+  - id: q08-2
+    type: mcq
+    text: "A host runs glibc 2.31. Which of these wheels can pip install there (same Python and architecture)?"
+    concepts: [manylinux, glibc]
+    sources: [15]
+    options:
+      - {text: "manylinux2014 (glibc 2.17)", correct: true, explanation: "Built for an older glibc, so it is forward-compatible with 2.31."}
+      - {text: "manylinux_2_28", correct: true, explanation: "2.28 is not newer than 2.31."}
+      - {text: "manylinux_2_34", correct: false, explanation: "It needs glibc 2.34; wheels are not backwards-compatible."}
+      - {text: "musllinux_1_2", correct: false, explanation: "musllinux targets musl-based systems, not glibc."}
+  - id: q08-3
+    type: mcq
+    text: "`pip install somepkg` on a slim Debian image fails with `error: command 'gcc' failed`. What most likely happened?"
+    concepts: [sdist, wheel-selection]
+    sources: [15, 12]
+    options:
+      - {text: "No published wheel matched the interpreter's tags, so pip fell back to building the sdist", correct: true, explanation: "Building an sdist runs the backend, which may compile C code."}
+      - {text: "pip always compiles packages from source on Debian", correct: false, explanation: "pip installs a matching wheel when one exists."}
+      - {text: "The wheel was corrupt", correct: false, explanation: "A corrupt wheel gives a different error; gcc is only needed when building."}
+      - {text: "PEP 668 blocks wheels", correct: false, explanation: "PEP 668 is about where you install, not which format."}
+  - id: q08-4
+    type: short
+    text: "Which pip command prints the list of wheel tags the current interpreter accepts?"
+    concepts: [wheel-selection, pip-debug]
+    sources: [15]
+    answers: ["pip debug --verbose", "python -m pip debug --verbose", "pip debug -v"]
+  - id: q08-5
+    type: open
+    text: "You must prepare an offline wheel mirror for servers running Debian 12 with Python 3.11 on x86-64, from a laptop running Python 3.13 on arm64. Explain what can go wrong and how you would download the right files."
+    concepts: [offline-mirror, wheel-tags, only-binary]
+    sources: [15, 23]
+    rubric: |
+      - Says platform wheels must match the target's Python version, ABI and platform, not the laptop's.
+      - Proposes downloading with --only-binary :all: and target-matching options (or running the download on a matching image).
+      - Notes that without matching wheels the servers would fall back to sdists and need compilers.

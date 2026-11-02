@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: shipping-software-on-linux-ij3h66
+title: "Shipping Software on Linux: Python Packages, Debian Packages and Kubernetes on Your Own Hardware"
+short_intro: "Build, package, ship and debug software on Linux: Python wheels and private indexes, .deb packages and apt repositories, deep troubleshooting, and Kubernetes nodes you run yourself."
+description: |
+  A compact, lab-heavy crash course on the path from source code to software running on machines you own. It
+  starts with how Python finds packages, why virtual environments exist and what PEP 668 changed on Debian, then
+  builds and versions Python packages, locks dependencies and serves them from a private index. It then takes the
+  same tool apart as a Debian package: the .deb format, relationship fields, version ordering, maintainer
+  scripts, building with dpkg-deb and debhelper, signed apt repositories, pinning and hotfixing one package in a
+  multi-package product. Two debugging chapters cover broken apt and dpkg states and Linux troubleshooting beyond
+  top (the USE method, process states, OOM and cgroup limits, file descriptors, strace, py-spy). The last chapter
+  looks at Kubernetes from the node: containerd, crictl, CNI, kube-proxy rules, conntrack, DNS ndots, MTU and
+  air-gapped installs.
+
+  Who it is for: DevOps and platform engineers who already run containers, Kubernetes, CI and infrastructure as
+  code, and want implementation depth on Python packaging, Debian packaging, Linux troubleshooting and running
+  Kubernetes on their own hardware. It skips the basics (what a pod or a virtual environment is at the surface)
+  and goes to how things work and how they break. Every lab was run in a Debian container while writing.
+  Every factual claim cites a source read during research (see sources.md).
+language: en
+level: Intermediate
+hue: pink
+monogram: SL
+tags: [linux, python-packaging, debian, apt, troubleshooting, kubernetes, devops]
+budget_minutes: 380
+chapters:
+  - dir: 01-python-environments
+    title: Python environments
+  - dir: 02-python-packaging
+    title: Python packaging
+  - dir: 03-dependencies-and-indexes
+    title: Dependencies and private indexes
+exams:
+  - {id: mid, file: exams/mid.yaml, after: 03-dependencies-and-indexes}

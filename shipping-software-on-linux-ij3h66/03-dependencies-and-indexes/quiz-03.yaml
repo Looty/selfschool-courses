@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q12
+title: "Check: private indexes"
+questions:
+  - id: q12-1
+    type: mcq
+    text: "pip is run with `--index-url https://pkgs.internal/simple/ --extra-index-url https://pypi.org/simple/`. The internal index has `devenv 0.0.9` and PyPI has an unrelated `devenv 0.1.1`. What does `pip install devenv` install?"
+    concepts: [dependency-confusion, index-priority]
+    sources: [23]
+    options:
+      - {text: "PyPI's devenv 0.1.1", correct: true, explanation: "pip gives no priority to either location and picks the best match, the highest version."}
+      - {text: "The internal devenv 0.0.9, because --index-url has priority", correct: false, explanation: "pip states there is no priority in the locations searched."}
+      - {text: "pip stops with an ambiguity error", correct: false, explanation: "pip does not detect same-named packages across indexes."}
+      - {text: "Both, side by side", correct: false, explanation: "One environment holds one version of a distribution."}
+  - id: q12-2
+    type: sort
+    text: "Sort each setup by its exposure to dependency confusion for an internal package name."
+    concepts: [dependency-confusion, defences]
+    sources: [22, 23, 86]
+    buckets: ["Exposed", "Protected"]
+    items:
+      - {text: "pip with PyPI as --extra-index-url", bucket: "Exposed", explanation: "pip picks the best version across all indexes."}
+      - {text: "pip pointed only at a pypiserver started with default settings", bucket: "Exposed", explanation: "pypiserver redirects unknown names to PyPI unless --disable-fallback is set."}
+      - {text: "pip pointed only at a pypiserver with --disable-fallback that mirrors approved packages", bucket: "Protected", explanation: "Only what you uploaded can be installed."}
+      - {text: "uv with the default first-index strategy and the internal index listed first", bucket: "Protected", explanation: "uv only takes versions from the first index that has the package."}
+      - {text: "uv with index-strategy unsafe-best-match", bucket: "Exposed", explanation: "uv's docs say it re-opens the dependency confusion risk."}
+  - id: q12-3
+    type: fill
+    text: "Put pip's configuration sources in order from lowest to highest precedence."
+    concepts: [pip-conf, precedence]
+    sources: [24]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "/etc/pip.conf (global)", slot: 1, explanation: "Global files are read first, so later files override them."}
+      - {text: "~/.config/pip/pip.conf (user)", slot: 2, explanation: "User config overrides global."}
+      - {text: "PIP_INDEX_URL environment variable", slot: 3, explanation: "Environment variables override config files."}
+      - {text: "--index-url on the command line", slot: 4, explanation: "Command-line options override everything."}
+      - {text: "pyproject.toml [tool.pip]", explanation: "pip does not read its settings from pyproject.toml."}
+  - id: q12-4
+    type: short
+    text: "Which pypiserver option stops it from redirecting unknown package names to PyPI?"
+    concepts: [pypiserver, fallback]
+    sources: [86]
+    answers: ["--disable-fallback", "disable-fallback"]
+  - id: q12-5
+    type: open
+    text: "Design the index setup for build agents that install both internal packages and approved public ones. Say how you prevent dependency confusion and how CI publishes new internal versions."
+    concepts: [private-index, dependency-confusion, twine]
+    sources: [22, 23, 24, 26, 86]
+    rubric: |
+      - Uses a single index URL (internal index that mirrors or proxies approved public packages), not --extra-index-url.
+      - Disables any fallback to PyPI, or uses a tool with index priority such as uv first-index.
+      - Sets the index in pip.conf or PIP_INDEX_URL for agents.
+      - Publishes with twine using TWINE_* credentials or --repository-url from CI secrets.

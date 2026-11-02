@@ -1,0 +1,62 @@
+schemaVersion: 1
+id: q03
+title: "Check: interpreters and CLI tools"
+questions:
+  - id: q03-1
+    type: fill
+    text: "Put pyenv's version sources in the order it checks them, first to last."
+    concepts: [pyenv, version-selection]
+    sources: [8]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "PYENV_VERSION environment variable", slot: 1, explanation: "An explicit environment variable wins over every file."}
+      - {text: ".python-version in the current directory", slot: 2, explanation: "The project's own file comes next."}
+      - {text: ".python-version in a parent directory", slot: 3, explanation: "pyenv walks up the tree and takes the first file it finds."}
+      - {text: "$(pyenv root)/version global file", slot: 4, explanation: "The global default is the last resort."}
+      - {text: "The newest version in ~/.pyenv/versions", explanation: "pyenv does not pick the newest installed version on its own."}
+  - id: q03-2
+    type: mcq
+    text: "A CI job needs Python 3.13 on a Debian 12 image and must not compile anything. Which approach fits?"
+    concepts: [uv-python, interpreter-install]
+    sources: [7, 8]
+    options:
+      - {text: "`uv python install 3.13`", correct: true, explanation: "uv downloads a prebuilt python-build-standalone build; nothing is compiled."}
+      - {text: "`pyenv install 3.13`", correct: false, explanation: "Most pyenv versions are built from source, which needs build dependencies and time."}
+      - {text: "`python3 -m venv --python 3.13 .venv`", correct: false, explanation: "venv reuses the interpreter that runs it; it cannot fetch another version."}
+      - {text: "`pipx install python==3.13`", correct: false, explanation: "pipx installs applications into venvs; it does not install interpreters."}
+  - id: q03-3
+    type: match
+    text: "Match each path to what pipx keeps there."
+    concepts: [pipx-layout]
+    sources: [5]
+    pairs:
+      - {left: "~/.local/share/pipx/venvs/black", right: "The dedicated venv for one application", explanation: "pipx creates one venv per application under PIPX_HOME."}
+      - {left: "~/.local/bin/black", right: "A link to the application's command", explanation: "Console scripts are linked into PIPX_BIN_DIR."}
+      - {left: "pipx_metadata.json", right: "What was installed and with which options", explanation: "upgrade and reinstall read it to reproduce the same state."}
+      - {left: "~/.local/share/pipx/shared", right: "One pip borrowed by every venv (pip backend)", explanation: "Linked into each venv through a .pth file."}
+    distractors:
+      - "The system Python's site-packages"
+  - id: q03-4
+    type: mcq
+    text: "You run `export PIP_INDEX_URL=https://pkgs.internal/simple/` and `pipx install devenv`, but pipx still searches PyPI. pipx is using its uv backend. Why?"
+    concepts: [pipx-private-index, uv-backend]
+    sources: [6]
+    options:
+      - {text: "The uv backend ignores PIP_* variables; use UV_INDEX_URL or --backend pip", correct: true, explanation: "The pipx docs say exactly this."}
+      - {text: "pipx never reads environment variables", correct: false, explanation: "Under the pip backend it forwards PIP_* variables to every pip call."}
+      - {text: "The URL must end in /pypi/ for pipx", correct: false, explanation: "No such rule; the simple index URL is fine."}
+      - {text: "PIP_INDEX_URL only works with sudo", correct: false, explanation: "Environment variables have nothing to do with privileges here."}
+  - id: q03-5
+    type: open
+    text: "Your team ships an internal CLI to developers on Debian laptops. Compare installing it with `sudo pip install`, with apt, and with pipx, and recommend one."
+    concepts: [pipx, pep-668, cli-distribution]
+    sources: [1, 5, 6]
+    rubric: |
+      - Rejects sudo pip install because it writes into the externally managed system interpreter.
+      - Notes that an apt package is right for something the OS depends on but is more packaging work.
+      - Recommends pipx because each CLI gets its own venv and commands land in ~/.local/bin without sudo.
+      - Mentions pipx can install from a private index and remembers the option for upgrades.

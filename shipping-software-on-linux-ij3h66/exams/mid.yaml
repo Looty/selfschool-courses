@@ -1,0 +1,21 @@
+schemaVersion: 1
+id: mid
+title: Mid-course exam
+duration_minutes: 25
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 15
+domains:
+  - id: python-environments
+    title: Python environments
+    weight: 30
+    chapters: [01-python-environments]
+  - id: python-packaging
+    title: Python packaging
+    weight: 35
+    chapters: [02-python-packaging]
+  - id: dependencies-and-indexes
+    title: Dependencies and private indexes
+    weight: 35
+    chapters: [03-dependencies-and-indexes]

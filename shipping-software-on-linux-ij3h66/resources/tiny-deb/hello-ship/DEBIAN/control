@@ -1,0 +1,11 @@
+Package: hello-ship
+Version: 1.0-1
+Architecture: all
+Maintainer: Course Lab <lab@example.invalid>
+Depends: bash
+Section: utils
+Priority: optional
+Description: tiny example package for the Shipping Software on Linux course
+ Installs one shell command, hello-ship, and one configuration file,
+ /etc/hello-ship.conf, so you can watch dpkg handle a binary, a conffile
+ and a postinst script.

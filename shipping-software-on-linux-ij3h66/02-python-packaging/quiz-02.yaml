@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: q06
+title: "Check: frontends and backends"
+questions:
+  - id: q06-1
+    type: sort
+    text: "Sort each item by its role in PEP 517."
+    concepts: [pep-517, frontend-backend]
+    sources: [12, 18]
+    buckets: ["Frontend", "Backend"]
+    items:
+      - {text: "pip", bucket: "Frontend", explanation: "pip takes source trees and builds wheels by calling a backend."}
+      - {text: "python -m build", bucket: "Frontend", explanation: "The build tool is a frontend."}
+      - {text: "hatchling.build", bucket: "Backend", explanation: "Named in build-backend; does the actual building."}
+      - {text: "setuptools.build_meta", bucket: "Backend", explanation: "setuptools' PEP 517 backend."}
+      - {text: "flit_core.buildapi", bucket: "Backend", explanation: "flit's backend, as listed in the PyPA tutorial."}
+  - id: q06-2
+    type: fill
+    text: "Put the steps of `python -m build` in order."
+    concepts: [pep-517, build-isolation]
+    sources: [12, 13]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "Read [build-system] from pyproject.toml", slot: 1, explanation: "The frontend must learn the requirements and backend first."}
+      - {text: "Create an isolated environment", slot: 2, explanation: "PEP 517 recommends a fresh environment per build."}
+      - {text: "Install the build requirements into it", slot: 3, explanation: "Only the declared requirements are available."}
+      - {text: "Call build_sdist and build_wheel on the backend", slot: 4, explanation: "The backend writes the files and returns their names."}
+      - {text: "Upload the files to PyPI", explanation: "Building never uploads; that is twine's job."}
+  - id: q06-3
+    type: mcq
+    text: "A build passes on a laptop with `--no-isolation` and fails in CI with `ModuleNotFoundError: No module named 'jinja2'` inside the build backend. What is the right fix?"
+    concepts: [build-isolation, build-requirements]
+    sources: [12, 13]
+    options:
+      - {text: "Add jinja2 to [build-system] requires", correct: true, explanation: "The build needs it, so it must be declared where the isolated environment can install it."}
+      - {text: "Add jinja2 to [project] dependencies", correct: false, explanation: "Runtime dependencies are not installed into the build environment."}
+      - {text: "Pass --no-isolation in CI too", correct: false, explanation: "That hides the undeclared dependency instead of fixing it, and CI then depends on whatever is installed."}
+      - {text: "Pin setuptools to an older version", correct: false, explanation: "The backend version is not the problem; a missing build requirement is."}
+  - id: q06-4
+    type: short
+    text: "Which environment variable do hatchling and other tools use as the fixed timestamp for reproducible builds?"
+    concepts: [reproducible-builds, hatchling]
+    sources: [20]
+    answers: ["SOURCE_DATE_EPOCH", "$SOURCE_DATE_EPOCH"]
+  - id: q06-5
+    type: open
+    text: "Explain to a colleague why build isolation exists and what it costs, using the two reasons PEP 517 gives."
+    concepts: [build-isolation, pep-517]
+    sources: [12]
+    rubric: |
+      - States that isolation lets projects with conflicting build requirements coexist.
+      - States that isolation pushes authors to declare build dependencies accurately.
+      - Names a cost, such as installing build tools for every build or failures from undeclared build dependencies.
