@@ -1,0 +1,64 @@
+schemaVersion: 1
+id: q20
+title: "Check: apt repositories"
+questions:
+  - id: q20-1
+    type: fill
+    text: "Put the files an apt client reads, in order, when it installs a package from a dists-style repository."
+    concepts: [repository-layout]
+    sources: [49]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+    chips:
+      - {text: "dists/stable/InRelease", slot: 1, explanation: "Signed metadata with checksums of the index files."}
+      - {text: "dists/stable/main/binary-amd64/Packages", slot: 2, explanation: "The package list for one component and architecture."}
+      - {text: "pool/main/.../shiplab-devenv_0.1.1-1_all.deb", slot: 3, explanation: "The package file itself."}
+      - {text: "conf/distributions", explanation: "reprepro's server-side config; clients never read it."}
+  - id: q20-2
+    type: spot
+    text: "This client source should only accept packages signed by the product key. Which line weakens that?"
+    concepts: [signed-by, apt-sources]
+    sources: [50]
+    code: |
+      Types: deb
+      URIs: https://pkgs.example.invalid/product/
+      Suites: stable
+      Components: main
+      Trusted: yes
+      Signed-By: /usr/share/keyrings/product-archive-keyring.gpg
+    correct: [5]
+    explanation: "Trusted: yes tells apt to treat the source as trusted even if it fails authentication checks, which defeats Signed-By."
+  - id: q20-3
+    type: mcq
+    text: "After publishing a hotfix with reprepro, the previous .deb is gone from the pool and you need to roll back quickly. Which tool feature is designed for this?"
+    concepts: [aptly-snapshots, rollback]
+    sources: [52]
+    options:
+      - {text: "aptly snapshots: republish the previous immutable snapshot", correct: true, explanation: "Snapshots are immutable package lists meant for repeatability and controlled changes."}
+      - {text: "reprepro export", correct: false, explanation: "export regenerates indexes for what is there now; it does not restore removed versions."}
+      - {text: "Trusted: yes on clients", correct: false, explanation: "Unrelated to versions, and unsafe."}
+      - {text: "A flat repository", correct: false, explanation: "Layout does not keep old versions."}
+  - id: q20-4
+    type: match
+    text: "Match each sources.list feature to its use."
+    concepts: [apt-sources, offline-repos]
+    sources: [50]
+    pairs:
+      - {left: "Signed-By", right: "Verify this source against one specific keyring", explanation: "Not every key apt trusts."}
+      - {left: "file:", right: "Use a local directory as an archive", explanation: "Offline or mounted media."}
+      - {left: "copy:", right: "Like file:, but packages are copied into apt's cache", explanation: "Useful for removable media."}
+      - {left: "Suite ending in /", right: "A flat repository with no components", explanation: "An exact path."}
+    distractors:
+      - "Download packages from PyPI"
+  - id: q20-5
+    type: open
+    text: "Design how a product's apt repository reaches an air-gapped customer site and how their hosts verify it. Cover signing, key distribution and the client configuration."
+    concepts: [air-gap, signing, apt-sources]
+    sources: [49, 50, 51]
+    rubric: |
+      - Signs Release/InRelease with a product key (reprepro SignWith or aptly gpg-key).
+      - Ships the public keyring with the installer or media, installed under /usr/share/keyrings.
+      - Configures clients with Signed-By pointing at that keyring and a file:, copy: or internal HTTP URI.
+      - Avoids Trusted: yes.

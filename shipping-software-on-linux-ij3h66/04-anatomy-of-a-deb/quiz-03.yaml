@@ -1,0 +1,66 @@
+schemaVersion: 1
+id: q16
+title: "Check: Debian versions"
+questions:
+  - id: q16-1
+    type: fill
+    text: "Order these versions as dpkg does, earliest first."
+    concepts: [debian-versions, version-ordering]
+    sources: [33, 34]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+    chips:
+      - {text: "2.0~rc1-1", slot: 1, explanation: "The tilde sorts before the end of the part, so it is earlier than 2.0."}
+      - {text: "2.0-1", slot: 2, explanation: "The final release, first packaging."}
+      - {text: "2.0-1+hotfix1", slot: 3, explanation: "A suffix after the revision sorts later than the bare revision."}
+      - {text: "2.0-2", slot: 4, explanation: "The next packaging revision."}
+      - {text: "1:1.0-1", slot: 5, explanation: "Epoch 1 beats every epoch-0 version."}
+      - {text: "2.0-1~bpo12+1", explanation: "Belongs between 2.0~rc1-1 and 2.0-1; not needed in this five-slot order."}
+  - id: q16-2
+    type: mcq
+    text: "You must ship an urgent fix for `app 3.2-4` today; the next planned packaging release will be `3.2-5`. Which version do you use?"
+    concepts: [hotfix-versioning]
+    sources: [33]
+    options:
+      - {text: "3.2-4+hotfix1", correct: true, explanation: "Later than 3.2-4, earlier than 3.2-5, so the planned release still upgrades it."}
+      - {text: "3.2-4~hotfix1", correct: false, explanation: "The tilde makes it sort before 3.2-4, so it would never be offered as an upgrade."}
+      - {text: "1:3.2-4", correct: false, explanation: "An epoch is permanent and not meant for hotfixes."}
+      - {text: "3.2-4", correct: false, explanation: "Same version: apt sees nothing new."}
+  - id: q16-3
+    type: trace
+    text: "For each comparison, does `dpkg --compare-versions` exit 0 (true) or 1 (false)?"
+    concepts: [dpkg-compare-versions]
+    sources: [36, 33]
+    code: |
+      dpkg --compare-versions 1.0 lt 1.0-1
+      dpkg --compare-versions 1:0.9 gt 2.0
+      dpkg --compare-versions 1.0.9 gt 1.0.15
+    variables: [exit_code]
+    steps:
+      - {label: "line 1", values: {exit_code: ["0"]}}
+      - {label: "line 2", values: {exit_code: ["0"]}}
+      - {label: "line 3", values: {exit_code: ["1"]}}
+    explanation: "A missing revision sorts earlier than a present one; any epoch 1 beats epoch 0; digit runs compare as numbers, so 9 < 15."
+  - id: q16-4
+    type: mcq
+    text: "A bad 2.4-1 was released and you want hosts back on 2.3's code. What does Policy say about using an epoch, as in 1:2.3-1?"
+    concepts: [epochs, rollback]
+    sources: [34]
+    options:
+      - {text: "Epochs should not be used when a package needs to be rolled back", correct: true, explanation: "Ship the old code as a new higher version, such as 2.4-2, instead."}
+      - {text: "That is exactly what epochs are for", correct: false, explanation: "Policy reserves them for upstream numbering changes, with care."}
+      - {text: "Epochs only apply to source packages", correct: false, explanation: "They are part of every version comparison."}
+      - {text: "dpkg ignores epochs", correct: false, explanation: "The epoch is compared first."}
+  - id: q16-5
+    type: open
+    text: "Explain why `1.0-1` means different things to pip and to dpkg, and how that could bite a team that ships the same tool as a wheel and as a .deb."
+    concepts: [debian-versions, pep-440]
+    sources: [14, 33]
+    rubric: |
+      - Python normalises 1.0-1 to the post-release 1.0.post1.
+      - dpkg reads it as upstream 1.0, Debian revision 1.
+      - Gives a consequence, such as confused release notes or a wrong version mapping between the two artifacts.

@@ -1,0 +1,72 @@
+schemaVersion: 1
+id: q17
+title: "Check: maintainer scripts and conffiles"
+questions:
+  - id: q17-1
+    type: fill
+    text: "Put the script calls of an upgrade from OLD to NEW in order."
+    concepts: [maintainer-scripts, upgrade-sequence]
+    sources: [32]
+    template: |
+      {{1}}
+      {{2}}
+      (unpack the new files)
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "old-prerm upgrade NEW", slot: 1, explanation: "The old version's prerm runs first."}
+      - {text: "new-preinst upgrade OLD NEW", slot: 2, explanation: "Then the new preinst, before unpacking."}
+      - {text: "old-postrm upgrade NEW", slot: 3, explanation: "After unpacking, the old postrm cleans up."}
+      - {text: "new-postinst configure OLD", slot: 4, explanation: "Configuration comes last, with the previous version."}
+      - {text: "postrm purge", explanation: "Only on purge, never during an upgrade."}
+  - id: q17-2
+    type: spot
+    text: "This postinst breaks the 'safe to run twice' rule. Which line?"
+    concepts: [idempotency, postinst]
+    sources: [32]
+    code: |
+      #!/bin/sh
+      set -e
+      case "$1" in
+        configure)
+          useradd --system hello
+          mkdir -p /var/lib/hello
+          ;;
+      esac
+      exit 0
+    correct: [5]
+    explanation: "useradd fails if the user already exists, so a rerun by dpkg --configure -a (or an upgrade) fails under set -e. Guard it, for example with `getent passwd hello || useradd --system hello`. mkdir -p is already idempotent."
+  - id: q17-3
+    type: trace
+    text: "Trace hello-ship's state and whether /etc/hello-ship.conf exists after each step (from the lab test)."
+    concepts: [conffiles, dpkg-states]
+    sources: [35, 37]
+    code: |
+      apt-get install ./hello-ship_1.0-1_all.deb
+      apt-get remove hello-ship
+      apt-get purge hello-ship
+    variables: [dpkg_l, conf_exists]
+    steps:
+      - {label: "after install", values: {dpkg_l: ["ii"], conf_exists: ["yes"]}}
+      - {label: "after remove", values: {dpkg_l: ["rc"], conf_exists: ["yes"]}}
+      - {label: "after purge", values: {dpkg_l: ["not listed", "none", "no packages found"], conf_exists: ["no"]}}
+    explanation: "Conffiles stay after remove (state rc) and are deleted only on purge."
+  - id: q17-4
+    type: mcq
+    text: "An unattended upgrade hangs at a prompt about /etc/app.conf. What happened, and what is the non-interactive choice?"
+    concepts: [conffiles, automation]
+    sources: [35, 36]
+    options:
+      - {text: "The admin edited a conffile that the new package also changed; pass --force-confold or --force-confnew", correct: true, explanation: "dpkg asks only when both sides changed; the force options decide without asking."}
+      - {text: "The postinst is waiting for input; kill it", correct: false, explanation: "The conffile prompt comes from dpkg itself."}
+      - {text: "apt needs --allow-downgrades", correct: false, explanation: "Unrelated to conffiles."}
+      - {text: "The conffile was deleted; reinstall the package", correct: false, explanation: "A deleted conffile is a different case."}
+  - id: q17-5
+    type: open
+    text: "Your postinst rewrites /etc/app.conf with sed on every upgrade, and the file is also listed in conffiles. Explain what goes wrong and the two clean ways to fix it."
+    concepts: [conffiles, script-managed-config]
+    sources: [35]
+    rubric: |
+      - Says maintainer scripts must not modify conffiles, and mixing the styles makes dpkg ask on every upgrade.
+      - Fix 1: keep it a conffile and stop editing it from the script (ship defaults, use a drop-in or a separate file).
+      - Fix 2: make it script-managed: remove it from conffiles and the package data, create it in postinst, delete it on purge.

@@ -1,0 +1,58 @@
+schemaVersion: 1
+id: q18
+title: "Check: building .debs"
+questions:
+  - id: q18-1
+    type: sort
+    text: "Which approach fits each payload best?"
+    concepts: [dpkg-deb, debhelper]
+    sources: [43, 44]
+    buckets: ["dpkg-deb on a prepared tree", "Source package with dh"]
+    items:
+      - {text: "A shell script and a config file", bucket: "dpkg-deb on a prepared tree", explanation: "Nothing to compile; lay out the tree and build."}
+      - {text: "A prebuilt static binary from CI", bucket: "dpkg-deb on a prepared tree", explanation: "The payload already exists."}
+      - {text: "A C program that links to system libraries", bucket: "Source package with dh", explanation: "debhelper handles building, library dependencies and packaging steps."}
+      - {text: "A Python library meant for /usr/lib/python3/dist-packages", bucket: "Source package with dh", explanation: "pybuild builds it for the distribution's Python."}
+  - id: q18-2
+    type: fill
+    text: "Complete the minimal debian/rules for a Python package built with pybuild."
+    concepts: [debian-rules, pybuild]
+    sources: [44, 45]
+    template: |
+      #!/usr/bin/make -f
+      %:
+      	dh $@ --with {{1}} --buildsystem={{2}}
+    chips:
+      - {text: "python3", slot: 1, explanation: "The dh-python add-on; dh does not run Python tools by default."}
+      - {text: "pybuild", slot: 2, explanation: "pybuild drives the Python build, including PEP 517 via its pyproject plugin."}
+      - {text: "pip", explanation: "pip is not a debhelper build system."}
+      - {text: "virtualenv", explanation: "That is dh-virtualenv's add-on name pattern, not pybuild's."}
+  - id: q18-3
+    type: mcq
+    text: "You want to see which debhelper commands dh will run for the binary-arch target, without running them. Which command?"
+    concepts: [dh]
+    sources: [44]
+    options:
+      - {text: "dh binary-arch --no-act", correct: true, explanation: "Prints the commands of the sequence without running them."}
+      - {text: "dpkg-deb --info", correct: false, explanation: "Inspects a built package, not a build sequence."}
+      - {text: "make -n", correct: false, explanation: "Shows make's recipe lines, not dh's expanded sequence."}
+      - {text: "apt-get -s install debhelper", correct: false, explanation: "Simulates installing debhelper; says nothing about your package's build."}
+  - id: q18-4
+    type: mcq
+    text: "Why does the course's tiny-deb build copy the tree and chmod every file before calling dpkg-deb?"
+    concepts: [dpkg-deb, permissions]
+    sources: [43]
+    options:
+      - {text: "Files on a Windows or macOS mount do not carry Unix permissions, and dpkg-deb checks maintainer-script permissions", correct: true, explanation: "The copy gives a tree with the intended modes."}
+      - {text: "dpkg-deb deletes its input directory", correct: false, explanation: "It does not."}
+      - {text: "To make the files root-owned", correct: false, explanation: "Ownership is handled by --root-owner-group, not chmod."}
+      - {text: "To compress the files", correct: false, explanation: "dpkg-deb compresses on its own (-Z)."}
+  - id: q18-5
+    type: open
+    text: "Explain why a team might package a Python CLI with plain dpkg-deb instead of pybuild, and what they give up."
+    concepts: [packaging-trade-offs, pybuild]
+    sources: [43, 45]
+    rubric: |
+      - Notes pybuild needs every build dependency (including the build backend) packaged in the distribution.
+      - Notes dpkg-deb can wrap any prepared payload (for example a bundled venv) without that constraint.
+      - Names something given up: debhelper automation, distribution integration, sharing system Python modules.

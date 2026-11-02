@@ -16,7 +16,8 @@ description: |
   Who it is for: DevOps and platform engineers who already run containers, Kubernetes, CI and infrastructure as
   code, and want implementation depth on Python packaging, Debian packaging, Linux troubleshooting and running
   Kubernetes on their own hardware. It skips the basics (what a pod or a virtual environment is at the surface)
-  and goes to how things work and how they break. Every lab was run in a Debian container while writing.
+  and goes to how things work and how they break. Every lab was run end to end in containers while writing
+  (Debian bookworm, and a k3d cluster for the Kubernetes lab); package files are built locally, never shipped.
   Every factual claim cites a source read during research (see sources.md).
 language: en
 level: Intermediate
@@ -31,9 +32,16 @@ chapters:
     title: Python packaging
   - dir: 03-dependencies-and-indexes
     title: Dependencies and private indexes
+  - dir: 04-anatomy-of-a-deb
+    title: Anatomy of a .deb
+  - dir: 05-building-and-serving-debs
+    title: Building and serving .debs
   - dir: 06-debugging-apt-and-dpkg
     title: Debugging apt and dpkg
   - dir: 07-linux-troubleshooting
     title: Linux troubleshooting beyond top
+  - dir: 08-kubernetes-on-your-own-hardware
+    title: "Kubernetes on your own hardware: nodes and low-level networking"
 exams:
   - {id: mid, file: exams/mid.yaml, after: 03-dependencies-and-indexes}
+  - {id: final, file: exams/final.yaml}

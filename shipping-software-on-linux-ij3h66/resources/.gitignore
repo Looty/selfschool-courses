@@ -3,3 +3,4 @@
 *.whl
 *.tar.gz
 dist/
+.kubeconfig

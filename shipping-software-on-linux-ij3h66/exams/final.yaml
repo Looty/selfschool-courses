@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: final
+title: Final exam
+duration_minutes: 60
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 40
+domains:
+  - id: python-environments
+    title: Python environments
+    weight: 8
+    chapters: [01-python-environments]
+  - id: python-packaging
+    title: Python packaging
+    weight: 10
+    chapters: [02-python-packaging]
+  - id: dependencies-and-indexes
+    title: Dependencies and private indexes
+    weight: 18
+    chapters: [03-dependencies-and-indexes]
+  - id: anatomy-of-a-deb
+    title: Anatomy of a .deb
+    weight: 10
+    chapters: [04-anatomy-of-a-deb]
+  - id: building-and-serving-debs
+    title: Building and serving .debs
+    weight: 10
+    chapters: [05-building-and-serving-debs]
+  - id: debugging-apt-and-dpkg
+    title: Debugging apt and dpkg
+    weight: 17
+    chapters: [06-debugging-apt-and-dpkg]
+  - id: linux-troubleshooting
+    title: Linux troubleshooting
+    weight: 19
+    chapters: [07-linux-troubleshooting]
+  - id: kubernetes-on-your-own-hardware
+    title: Kubernetes on your own hardware
+    weight: 8
+    chapters: [08-kubernetes-on-your-own-hardware]
