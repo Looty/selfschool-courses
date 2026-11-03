@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: shipping-software-on-linux-essentials-e4w9pz
+title: "Shipping Software on Linux: Essentials"
+short_intro: "The four-hour cut of Shipping Software on Linux: Python packaging, .deb packages and apt repos, Linux troubleshooting and Kubernetes nodes, with the gotchas that bite in production."
+description: |
+  A condensed, theory-first version of "Shipping Software on Linux" (course shipping-software-on-linux-ij3h66). It
+  keeps every chapter but merges lessons and turns most labs into reading, using the full course's real lab outputs
+  as evidence. Two hands-on labs remain: breaking a Python environment, and shipping a .deb through a signed apt
+  repository. Each lesson ends with a Gotchas section that collects the traps the longer course teaches in detail.
+
+  The path: how Python finds packages and why Debian refuses `pip install`; building and versioning Python
+  packages; locking dependencies and serving them from a private index; the .deb format, version ordering and
+  maintainer scripts; building .debs and serving them from a signed apt repository; getting apt and dpkg out of
+  broken states; Linux troubleshooting with the USE method, OOM and cgroup limits, file descriptors and strace;
+  and Kubernetes seen from the node: containerd, Service rules, DNS ndots and MTU.
+
+  Who it is for: DevOps and platform engineers who already run containers, Kubernetes and CI, and want the working
+  knowledge without the full depth. Both labs run in Debian bookworm containers. Every factual claim cites a source
+  from sources.md, shared with the full course.
+language: en
+level: Intermediate
+hue: pink
+monogram: SE
+tags: [linux, python-packaging, debian, apt, troubleshooting, kubernetes, devops]
+budget_minutes: 240
+chapters:
+  - dir: 01-python-environments
+    title: Python environments
+  - dir: 02-python-packaging
+    title: Python packaging
+  - dir: 03-dependencies-and-indexes
+    title: Dependencies and private indexes
+  - dir: 04-anatomy-of-a-deb
+    title: Anatomy of a .deb
+  - dir: 05-building-and-serving-debs
+    title: Building and serving .debs
+  - dir: 06-debugging-apt-and-dpkg
+    title: Debugging apt and dpkg
+  - dir: 07-linux-troubleshooting
+    title: Linux troubleshooting beyond top
+  - dir: 08-kubernetes-on-your-own-hardware
+    title: "Kubernetes on your own hardware: the node view"
+exams:
+  - {id: mid, file: exams/mid.yaml, after: 03-dependencies-and-indexes}
+  - {id: final, file: exams/final.yaml}

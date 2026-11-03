@@ -1,0 +1,71 @@
+schemaVersion: 1
+id: q05
+title: "Check: locks and resolver conflicts"
+questions:
+  - id: q05-1
+    type: sort
+    text: "Sort each requirement into where it belongs."
+    concepts: [ranges-vs-locks, dependencies]
+    sources: [30, 29]
+    buckets: ["Library's pyproject.toml", "Application's lock file"]
+    items:
+      - {text: "packaging>=23", bucket: "Library's pyproject.toml", explanation: "A minimal range that leaves room for other packages."}
+      - {text: "packaging==26.3 with --hash=sha256:...", bucket: "Application's lock file", explanation: "An exact, hashed pin describes one environment."}
+      - {text: "certifi==2026.10.23 (a transitive dependency)", bucket: "Application's lock file", explanation: "Locks list every package, including transitive ones."}
+      - {text: "requests>=2.31,<3", bucket: "Library's pyproject.toml", explanation: "A compatible range for a library's users."}
+  - id: q05-2
+    type: mcq
+    text: "Which CI command fails the build when someone changed pyproject.toml but forgot to update uv.lock?"
+    concepts: [uv-lock, ci]
+    sources: [21]
+    options:
+      - {text: "uv sync --locked", correct: true, explanation: "It raises an error instead of updating a stale lockfile."}
+      - {text: "uv sync --frozen", correct: false, explanation: "--frozen uses the lockfile without checking whether it is up to date."}
+      - {text: "uv lock", correct: false, explanation: "That rewrites the lock, hiding the mistake."}
+      - {text: "uv export --format requirements.txt", correct: false, explanation: "Export converts the lock; it does not check it against pyproject.toml."}
+  - id: q05-3
+    type: spot
+    text: "This file is installed with `pip install -r requirements.txt`. Which line makes the install fail?"
+    concepts: [hash-checking, require-hashes]
+    sources: [10]
+    code: |
+      click==8.5.0 \
+          --hash=sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360
+      colorama>=0.4
+      packaging==26.3 \
+          --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
+    correct: [3]
+    explanation: "One hashed line turns on hash-checking for the whole file, and in that mode every requirement must be pinned with == and carry a hash. Line 3 is neither."
+  - id: q05-4
+    type: spot
+    text: "Which line shows the requirement that came from a package's metadata rather than from you?"
+    concepts: [resolution-impossible, reading-errors]
+    sources: [29]
+    code: |
+      ERROR: Cannot install requests==2.32.3 and urllib3<1.21 because these package versions have conflicting dependencies.
+
+      The conflict is caused by:
+          The user requested urllib3<1.21
+          requests 2.32.3 depends on urllib3<3 and >=1.21.1
+    correct: [5]
+    explanation: "'X depends on' lines come from package metadata; 'The user requested' lines come from your command or requirements file."
+  - id: q05-5
+    type: match
+    text: "Match each question to the command that answers it."
+    concepts: [pip-check, pipdeptree]
+    sources: [9, 28]
+    pairs:
+      - {left: "Are any installed packages' requirements unmet?", right: "pip check", explanation: "Reports inconsistencies in installed packages."}
+      - {left: "Which installed packages require urllib3?", right: "pipdeptree --reverse --packages urllib3", explanation: "The reverse tree shows the consumers."}
+      - {left: "What exactly is installed, as a flat list?", right: "pip freeze", explanation: "pipdeptree's page describes pip freeze as the flat view."}
+    distractors:
+      - "pip install --dry-run --no-deps"
+  - id: q05-6
+    type: open
+    text: "Explain why a pip-compile output can list two hashes for one pinned version, and what happens if you keep only one of them."
+    concepts: [hash-checking, wheels-and-sdists]
+    sources: [10, 27]
+    rubric: |
+      - Says one release can have several files (for example a wheel and an sdist), each with its own hash.
+      - Says pip accepts a file only if its hash is listed.
+      - Says keeping one hash means installs fail when pip picks the other file (for example on a platform without a matching wheel).

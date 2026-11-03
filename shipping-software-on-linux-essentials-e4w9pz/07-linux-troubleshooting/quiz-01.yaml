@@ -1,0 +1,75 @@
+schemaVersion: 1
+id: q12
+title: "Check: USE, load, CPU and disk"
+questions:
+  - id: q12-1
+    type: sort
+    text: "Sort each observation into the USE category it belongs to."
+    concepts: [use-method]
+    sources: [54, 55]
+    buckets: ["Utilization", "Saturation", "Errors"]
+    items:
+      - {text: "iostat -xz shows %util at 95 for sda", bucket: "Utilization", explanation: "Percent of time the device was busy."}
+      - {text: "vmstat r is 24 on an 8-CPU host", bucket: "Saturation", explanation: "More runnable tasks than CPUs means work is queued."}
+      - {text: "vmstat si/so are non-zero", bucket: "Saturation", explanation: "Swapping is the memory saturation signal in Gregg's checklist."}
+      - {text: "ip -s link shows rising RX errors", bucket: "Errors", explanation: "An error count."}
+      - {text: "strace shows accept() returning EMFILE", bucket: "Errors", explanation: "Gregg lists EMFILE as the file descriptor error signal."}
+      - {text: "free -m shows 90% of memory in use", bucket: "Utilization", explanation: "Capacity in use."}
+  - id: q12-2
+    type: mcq
+    text: "A host reports load average 38 on 8 CPUs, but `vmstat 1` shows `id` around 90 and `r` around 1. What is the most likely explanation?"
+    concepts: [load-average, d-state]
+    sources: [56, 67]
+    options:
+      - {text: "Many tasks are in uninterruptible sleep, for example waiting on a slow disk or a hung network filesystem", correct: true, explanation: "Linux load averages count D-state tasks, so load can be high while CPUs are idle."}
+      - {text: "The CPUs are saturated", correct: false, explanation: "r is low and the CPUs are mostly idle."}
+      - {text: "Load average only counts zombies", correct: false, explanation: "Zombies are not what load counts; runnable and uninterruptible tasks are."}
+      - {text: "vmstat is broken inside containers", correct: false, explanation: "Nothing points to that; the two numbers measure different things."}
+  - id: q12-3
+    type: match
+    text: "Match each process state letter to its meaning."
+    concepts: [process-states]
+    sources: [58]
+    pairs:
+      - {left: "R", right: "Running or runnable", explanation: "On a CPU or waiting for one."}
+      - {left: "S", right: "Sleeping in an interruptible wait", explanation: "Can be woken by a signal."}
+      - {left: "D", right: "Waiting in uninterruptible disk sleep", explanation: "Not woken by signals until the wait ends."}
+      - {left: "Z", right: "Zombie", explanation: "Exited, not yet reaped by its parent."}
+    distractors:
+      - "Deleted but still open"
+  - id: q12-4
+    type: spot
+    text: "This 8-CPU host 'feels slow'. Which line best shows a storage problem rather than a CPU problem?"
+    concepts: [vmstat, io-wait]
+    sources: [67]
+    code: |
+      procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+       r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+       1  0      0 5794820 187816 1631560    0    0     0     0  624  537 12  1 87  0  0
+       1  9      0 5790112 187816 1631990    0    0  8400 52100 1910 2200  3  2 40 55  0
+    correct: [4]
+    explanation: "Nine tasks blocked on I/O (b), heavy block I/O (bi/bo) and 55% of CPU time waiting for I/O (wa), with r low. That is storage, not CPU."
+  - id: q12-5
+    type: mcq
+    text: "`iostat -x` shows an NVMe device at `%util` 100 with `r_await` 0.2 ms and `aqu-sz` 0.4. What should you conclude?"
+    concepts: [iostat, util-caveat]
+    sources: [68]
+    options:
+      - {text: "Probably not saturated: %util does not reflect the limits of devices that serve requests in parallel", correct: true, explanation: "Low await and a short queue say the device keeps up."}
+      - {text: "The device is saturated because %util is 100", correct: false, explanation: "That holds for devices that serve requests one at a time, not modern SSDs."}
+      - {text: "The device is failing", correct: false, explanation: "Nothing here is an error signal."}
+      - {text: "iostat cannot measure NVMe devices", correct: false, explanation: "It reports them; only %util needs care."}
+  - id: q12-6
+    type: fill
+    text: "Complete the path from a slow host to a code line in a Python service."
+    concepts: [cpu-triage, py-spy]
+    sources: [65, 67, 71]
+    template: |
+      {{1}}   # is the host CPU-saturated, or is one CPU busy?
+      {{2}}   # which PID uses the CPU?
+      {{3}}   # which function is it in right now?
+    chips:
+      - {text: "vmstat 1", slot: 1, explanation: "r against the CPU count, and us/sy."}
+      - {text: "pidstat -u 1", slot: 2, explanation: "Per-process %CPU."}
+      - {text: "py-spy dump --pid PID", slot: 3, explanation: "Prints the live stack of each thread."}
+      - {text: "iostat -xz 1", explanation: "That is for disks, not this CPU question."}
