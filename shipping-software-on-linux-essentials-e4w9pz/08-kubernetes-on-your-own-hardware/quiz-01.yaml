@@ -1,0 +1,72 @@
+schemaVersion: 1
+id: q15
+title: "Check: the node view and pod networking"
+questions:
+  - id: q15-1
+    type: match
+    text: "Match each part of the network model to the component that implements it."
+    concepts: [k8s-network-model]
+    sources: [72]
+    pairs:
+      - {left: "Pod network namespace setup", right: "The container runtime (CRI)", explanation: "System-level software implementing the CRI."}
+      - {left: "The pod network itself", right: "A CNI plugin", explanation: "Most runtimes use CNI to talk to the pod network implementation."}
+      - {left: "Routing Service traffic to backends", right: "kube-proxy (or a CNI's own proxy)", explanation: "The service proxy programs the data plane."}
+    distractors:
+      - "The API server"
+  - id: q15-2
+    type: fill
+    text: "Complete the commands to run `ss` inside pod `client`'s network namespace from the node."
+    concepts: [crictl, nsenter]
+    sources: [78, 83]
+    template: |
+      POD=$(crictl {{1}} --name '^client$' -q)
+      PID=...   # the sandbox PID, from crictl inspectp $POD
+      nsenter -t $PID {{2}} ss -tanp
+    chips:
+      - {text: "pods", slot: 1, explanation: "Lists pod sandboxes; -q prints only IDs."}
+      - {text: "-n", slot: 2, explanation: "Enter the network namespace of the target process."}
+      - {text: "ps", explanation: "Lists containers, not pod sandboxes."}
+      - {text: "-m", explanation: "That is the mount namespace."}
+  - id: q15-3
+    type: mcq
+    text: "A node shows DiskPressure while `df -h` reports 40% free space on the root filesystem. What should you check next?"
+    concepts: [node-conditions, inodes]
+    sources: [79]
+    options:
+      - {text: "Inodes: nodefs.inodesFree is also a DiskPressure signal", correct: true, explanation: "Millions of small files exhaust inodes while space remains."}
+      - {text: "Memory: DiskPressure is driven by memory.available", correct: false, explanation: "That drives MemoryPressure."}
+      - {text: "Nothing, DiskPressure is cosmetic", correct: false, explanation: "The kubelet evicts pods under it."}
+      - {text: "The PID limit", correct: false, explanation: "That is PIDPressure."}
+  - id: q15-4
+    type: spot
+    text: "Which rule actually rewrites the destination to a pod?"
+    concepts: [kube-proxy, iptables]
+    sources: [73, 80]
+    code: |
+      -A KUBE-SERVICES -d 10.43.47.135/32 -p tcp -m tcp --dport 80 -j KUBE-SVC-LOLE4ISW44XBNF3G
+      -A KUBE-SVC-LOLE4ISW44XBNF3G -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-PPBVO6H7TO6NUCTA
+      -A KUBE-SVC-LOLE4ISW44XBNF3G -j KUBE-SEP-RGD2WMRN4PLP5TTK
+      -A KUBE-SEP-RGD2WMRN4PLP5TTK -s 10.42.1.5/32 -j KUBE-MARK-MASQ
+      -A KUBE-SEP-RGD2WMRN4PLP5TTK -p tcp -m tcp -j DNAT --to-destination 10.42.1.5:80
+    correct: [5]
+    explanation: "KUBE-SERVICES matches the ClusterIP, KUBE-SVC picks an endpoint at random, and the per-endpoint KUBE-SEP chain does the DNAT. Line 4 only marks traffic that comes from that same pod for masquerading; it does not change the destination."
+  - id: q15-5
+    type: mcq
+    text: "In `conntrack -L` you see `src=10.42.0.4 dst=10.43.47.135 ... src=10.42.1.5 dst=10.42.0.4`. What does the second tuple tell you?"
+    concepts: [conntrack, dnat]
+    sources: [73]
+    options:
+      - {text: "Replies come from backend pod 10.42.1.5, the DNAT target chosen for this connection", correct: true, explanation: "The reply tuple shows the translated endpoint."}
+      - {text: "The client's IP was rewritten to 10.42.1.5", correct: false, explanation: "iptables mode keeps the client IP; it is the destination that changes."}
+      - {text: "The Service IP is 10.42.1.5", correct: false, explanation: "The Service IP is 10.43.47.135."}
+      - {text: "The connection failed", correct: false, explanation: "ASSURED/TIME_WAIT show a completed connection."}
+  - id: q15-6
+    type: mcq
+    text: "You run a fleet on Kubernetes 1.37 with kube-proxy in ipvs mode. What does the documentation say you should plan for?"
+    concepts: [kube-proxy-modes]
+    sources: [73]
+    options:
+      - {text: "ipvs is deprecated since 1.35, off by default from 1.40, removed in 1.43; nftables is the recommended replacement", correct: true, explanation: "nftables needs kernel 5.13 or later."}
+      - {text: "ipvs becomes the default in 1.40", correct: false, explanation: "The future default is nftables."}
+      - {text: "Nothing; ipvs is the long-term mode", correct: false, explanation: "It is deprecated."}
+      - {text: "Switch to userspace mode", correct: false, explanation: "Not one of the documented Linux modes."}

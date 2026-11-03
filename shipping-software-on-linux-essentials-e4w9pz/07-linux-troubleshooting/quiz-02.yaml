@@ -1,0 +1,72 @@
+schemaVersion: 1
+id: q13
+title: "Check: memory, OOM and descriptors"
+questions:
+  - id: q13-1
+    type: spot
+    text: "Which line proves the process was killed because of a cgroup limit rather than host-wide memory exhaustion?"
+    concepts: [oom-killer, cgroup-v2]
+    sources: [57, 55]
+    code: |
+      [ 1472.200154] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name
+      [ 1472.200865] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),oom_memcg=/docker/9ad2f5...,task=python3,pid=15602
+      [ 1472.201806] Memory cgroup out of memory: Killed process 15602 (python3) total-vm:300748kB, anon-rss:289024kB
+    correct: [2, 3]
+    explanation: "CONSTRAINT_MEMCG with oom_memcg names the memory cgroup, and 'Memory cgroup out of memory' states it directly. Line 1 is just the table header of the task dump."
+  - id: q13-2
+    type: mcq
+    text: "A container was OOM-killed, but `free -m` on the same machine shows 5 GB free. How is that possible?"
+    concepts: [cgroup-v2, memory-max]
+    sources: [57]
+    options:
+      - {text: "The container's cgroup reached memory.max and could not reclaim, so the OOM killer ran inside that cgroup", correct: true, explanation: "The kill is scoped to the cgroup, whatever the host's free memory."}
+      - {text: "free -m is always wrong in containers", correct: false, explanation: "free reports system-wide memory; it is right, just answering a different question."}
+      - {text: "memory.high was exceeded", correct: false, explanation: "Going over memory.high throttles but never invokes the OOM killer."}
+      - {text: "The kubelet evicted it", correct: false, explanation: "Eviction is a different mechanism and is not a kernel OOM kill."}
+  - id: q13-3
+    type: mcq
+    text: "On a Kubernetes node under memory pressure, which pods' containers does the kernel OOM killer prefer, all else equal?"
+    concepts: [oom-score-adj, qos]
+    sources: [79, 69]
+    options:
+      - {text: "BestEffort pods, whose containers get oom_score_adj 1000", correct: true, explanation: "The highest adjustment makes them the first candidates."}
+      - {text: "Guaranteed pods, with oom_score_adj -997", correct: false, explanation: "-997 makes them the last candidates."}
+      - {text: "The oldest pods", correct: false, explanation: "Age is not part of the score."}
+      - {text: "Pods with the most replicas", correct: false, explanation: "The kernel knows nothing about replicas."}
+  - id: q13-4
+    type: trace
+    text: "A service writes to /var/log/app.log on a 10 GB filesystem. Trace what `df` and `du` report for the log's space after each step (answer as a number of GB, about)."
+    concepts: [deleted-open-files, df-vs-du]
+    sources: [64, 66]
+    code: |
+      # the service has written 6 GB to /var/log/app.log
+      rm /var/log/app.log
+      truncate -s 0 /proc/PID/fd/3      # fd 3 is the deleted log
+    variables: [df_used, du_log]
+    steps:
+      - {label: "before rm", values: {df_used: ["6", "6 GB"], du_log: ["6", "6 GB"]}}
+      - {label: "after rm", values: {df_used: ["6", "6 GB"], du_log: ["0", "0 GB"]}}
+      - {label: "after truncate", values: {df_used: ["0", "0 GB"], du_log: ["0", "0 GB"]}}
+    explanation: "After rm the name is gone (du sees nothing) but the file stays in existence while the process holds it open, so df still counts it. Truncating through /proc/PID/fd releases the blocks."
+  - id: q13-5
+    type: mcq
+    text: "A service logs `OSError: [Errno 24] Too many open files`. `cat /proc/sys/fs/file-nr` shows the host far from its maximum. What is going on?"
+    concepts: [emfile, file-descriptors]
+    sources: [63, 60]
+    options:
+      - {text: "EMFILE: this process reached its own RLIMIT_NOFILE, most likely from a descriptor leak", correct: true, explanation: "Errno 24 is the per-process limit; the system-wide limit would be ENFILE."}
+      - {text: "ENFILE: the host is out of file handles", correct: false, explanation: "The host is far from its maximum, and ENFILE is a different error."}
+      - {text: "The disk is full", correct: false, explanation: "That is ENOSPC, errno 28."}
+      - {text: "The process is in D state", correct: false, explanation: "D state blocks, it does not return errno 24."}
+  - id: q13-6
+    type: match
+    text: "Match each question to the command that answers it fastest."
+    concepts: [lsof, ss, strace, proc]
+    sources: [60, 61, 62, 66]
+    pairs:
+      - {left: "Which deleted files are still held open?", right: "lsof +L1", explanation: "Selects open files with a link count below 1."}
+      - {left: "Which TCP connections does PID 4130 own, and in which state?", right: "ss -tanp", explanation: "-p shows the owning process; states are listed."}
+      - {left: "What is this process's open-files limit?", right: "grep 'Max open files' /proc/PID/limits", explanation: "Shows soft and hard limits."}
+      - {left: "Which syscall is failing, in which thread?", right: "strace -f -p PID", explanation: "-f follows threads; failed calls show their errno."}
+    distractors:
+      - "df -h"

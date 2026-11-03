@@ -1,0 +1,73 @@
+schemaVersion: 1
+id: q03
+title: "Check: pyproject.toml and the build"
+questions:
+  - id: q03-1
+    type: spot
+    text: "The backend refuses to build this file. Which line breaks a rule of the pyproject.toml specification?"
+    concepts: [pyproject, dynamic-metadata]
+    sources: [11]
+    code: |
+      [project]
+      name = "shiplab-devenv"
+      version = "0.1.0"
+      dynamic = ["version"]
+      dependencies = ["packaging>=23"]
+    correct: [4]
+    explanation: "`version` is set statically on line 3 and also listed in `dynamic`. That is an error for any key that is not a list the backend may append to. Remove one of the two."
+  - id: q03-2
+    type: sort
+    text: "Sort each item by its role in PEP 517."
+    concepts: [pep-517, frontend-backend]
+    sources: [12, 18]
+    buckets: ["Frontend", "Backend"]
+    items:
+      - {text: "pip", bucket: "Frontend", explanation: "pip takes source trees and builds wheels by calling a backend."}
+      - {text: "python -m build", bucket: "Frontend", explanation: "The build tool is a frontend."}
+      - {text: "hatchling.build", bucket: "Backend", explanation: "Named in build-backend; does the actual building."}
+      - {text: "setuptools.build_meta", bucket: "Backend", explanation: "setuptools' PEP 517 backend."}
+  - id: q03-3
+    type: mcq
+    text: "A build passes on a laptop with `--no-isolation` and fails in CI with `ModuleNotFoundError: No module named 'jinja2'` inside the build backend. What is the right fix?"
+    concepts: [build-isolation, build-requirements]
+    sources: [12, 13]
+    options:
+      - {text: "Add jinja2 to [build-system] requires", correct: true, explanation: "The build needs it, so it must be declared where the isolated environment can install it."}
+      - {text: "Add jinja2 to [project] dependencies", correct: false, explanation: "Runtime dependencies are not installed into the build environment."}
+      - {text: "Pass --no-isolation in CI too", correct: false, explanation: "That hides the undeclared dependency instead of fixing it, and CI then depends on whatever is installed."}
+      - {text: "Pin setuptools to an older version", correct: false, explanation: "The backend version is not the problem; a missing build requirement is."}
+  - id: q03-4
+    type: mcq
+    text: "With a flat layout, CI runs `pip install .` then `pytest` from the repository root. The wheel is missing a module, yet every test passes. Why?"
+    concepts: [src-layout, sys-path]
+    sources: [16]
+    options:
+      - {text: "The tests import the working copy from the current directory, not the installed wheel", correct: true, explanation: "The current directory comes first on the import path, so the in-development copy shadows the installed one."}
+      - {text: "pip install . always copies the whole repository", correct: false, explanation: "It installs what the backend put in the wheel; the missing module really is missing there."}
+      - {text: "pytest disables site-packages", correct: false, explanation: "It does not; the shadowing comes from sys.path order."}
+      - {text: "Editable mode is the default for pip install .", correct: false, explanation: "Editable installs need -e."}
+  - id: q03-5
+    type: fill
+    text: "Complete the entry_points.txt that a backend writes for `[project.scripts] devenv = \"devenv.cli:main\"`."
+    concepts: [entry-points, console-scripts]
+    sources: [19, 11]
+    template: |
+      [{{1}}]
+      devenv {{2}} devenv.cli{{3}}main
+    chips:
+      - {text: "console_scripts", slot: 1, explanation: "[project.scripts] maps to the console_scripts group."}
+      - {text: "=", slot: 2, explanation: "The file uses = between name and value."}
+      - {text: ":", slot: 3, explanation: "The colon separates the module from the attribute path."}
+      - {text: "project.scripts", explanation: "That is the pyproject.toml table name, not the entry-point group."}
+      - {text: ".", explanation: "A dot would make main part of the module path."}
+  - id: q03-6
+    type: sort
+    text: "You installed the project with `pip install -e .`. Which changes appear without reinstalling?"
+    concepts: [editable-install]
+    sources: [17]
+    buckets: ["Picked up automatically", "Needs a fresh pip install -e ."]
+    items:
+      - {text: "Fixing a bug in an existing .py file", bucket: "Picked up automatically", explanation: "Editable installs point at the source, so edits are seen."}
+      - {text: "Adding a dependency to pyproject.toml", bucket: "Needs a fresh pip install -e .", explanation: "New dependencies require reinstallation."}
+      - {text: "Adding a new [project.scripts] command", bucket: "Needs a fresh pip install -e .", explanation: "New entry points require reinstallation."}
+      - {text: "Changing the description", bucket: "Needs a fresh pip install -e .", explanation: "Metadata changes require reinstallation."}

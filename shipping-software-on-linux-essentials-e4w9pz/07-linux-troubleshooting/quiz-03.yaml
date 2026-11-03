@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: q14
+title: "Check: incident playbook"
+questions:
+  - id: q14-1
+    type: sort
+    text: "Sort each piece of evidence from the four incidents into the incident it belongs to."
+    concepts: [incident-playbook, troubleshooting]
+    sources: [57, 62, 64, 65]
+    buckets: ["CPU hog", "Memory leak", "Descriptor leak", "Deleted log"]
+    items:
+      - {text: "checksum_forever (cpu_hog.py:8) in py-spy dump", bucket: "CPU hog", explanation: "The live stack of the busy process."}
+      - {text: "memory.events: oom_kill 1", bucket: "Memory leak", explanation: "The cgroup's OOM kill counter."}
+      - {text: "253 ESTABLISHED sockets for one PID in ss -tanp", bucket: "Descriptor leak", explanation: "Connections that were never closed."}
+      - {text: "lsof +L1 shows NLINK 0 and (deleted)", bucket: "Deleted log", explanation: "An unlinked file still held open."}
+      - {text: "[Errno 28] No space left on device", bucket: "Deleted log", explanation: "The writer filled the tmpfs."}
+      - {text: "accept4() = -1 EMFILE", bucket: "Descriptor leak", explanation: "The per-process descriptor limit was reached."}
+  - id: q14-2
+    type: mcq
+    text: "In incident 4, why is `truncate -s 0 /proc/PID/fd/3` a stop-gap and not the fix?"
+    concepts: [deleted-open-files, log-rotation]
+    sources: [64]
+    options:
+      - {text: "The service keeps writing to the deleted file, so space fills up again until it reopens its log", correct: true, explanation: "The descriptor still points at the unlinked file."}
+      - {text: "truncate does not free any space", correct: false, explanation: "In the test run df went back to 0% used."}
+      - {text: "It deletes the service's binary", correct: false, explanation: "fd 3 is the log file."}
+      - {text: "It only works on tmpfs", correct: false, explanation: "Nothing in the mechanism is tmpfs-specific."}
+  - id: q14-3
+    type: mcq
+    text: "`py-spy dump` fails inside a container with a permission error. What fixes it?"
+    concepts: [py-spy, containers]
+    sources: [65]
+    options:
+      - {text: "Run the container with --cap-add SYS_PTRACE", correct: true, explanation: "py-spy needs SYS_PTRACE to read process memory, in Docker and in Kubernetes."}
+      - {text: "Restart the Python process with py-spy as its parent", correct: false, explanation: "py-spy attaches to running processes; no restart needed."}
+      - {text: "Install py-spy into the application's venv", correct: false, explanation: "Where py-spy is installed does not change permissions."}
+      - {text: "Set PYTHONUNBUFFERED=1", correct: false, explanation: "Unrelated to ptrace permissions."}
+  - id: q14-4
+    type: mcq
+    text: "`strace -p PID` on a multi-threaded server shows nothing interesting, yet the accept loop is clearly failing. What did you miss?"
+    concepts: [strace, threads]
+    sources: [61]
+    options:
+      - {text: "-f, so strace follows the process's other threads", correct: true, explanation: "In incident 3 the failing accept4 ran in a separate thread."}
+      - {text: "-c, which shows hidden syscalls", correct: false, explanation: "-c summarises counts; it does not add threads."}
+      - {text: "-s 1024, because the strings were cut", correct: false, explanation: "String length does not hide whole calls."}
+      - {text: "strace only works on single-threaded programs", correct: false, explanation: "It traces threads with -f."}
+  - id: q14-5
+    type: short
+    text: "In incident 2, which cgroup v2 file showed the counters `oom 1` and `oom_kill 1`?"
+    concepts: [cgroup-v2, memory-files]
+    sources: [57]
+    answers: ["memory.events", "/sys/fs/cgroup/memory.events"]
+  - id: q14-6
+    type: short
+    text: "Which column of `vmstat 1` counts processes that are running or waiting for run time?"
+    concepts: [vmstat, cpu-saturation]
+    sources: [67]
+    answers: ["r", "procs r", "the r column"]

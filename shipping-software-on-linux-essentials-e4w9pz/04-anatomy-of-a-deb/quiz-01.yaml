@@ -1,0 +1,74 @@
+schemaVersion: 1
+id: q07
+title: "Check: .deb anatomy and relationships"
+questions:
+  - id: q07-1
+    type: fill
+    text: "Put the members of a .deb in the order the format requires."
+    concepts: [deb-format]
+    sources: [38]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+    chips:
+      - {text: "debian-binary", slot: 1, explanation: "Holds the format version, 2.0, and must come first."}
+      - {text: "control.tar.xz", slot: 2, explanation: "The control archive: control file and maintainer scripts."}
+      - {text: "data.tar.xz", slot: 3, explanation: "The files to install, last."}
+      - {text: "md5sums", explanation: "An optional file inside the control archive, not a member of the ar archive."}
+  - id: q07-2
+    type: sort
+    text: "Which archive member holds each item?"
+    concepts: [deb-format, control-archive]
+    sources: [38]
+    buckets: ["control.tar", "data.tar"]
+    items:
+      - {text: "postinst", bucket: "control.tar", explanation: "Maintainer scripts live in the control archive."}
+      - {text: "conffiles", bucket: "control.tar", explanation: "The list of conffiles is control information."}
+      - {text: "./usr/bin/hello-ship", bucket: "data.tar", explanation: "Installed files are in the data archive."}
+      - {text: "./etc/hello-ship.conf", bucket: "data.tar", explanation: "The conffile itself is a normal file in the data archive."}
+      - {text: "control", bucket: "control.tar", explanation: "The mandatory control file."}
+  - id: q07-3
+    type: mcq
+    text: "You build on a laptop as UID 1000. Inside the .deb, installed files show as owned by 1000/1000. What fixes it?"
+    concepts: [dpkg-deb, file-ownership]
+    sources: [43]
+    options:
+      - {text: "dpkg-deb --root-owner-group --build", correct: true, explanation: "Sets owner and group to root for every entry in the data archive."}
+      - {text: "chmod 0755 DEBIAN", correct: false, explanation: "Permissions are not ownership."}
+      - {text: "-Z none", correct: false, explanation: "That only changes compression."}
+      - {text: "Architecture: all", correct: false, explanation: "Unrelated to file ownership."}
+  - id: q07-4
+    type: match
+    text: "Match each need to the field that expresses it."
+    concepts: [relationship-fields]
+    sources: [31]
+    pairs:
+      - {left: "The app cannot run at all without libfoo", right: "Depends", explanation: "An absolute dependency, enforced at configure time."}
+      - {left: "The preinst itself needs a tool installed", right: "Pre-Depends", explanation: "The named packages are installed before this one is even unpacked."}
+      - {left: "Docs that most users want but the app runs without", right: "Recommends", explanation: "Strong but not absolute."}
+      - {left: "Old versions of tool-a must be upgraded before this is unpacked", right: "Breaks", explanation: "Usually with an earlier-than version."}
+    distractors:
+      - "Enhances"
+  - id: q07-5
+    type: spot
+    text: "`foo` is being split into `foo` and `foo-data` at version 1.2-3. Which line in foo-data's control file is wrong?"
+    concepts: [breaks-replaces, package-split]
+    sources: [31]
+    code: |
+      Package: foo-data
+      Version: 1.2-3
+      Replaces: foo (<< 1.2-3)
+      Breaks: foo (>= 1.2-3)
+    correct: [4]
+    explanation: "Breaks must target the old versions that still ship the files: foo (<< 1.2-3), the same range as Replaces. As written it would break the new foo instead."
+  - id: q07-6
+    type: mcq
+    text: "Package A says `Provides: mail-transport-agent`. Package B says `Depends: mail-transport-agent (>= 2)`. Is B's dependency satisfied by A?"
+    concepts: [virtual-packages, versioned-provides]
+    sources: [31]
+    options:
+      - {text: "No: an unversioned Provides does not satisfy a versioned dependency", correct: true, explanation: "A would need Provides: mail-transport-agent (= 2) or later."}
+      - {text: "Yes: any provider satisfies any dependency on the virtual name", correct: false, explanation: "Only for unversioned dependencies."}
+      - {text: "Only if A's own version is >= 2", correct: false, explanation: "A's version is irrelevant to the virtual name's version."}
+      - {text: "Only with Pre-Depends", correct: false, explanation: "The field type does not change how Provides is matched."}
