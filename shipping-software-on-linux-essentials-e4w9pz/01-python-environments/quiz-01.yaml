@@ -1,0 +1,77 @@
+schemaVersion: 1
+id: q01
+title: "Check: sys.path, venvs and PEP 668"
+questions:
+  - id: q01-1
+    type: mcq
+    text: "A repository has a folder named `requests/` at its root, and the venv also has the real `requests` installed. You run `python -c 'import requests; print(requests.__file__)'` from the repository root. Which copy is imported?"
+    concepts: [sys-path, import-order, flat-layout]
+    sources: [16, 3]
+    options:
+      - {text: "The local `requests/` folder", correct: true, explanation: "With `-c` the current directory is the first entry on the import path, so a same-named folder there shadows the installed package."}
+      - {text: "The installed copy, because site-packages always wins", correct: false, explanation: "site-packages comes after the script directory and the standard library, so it does not always win."}
+      - {text: "Python raises an ImportError because two copies exist", correct: false, explanation: "Python takes the first match on `sys.path`; it does not detect duplicates."}
+      - {text: "Whichever copy has the higher version number", correct: false, explanation: "Import resolution knows nothing about versions; only the order of `sys.path` matters."}
+  - id: q01-2
+    type: sort
+    text: "Sort each item by what it does to `sys.path`."
+    concepts: [site-module, pth-files, user-site]
+    sources: [3]
+    buckets: ["Adds entries", "Removes or blocks entries", "Only reports"]
+    items:
+      - {text: "A `.pth` file in site-packages", bucket: "Adds entries", explanation: "Each line naming an existing directory is appended to `sys.path`."}
+      - {text: "`python -s`", bucket: "Removes or blocks entries", explanation: "`-s` keeps the user site-packages directory off the path."}
+      - {text: "`PYTHONNOUSERSITE=1`", bucket: "Removes or blocks entries", explanation: "Same effect as `-s`: the user site is disabled."}
+      - {text: "`python -m site`", bucket: "Only reports", explanation: "Prints `sys.path`, the user base and site, and whether the user site is enabled."}
+      - {text: "`python -S`", bucket: "Removes or blocks entries", explanation: "`-S` stops the automatic import of `site`, so no site-packages are added."}
+  - id: q01-3
+    type: spot
+    text: "This `pyvenv.cfg` belongs to a venv whose application unexpectedly imports an old `yaml` from `/usr/lib/python3/dist-packages`. Which line causes it?"
+    concepts: [venv-internals, system-site-packages]
+    sources: [2, 3]
+    code: |
+      home = /usr/bin
+      include-system-site-packages = true
+      version = 3.11.2
+      executable = /usr/bin/python3.11
+      command = /usr/bin/python3 -m venv --system-site-packages /opt/app/.venv
+    correct: [2]
+    explanation: "With `include-system-site-packages = true`, `site` also searches the system prefixes, so apt-installed modules in dist-packages leak into the venv. Line 5 only records the command that created the venv; Python reads line 2."
+  - id: q01-4
+    type: sort
+    text: "On a Debian 12 host, sort each install method by whether it respects PEP 668."
+    concepts: [pep-668, externally-managed]
+    sources: [1, 4, 23]
+    buckets: ["Respects the marker", "Overrides or fights the marker"]
+    items:
+      - {text: "`apt install python3-requests`", bucket: "Respects the marker", explanation: "The distro's own package manager owns that directory."}
+      - {text: "`.venv/bin/python -m pip install requests`", bucket: "Respects the marker", explanation: "Inside a venv the marker does not apply."}
+      - {text: "`sudo pip install --break-system-packages requests`", bucket: "Overrides or fights the marker", explanation: "The flag exists to allow pip to modify an externally managed installation."}
+      - {text: "`pipx install httpie`", bucket: "Respects the marker", explanation: "pipx creates a dedicated venv for the application."}
+      - {text: "`pip install --user requests` outside a venv", bucket: "Overrides or fights the marker", explanation: "It is still an install outside a venv, which the marker forbids."}
+  - id: q01-5
+    type: fill
+    text: "Put pyenv's version sources in the order it checks them, first to last."
+    concepts: [pyenv, version-selection]
+    sources: [8]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+    chips:
+      - {text: "PYENV_VERSION environment variable", slot: 1, explanation: "An explicit environment variable wins over every file."}
+      - {text: ".python-version in the current directory", slot: 2, explanation: "The project's own file comes next."}
+      - {text: ".python-version in a parent directory", slot: 3, explanation: "pyenv walks up the tree and takes the first file it finds."}
+      - {text: "$(pyenv root)/version global file", slot: 4, explanation: "The global default is the last resort."}
+      - {text: "The newest version in ~/.pyenv/versions", explanation: "pyenv does not pick the newest installed version on its own."}
+  - id: q01-6
+    type: mcq
+    text: "A CI job needs Python 3.13 on a Debian 12 image and must not compile anything. Which approach fits?"
+    concepts: [uv-python, interpreter-install]
+    sources: [7, 8]
+    options:
+      - {text: "`uv python install 3.13`", correct: true, explanation: "uv downloads a prebuilt python-build-standalone build; nothing is compiled."}
+      - {text: "`pyenv install 3.13`", correct: false, explanation: "Most pyenv versions are built from source, which needs build dependencies and time."}
+      - {text: "`python3 -m venv --python 3.13 .venv`", correct: false, explanation: "venv reuses the interpreter that runs it; it cannot fetch another version."}
+      - {text: "`pipx install python==3.13`", correct: false, explanation: "pipx installs applications into venvs; it does not install interpreters."}

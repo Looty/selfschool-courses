@@ -1,0 +1,9 @@
+#!/bin/bash
+# A tiny command shipped by the hello-ship package.
+set -eu
+GREETING="hello"
+if [ -r /etc/hello-ship.conf ]; then
+  # shellcheck disable=SC1091
+  . /etc/hello-ship.conf
+fi
+echo "${GREETING} from hello-ship $(dpkg-query -W -f='${Version}' hello-ship 2>/dev/null || echo unknown)"

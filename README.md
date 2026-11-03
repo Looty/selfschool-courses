@@ -8,6 +8,7 @@ Course packages for Selfschool, a personal, AI-native course platform. Each fold
 | `mlops-from-zero-to-production-gblt3l` | Beginner to practitioner | 52 lessons, hands-on labs |
 | `rust-from-zero-to-hero-ti89lo` | C/C++ programmer new to Rust | about 12 h, 14 chapters, 38 lessons, 5 Cargo labs and a capstone |
 | `shipping-software-on-linux-ij3h66` | DevOps engineer, intermediate | about 6 h, 8 chapters, 33 lessons, 6 container labs (Python packaging, .deb and apt, Linux troubleshooting, Kubernetes nodes) |
+| `shipping-software-on-linux-essentials-e4w9pz` | DevOps engineer, intermediate | about 4 h, 8 chapters, 16 lessons, 2 container labs: the condensed, theory-first cut of the course above, with a Gotchas section per lesson |
 | `typescript-fundamentals` | Beginner | 12 short lessons, plus a demo of every question type |
 
 ## Use a course

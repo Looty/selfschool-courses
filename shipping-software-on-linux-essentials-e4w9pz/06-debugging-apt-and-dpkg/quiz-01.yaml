@@ -1,0 +1,72 @@
+schemaVersion: 1
+id: q11
+title: "Check: debugging apt and dpkg"
+questions:
+  - id: q11-1
+    type: spot
+    text: "`apt-get upgrade` never moves libdemo to 1.0-2. Which line of this output explains why?"
+    concepts: [apt-cache-policy, pinning]
+    sources: [39, 42]
+    code: |
+      libdemo:
+        Installed: 1.0-1
+        Candidate: 1.0-1
+        Version table:
+           1.0-2 500
+              500 file:/srv/lab4-repo ./ Packages
+       *** 1.0-1 1001
+              500 file:/srv/lab4-repo ./ Packages
+              100 /var/lib/dpkg/status
+    correct: [7]
+    explanation: "The installed version has priority 1001 from a pin, higher than 1.0-2's 500, so it stays the candidate (line 3 is the consequence, line 7 the cause). A priority of 1000 or more even forces downgrades."
+  - id: q11-2
+    type: match
+    text: "Match each `dpkg -l` prefix to its meaning."
+    concepts: [dpkg-status-flags]
+    sources: [37]
+    pairs:
+      - {left: "ii", right: "Wanted installed and correctly installed", explanation: "Desired install, status installed."}
+      - {left: "rc", right: "Removed, configuration files remain", explanation: "Desired remove, status config-files."}
+      - {left: "iU", right: "Wanted installed, unpacked but not configured", explanation: "Uppercase U: unpacked."}
+      - {left: "iF", right: "Wanted installed, configuration started but failed", explanation: "Uppercase F: half-configured."}
+    distractors:
+      - "Held at an older version by a pin"
+  - id: q11-3
+    type: sort
+    text: "Which recovery step fits each situation?"
+    concepts: [dpkg-recovery]
+    sources: [31, 32, 36, 40]
+    buckets: ["dpkg --configure -a", "apt-get -f install", "Ship a fixed package version"]
+    items:
+      - {text: "postinst failed because a directory was missing; you created it", bucket: "dpkg --configure -a", explanation: "Retries configuration of unpacked and half-configured packages."}
+      - {text: "dpkg -i left a package iU because a dependency is not installed", bucket: "apt-get -f install", explanation: "apt fetches the missing dependency and configures the package."}
+      - {text: "'trying to overwrite ... which is also in package tool-a'", bucket: "Ship a fixed package version", explanation: "The packaging must declare Breaks + Replaces (and the old owner drop the file)."}
+      - {text: "postinst has a bug that fails on every host", bucket: "Ship a fixed package version", explanation: "Rerunning the same script fails again; fix the package."}
+  - id: q11-4
+    type: match
+    text: "Match each symptom from the lesson's five failures to the first command that explains it."
+    concepts: [apt-scenarios, apt-debugging]
+    sources: [36, 37, 39, 41, 42]
+    pairs:
+      - {left: "dependency problems - leaving unconfigured", right: "apt-get check", explanation: "Lists the unmet dependency by name."}
+      - {left: "post-installation script subprocess returned error exit status 1", right: "dpkg --audit", explanation: "Reports half-configured packages."}
+      - {left: "trying to overwrite '/usr/bin/lab4-tool'", right: "dpkg -S /usr/bin/lab4-tool", explanation: "Names the package that owns the file."}
+      - {left: "apt upgrade exits cleanly but the version does not change", right: "apt-cache policy libdemo", explanation: "Shows the pin priority that keeps the old version as candidate."}
+    distractors:
+      - "apt-get autoremove"
+  - id: q11-5
+    type: mcq
+    text: "In scenario 3, why did `dpkg -i tool-b_2.0-1_all.deb` still fail even though tool-b 2.0-1 declares Replaces?"
+    concepts: [breaks-replaces, file-conflicts]
+    sources: [31]
+    options:
+      - {text: "It also declares Breaks: tool-a (<< 1.1), and the installed tool-a 1.0-1 would have to be deconfigured, which dpkg will not do on its own", correct: true, explanation: "The output said 'deconfiguration is not permitted'; installing tool-a 1.1-1 together through apt solved it."}
+      - {text: "Replaces only works with --force-overwrite", correct: false, explanation: "Replaces lets the package take over the file without force options."}
+      - {text: "The version 2.0-1 sorts lower than 1.0-1", correct: false, explanation: "2.0-1 is newer."}
+      - {text: "tool-b must be removed first", correct: false, explanation: "The fix upgraded tool-a; tool-b did not need removing."}
+  - id: q11-6
+    type: short
+    text: "Which apt-get option shows what an install would do without changing the system?"
+    concepts: [apt-simulate]
+    sources: [40]
+    answers: ["-s", "--simulate", "apt-get -s", "apt-get --simulate"]
