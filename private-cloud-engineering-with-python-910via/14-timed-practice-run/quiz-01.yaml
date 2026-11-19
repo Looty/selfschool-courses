@@ -1,0 +1,81 @@
+schemaVersion: 1
+id: q34
+title: "Check: the whole course in five questions"
+questions:
+  - id: q34-1
+    type: trace
+    text: "Trace the loop. After each line is processed, what are `errors['h1']`, `errors['h2']` and `len(errors)`?"
+    concepts: [counter, dict-missing-keys]
+    sources: [9]
+    code: |
+      from collections import Counter
+
+      lines = ["h1 ERROR", "h2 INFO", "h1 ERROR", "h3 ERROR", "h2 ERROR"]
+      errors = Counter()
+      for line in lines:
+          host, level = line.split()
+          if level == "ERROR":
+              errors[host] += 1
+          print(errors["h1"], errors["h2"], len(errors))
+    variables: [h1, h2, size]
+    steps:
+      - {label: "After \"h1 ERROR\"", values: {h1: 1, h2: 0, size: 1}}
+      - {label: "After \"h2 INFO\"", values: {h1: 1, h2: 0, size: 1}}
+      - {label: "After \"h1 ERROR\" (again)", values: {h1: 2, h2: 0, size: 1}}
+      - {label: "After \"h3 ERROR\"", values: {h1: 2, h2: 0, size: 2}}
+      - {label: "After \"h2 ERROR\"", values: {h1: 2, h2: 1, size: 3}}
+    explanation: "Reading a missing key of a Counter returns 0 without inserting it, so printing errors['h2'] does not add h2 and the size stays 1 until h3 is counted. The INFO line changes nothing. These are the values printed in the course's test run."
+  - id: q34-2
+    type: fill
+    text: "A service on a VM does not answer on port 8080 from your laptop. Put the checks in the order of the chapter 5 routine, from the inside out."
+    concepts: [network-troubleshooting]
+    sources: [118, 112, 113, 117]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+    chips:
+      - {text: "systemctl status: is the process running?", slot: 1, explanation: "Nothing else matters if the service is not running."}
+      - {text: "ss -ltnp: is it listening, on which address and port?", slot: 2, explanation: "A listener on 127.0.0.1 or on the wrong port shows up here."}
+      - {text: "ip addr and ip route: does the machine have that address and a route?", slot: 3, explanation: "The address the service binds must exist on the host and be routable."}
+      - {text: "A request from the box itself, then from a neighbour", slot: 4, explanation: "Working locally but not from outside points at a firewall or the bind address."}
+      - {text: "journalctl -u for the unit: what did the service log?", slot: 5, explanation: "The log explains failures the earlier checks only located."}
+      - {text: "Reboot the VM", explanation: "A reboot destroys the evidence and fixes nothing you understand."}
+  - id: q34-3
+    type: mcq
+    text: "A client sends `POST /vms` and the connection drops before any response arrives. The VM may or may not have been created. What design lets the client retry safely?"
+    concepts: [idempotency-key, idempotent-methods]
+    sources: [52, 58]
+    options:
+      - {text: "The client sends a unique Idempotency-Key header; the server records it with the request and answers a retry with the same key with the original outcome instead of creating a second VM", correct: true, explanation: "POST is not idempotent by itself, so the server needs a client-chosen key to recognise a retry of the same request."}
+      - {text: "Retry the POST automatically; POST is idempotent", correct: false, explanation: "POST is neither safe nor idempotent; a blind retry can create two VMs."}
+      - {text: "Switch the endpoint to GET so it can be retried", correct: false, explanation: "GET is a safe method, meant to be read-only; creating a VM on GET breaks the method's meaning and lets crawlers and prefetching trigger it."}
+      - {text: "Make the call synchronous so the client always gets an answer", correct: false, explanation: "A long synchronous call makes dropped connections more likely, not less, and the client still cannot tell whether the work happened."}
+  - id: q34-4
+    type: match
+    text: "Match each situation to the first thing you would run."
+    concepts: [troubleshooting-first-step]
+    sources: [117, 118, 154]
+    pairs:
+      - {left: "A systemd service failed to start after a reboot", right: "systemctl status and journalctl -u for that unit", explanation: "The unit's status and its journal show the exit code and the last log lines."}
+      - {left: "A commit disappeared after git reset --hard", right: "git reflog", explanation: "The reflog records where HEAD pointed before the reset, so the commit can be found and restored."}
+      - {left: "A container exits a second after it starts", right: "docker logs on the stopped container", explanation: "The program's own output is the first place its error shows, as in the chapter 7 lab."}
+      - {left: "A test broke somewhere in the last 200 commits", right: "git bisect", explanation: "A binary search over history finds the first bad commit in about eight steps."}
+    distractors:
+      - "git stash"
+      - "docker system prune"
+  - id: q34-5
+    type: sort
+    text: "Does each statement describe a container or a KVM virtual machine?"
+    concepts: [containers-vs-vms]
+    sources: [60, 61, 68, 86, 91, 92]
+    buckets: ["Container", "KVM virtual machine"]
+    items:
+      - {text: "Shares the host's kernel", bucket: "Container", explanation: "A container is ordinary processes on the host kernel, isolated by namespaces."}
+      - {text: "Runs its own guest kernel", bucket: "KVM virtual machine", explanation: "A VM boots a full operating system on virtual hardware."}
+      - {text: "Isolation comes from namespaces, limits from cgroups", bucket: "Container", explanation: "Those two kernel features are what a container runtime sets up."}
+      - {text: "Needs CPU hardware virtualisation extensions to run fast", bucket: "KVM virtual machine", explanation: "KVM uses the CPU's virtualisation support; without it QEMU can only use TCG, its software emulation."}
+      - {text: "Boots from a qcow2 disk image that can have a backing file", bucket: "KVM virtual machine", explanation: "qcow2 is QEMU's disk format; a backing file lets many VMs share one base image."}
+      - {text: "Starts from an image built as a stack of read-only layers", bucket: "Container", explanation: "Container images are layers; each Dockerfile instruction that changes files, such as RUN or COPY, adds one."}

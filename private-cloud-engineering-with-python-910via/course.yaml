@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: private-cloud-engineering-with-python-910via
+title: "Private Cloud Engineering with Python"
+short_intro: "Fluent Python without autocomplete, job-queue APIs with Flask, FastAPI and RQ, and the Linux, Git, container, KVM and CI stack underneath."
+description: |
+  A practice-first course for engineers who build and run internal cloud platforms: self-service virtual machines
+  on KVM hypervisors, the Python services that provision them, and the build and CI systems around them.
+
+  The first third is Python you can type from memory in a bare browser editor: the built-in types, `collections`,
+  sorting and heaps, classes, text parsing, then timed infrastructure problems (log aggregation, reservations and
+  VM placement, build dependency order, caches and rate limiters) and scripts that call the system. Every exercise
+  ships a starter file, a reference solution and a standard-library test file, so you check your own work with
+  one command.
+
+  The middle is the ground a platform stands on: Linux processes, systemd, permissions, disks and networking with
+  a broken-box terminal lab; Git objects, rebasing and recovery with a lab; containers from namespaces and cgroups
+  up to Dockerfiles and Compose, with a debugging lab.
+
+  The last third builds upward: REST services in Flask and FastAPI with an RQ and Redis job queue, the design of
+  a VM provisioning service and of a CI and build system, Jenkins pipelines, KVM, QEMU and libvirt, Ansible and
+  Fabric, and short chapters on working with AI tools, Kubernetes and AWS. It ends with a two-hour timed
+  practice run.
+
+  Who it is for: DevOps and platform engineers with a few years of experience who want the working knowledge
+  sharp and the Python fluent. Labs run with Python 3 and Docker. Every factual claim cites a source from
+  sources.md. For Linux performance triage (USE method, OOM, cgroups, file descriptors, strace) see the
+  companion course "Shipping Software on Linux: Essentials", chapter 7.
+language: en
+level: Intermediate
+hue: teal
+monogram: PC
+tags: [python, linux, git, containers, kvm, libvirt, flask, fastapi, rq, jenkins, ansible, system-design, devops]
+budget_minutes: 780
+chapters:
+  - dir: 01-coding-in-a-browser-editor
+    title: Coding in a bare browser editor
+  - dir: 02-python-from-memory
+    title: Python from memory
+  - dir: 03-timed-infrastructure-problems
+    title: Timed infrastructure problems
+  - dir: 04-python-and-the-system
+    title: Python and the system
+  - dir: 05-linux
+    title: Linux foundations
+  - dir: 06-git
+    title: Git
+  - dir: 07-containers
+    title: Containers
+  - dir: 08-python-backend
+    title: "Python backend: Flask, FastAPI and RQ"
+  - dir: 09-system-design
+    title: "System design: a private cloud and its CI"
+  - dir: 10-jenkins-and-ci
+    title: Jenkins pipelines
+  - dir: 11-virtualization
+    title: "Virtualization: KVM, QEMU and libvirt"
+  - dir: 12-ansible-and-fabric
+    title: Ansible and Fabric
+  - dir: 13-ai-kubernetes-aws
+    title: AI tools, Kubernetes and AWS
+  - dir: 14-timed-practice-run
+    title: Timed practice run
+exams:
+  - {id: checkpoint, file: exams/checkpoint.yaml, after: 03-timed-infrastructure-problems}
+  - {id: final, file: exams/final.yaml}

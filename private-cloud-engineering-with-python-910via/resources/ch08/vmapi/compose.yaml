@@ -1,0 +1,47 @@
+name: pce-ch08
+
+services:
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  api:
+    build: .
+    image: pce-ch08-vmapi
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "127.0.0.1:8808:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  api-fastapi:
+    image: pce-ch08-vmapi
+    command: ["uvicorn", "app_fastapi:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "127.0.0.1:8809:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  worker:
+    image: pce-ch08-vmapi
+    command: ["rq", "worker", "--with-scheduler", "--url", "redis://redis:6379/0", "vms"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      BUILD_SECONDS: "3"
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started

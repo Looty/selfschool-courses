@@ -1,0 +1,84 @@
+schemaVersion: 1
+id: q12
+title: "Check: processes, signals and systemd"
+questions:
+  - id: q12-1
+    type: match
+    text: "Match each signal to its number on x86 and what is special about it."
+    concepts: [signals, signal-dispositions]
+    sources: [105]
+    pairs:
+      - {left: "SIGTERM", right: "15; the polite stop request, can be caught or ignored", explanation: "Plain kill and systemctl stop send it; the program may run a handler first."}
+      - {left: "SIGKILL", right: "9; cannot be caught, blocked or ignored", explanation: "The kernel ends the process without asking it."}
+      - {left: "SIGSTOP", right: "19; stops the process and cannot be caught", explanation: "SIGSTOP and SIGKILL are the two signals no process can catch or ignore."}
+      - {left: "SIGCHLD", right: "17; sent when a child changes state, ignored by default", explanation: "Its default disposition is Ign, so a parent that does nothing never collects its children."}
+      - {left: "SIGHUP", right: "1; the controlling terminal or process went away", explanation: "Its default action is Term."}
+    distractors:
+      - "11; sent by systemd before every restart"
+  - id: q12-2
+    type: spot
+    text: "The team wants vmapi to start after Redis, to fail the start when the Python path is wrong, to restart after a crash and to start at boot. Click the two lines that break those goals."
+    concepts: [systemd-units, unit-dependencies, service-type]
+    sources: [119]
+    code: |
+      [Unit]
+      Description=vmapi
+      Requires=redis-server.service
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/python3 /opt/vmapi/vmapi.py
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+    correct: [3, 6]
+    explanation: "Requires= pulls Redis in but sets no order: without After=redis-server.service both units start at the same time. Type=simple counts the service as started as soon as it is forked, so a wrong path still reports success; Type=exec reports the failed execve. Restart=on-failure and WantedBy=multi-user.target are right."
+  - id: q12-3
+    type: trace
+    text: "Each line runs in bash. What does `echo $?` print right after it?"
+    concepts: [exit-status, signals]
+    sources: [125]
+    code: |
+      sleep 30 & kill $!; wait $!
+      sleep 30 & kill -9 $!; wait $!
+      nosuchcmd
+      chmod 644 job.sh; ./job.sh
+    variables: [status]
+    steps:
+      - {label: "Line 1", values: {status: "143"}}
+      - {label: "Line 2", values: {status: "137"}}
+      - {label: "Line 3", values: {status: "127"}}
+      - {label: "Line 4", values: {status: "126"}}
+    explanation: "A command killed by signal N exits with 128+N: SIGTERM 15 gives 143, SIGKILL 9 gives 137. A command that is not found gives 127; one found but not executable gives 126, even for root, because no execute bit is set."
+  - id: q12-4
+    type: mcq
+    text: "You changed `ExecStart=` in /etc/systemd/system/vmapi.service and ran `systemctl reload vmapi`. What happens?"
+    concepts: [systemctl, daemon-reload]
+    sources: [118]
+    options:
+      - {text: "The service is asked to reload its own configuration; systemd still uses the old unit file", correct: true, explanation: "reload is for the service's own config. Reading changed unit files needs systemctl daemon-reload."}
+      - {text: "systemd rereads the unit file and restarts the service with the new command", correct: false, explanation: "That takes daemon-reload followed by restart."}
+      - {text: "systemd rereads all unit files but leaves the running process alone", correct: false, explanation: "That describes daemon-reload, not reload."}
+      - {text: "Nothing at all, because reload only works for socket units", correct: false, explanation: "reload works on any unit whose service supports it; it just does not reread unit files."}
+  - id: q12-5
+    type: fill
+    text: "Make an edited unit file take effect, then make the service start at boot as well."
+    concepts: [systemctl, daemon-reload]
+    sources: [118]
+    template: |
+      systemctl {{1}}
+      systemctl {{2}} vmapi
+      systemctl {{3}} vmapi
+    chips:
+      - {text: "daemon-reload", slot: 1, explanation: "Rereads all unit files and rebuilds the dependency tree."}
+      - {text: "restart", slot: 2, explanation: "Stops the running service and starts it with the new unit definition."}
+      - {text: "enable", slot: 3, explanation: "Creates the links named in [Install]; without --now it does not start anything."}
+      - {text: "reload", explanation: "Asks the service to reload its own configuration, not the unit file."}
+      - {text: "mask", explanation: "Links the unit to /dev/null so it cannot be started at all."}
+  - id: q12-6
+    type: short
+    text: "A unit has no `ExecStop=`. Which signal does `systemctl stop` send to it first? Give the name."
+    concepts: [signals, systemd-stop]
+    sources: [119]
+    answers: ["SIGTERM", "TERM", "sigterm"]

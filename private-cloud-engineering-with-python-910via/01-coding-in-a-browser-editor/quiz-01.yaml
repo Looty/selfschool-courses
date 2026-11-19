@@ -1,0 +1,87 @@
+schemaVersion: 1
+id: q01
+title: "Check: the editor, the limits and stdin"
+questions:
+  - id: q01-1
+    type: trace
+    text: "The input is the text shown below. Track the variables after each loop pass."
+    concepts: [stdin-parsing, split-tokens]
+    sources: [16, 18]
+    code: |
+      # stdin: "2\n 4 5\n6   7\n"
+      data = sys.stdin.read().split()
+      n = int(data[0])
+      out = []
+      for i in range(n):
+          a = int(data[1 + 2 * i])
+          b = int(data[2 + 2 * i])
+          out.append(a + b)
+    variables: [i, a, b, out]
+    steps:
+      - {label: "Pass 1", values: {i: 0, a: 4, b: 5, out: ["[9]"]}}
+      - {label: "Pass 2", values: {i: 1, a: 6, b: 7, out: ["[9, 13]", "[9,13]"]}}
+    explanation: "split() with no argument treats runs of whitespace as one separator, so the tokens are ['2', '4', '5', '6', '7']. Pass 1 reads indexes 1 and 2 (4 and 5), pass 2 reads indexes 3 and 4 (6 and 7)."
+  - id: q01-2
+    type: spot
+    text: "This complete program reads N pairs and prints their sums, but the platform reports Wrong Answer on every test. Which line causes it?"
+    concepts: [exact-output-matching, input-prompt]
+    sources: [3, 16]
+    code: |
+      def main():
+          n = int(input("Number of pairs: "))
+          for _ in range(n):
+              a, b = map(int, input().split())
+              print(a + b)
+
+      main()
+    correct: [2]
+    explanation: "The prompt given to input() is written to standard output, so it becomes part of the program's output and breaks exact string matching. Call input() without an argument."
+  - id: q01-3
+    type: mcq
+    text: "You are solving a function-style question and add print(counts) to inspect a dictionary. What happens to that output?"
+    concepts: [function-style, debug-output]
+    sources: [3, 4]
+    options:
+      - {text: "It appears in the Debug Output panel and does not affect the score", correct: true, explanation: "In function questions the platform captures printed text separately and grades only the returned value."}
+      - {text: "It is added to your output and causes Wrong Answer", correct: false, explanation: "That is the behaviour of complete-program questions, where prints are the answer."}
+      - {text: "It is discarded and not shown anywhere", correct: false, explanation: "It is shown, in the Debug Output area."}
+      - {text: "It makes the submission fail the 50 KB limit", correct: false, explanation: "The limit applies to source size, not to printed output."}
+  - id: q01-4
+    type: fill
+    text: "Complete the documented sample program: read N, then print the sum of each of N pairs."
+    concepts: [stdin-parsing, map-int]
+    sources: [2, 16]
+    template: |
+      n = {{1}}(input())
+      for _ in range({{2}}):
+          a, b = {{3}}(int, input().split())
+          print({{4}})
+    chips:
+      - {text: "int", slot: 1, explanation: "input() returns a string, so the count must be converted to an int."}
+      - {text: "n", slot: 2, explanation: "range(n) repeats the body once per pair."}
+      - {text: "map", slot: 3, explanation: "map(int, ...) converts each token and can be unpacked into a and b."}
+      - {text: "a + b", slot: 4, explanation: "The sum is the only thing that should be printed per line."}
+      - {text: "float", explanation: "The sample uses integers; float would print 6.0 instead of 6 if used on the result."}
+      - {text: "list", explanation: "list(int, ...) is invalid; list takes one iterable."}
+  - id: q01-5
+    type: match
+    text: "Match each documented HackerRank limit or fact for Python 3 coding questions to its value."
+    concepts: [platform-limits]
+    sources: [1]
+    pairs:
+      - {left: "Python version", right: "3.14.2", explanation: "The Execution Environment page lists Python 3.14.2."}
+      - {left: "Time limit", right: "10 seconds", explanation: "Exceeding it gives Terminated due to timeout."}
+      - {left: "Memory limit", right: "512 MB", explanation: "Listed in the same table row as the time limit."}
+      - {left: "Maximum source size", right: "50 KB", explanation: "The page states the maximum size of a code submission."}
+    distractors:
+      - "3.15.2"
+  - id: q01-6
+    type: mcq
+    text: "Which statement about autocomplete in a browser coding platform is supported by the documentation read for this course?"
+    concepts: [autocomplete, practice-without-tools]
+    sources: [2, 5, 7]
+    options:
+      - {text: "The Test editor has it for Python 3 and it can be toggled; for the new Interview editor the pages read do not say", correct: true, explanation: "Source pages document autocomplete for Tests and a toggle in the legacy Interview editor, and are silent for the new one, so practise without it."}
+      - {text: "Every HackerRank editor always has autocomplete, so you need not memorise method names", correct: false, explanation: "It can be switched off, and its availability varies by product."}
+      - {text: "Autocomplete is documented as unavailable for Python", correct: false, explanation: "Python 3 is on the list of supported languages."}
+      - {text: "Autocomplete runs your code and so counts as an AI assistant", correct: false, explanation: "It is an IntelliSense-style suggestion popup; the AI assistant is a separate feature controlled by the hiring company."}

@@ -1,0 +1,33 @@
+#cloud-config
+# user-data for vm-demo-01 (lesson l30). The first line must stay exactly "#cloud-config".
+#
+# Build a NoCloud seed ISO next to a meta-data file and attach it to the VM:
+#   printf 'instance-id: vm-demo-01-v1\nlocal-hostname: vm-demo-01\n' > meta-data
+#   cp user-data.yaml user-data
+#   genisoimage -output vm-demo-01-seed.iso -volid cidata -joliet -rock user-data meta-data
+#
+# Change instance-id in meta-data (v1 -> v2) when you want edited user-data applied again.
+
+hostname: vm-demo-01
+
+users:
+  - name: ops
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      # Replace with your own public key (the contents of ~/.ssh/id_ed25519.pub).
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGxhYmtleWZvcmNsb3VkaW5pdGV4YW1wbGVvbmx5MDE ops@workstation
+
+ssh_pwauth: false
+
+package_update: true
+packages:
+  - qemu-guest-agent
+  - python3
+
+# runcmd runs once, on the first boot of this instance-id; bootcmd would run on every boot.
+runcmd:
+  - [systemctl, enable, --now, qemu-guest-agent]
+  - [sh, -c, 'echo "provisioned $(date -u +%FT%TZ)" > /etc/vm-provisioned']

@@ -1,0 +1,68 @@
+schemaVersion: 1
+id: q10
+title: "Check: subprocess, pathlib and logging"
+questions:
+  - id: q10-1
+    type: spot
+    text: "Click the line that lets a path such as `/tmp; rm -rf ~` run a second command."
+    concepts: [shell-injection, subprocess]
+    sources: [27]
+    code: |
+      def run_df(path, runner=subprocess.run):
+          result = runner(f"df -P -k {path}",
+                          shell=True,
+                          capture_output=True, text=True, check=True)
+          return result.stdout
+    correct: [2, 3]
+    explanation: "Interpolating the path into a command string and running it with shell=True hands the whole string to a shell, which treats the semicolon as a command separator. A list without shell passes the path as one plain argument."
+  - id: q10-2
+    type: mcq
+    text: "`subprocess.run(['df', '/nope'], capture_output=True)` fails with exit code 1. What does the call do?"
+    concepts: [check-true, returncode]
+    sources: [27]
+    options:
+      - {text: "Returns a CompletedProcess with returncode 1 and no exception", correct: true, explanation: "Without check=True a non-zero exit is just data; you must read returncode."}
+      - {text: "Raises CalledProcessError", correct: false, explanation: "Only with check=True."}
+      - {text: "Raises OSError", correct: false, explanation: "OSError is for failing to start the program, not for a non-zero exit."}
+      - {text: "Raises TimeoutExpired", correct: false, explanation: "That needs a timeout argument and a command that runs too long."}
+  - id: q10-3
+    type: fill
+    text: "Complete a safe wrapper."
+    concepts: [subprocess, text-mode]
+    sources: [27]
+    template: |
+      result = subprocess.run(["df", "-P", "-k", path],
+                              capture_output=True, {{1}}, {{2}}, {{3}})
+    chips:
+      - {text: "text=True", slot: 1, explanation: "Decodes stdout and stderr to str; the default is bytes."}
+      - {text: "check=True", slot: 2, explanation: "Raises CalledProcessError on a non-zero exit instead of returning quietly."}
+      - {text: "timeout=10", slot: 3, explanation: "Kills the child and raises TimeoutExpired if it runs longer than 10 seconds."}
+      - {text: "shell=True", explanation: "Runs the command through a shell and brings back the injection risk."}
+  - id: q10-4
+    type: match
+    text: "Match each situation to the exception or value you see."
+    concepts: [subprocess-errors]
+    sources: [27]
+    pairs:
+      - {left: "Command exits non-zero and check=True", right: "CalledProcessError", explanation: "Holds returncode, cmd and captured output."}
+      - {left: "Command runs past timeout", right: "TimeoutExpired", explanation: "The child is killed and waited for first."}
+      - {left: "Program does not exist", right: "OSError", explanation: "The docs name OSError for executing a non-existent file."}
+      - {left: "returncode is -9 on POSIX", right: "Killed by signal 9", explanation: "A negative value -N means the child was terminated by signal N."}
+    distractors:
+      - "SystemExit"
+  - id: q10-5
+    type: mcq
+    text: "In a module, which logging setup is the convention?"
+    concepts: [logging, logger-per-module]
+    sources: [39]
+    options:
+      - {text: "logger = logging.getLogger(__name__) in each module, and basicConfig called once at program start", correct: true, explanation: "Logger names then follow the module hierarchy and one place decides the output."}
+      - {text: "Call logging.basicConfig in every module that logs", correct: false, explanation: "Configuration belongs to the application entry point, not to each module."}
+      - {text: "Use print for INFO and logging only for errors", correct: false, explanation: "Events during normal operation belong to a logger's info(), according to the HOWTO."}
+      - {text: "Log everything to the root logger with the default level so INFO messages show", correct: false, explanation: "The default level is WARNING, so INFO is dropped unless configured."}
+  - id: q10-6
+    type: short
+    text: "Which function call ends a script with exit status 2?"
+    concepts: [exit-codes, sys-exit]
+    sources: [17]
+    answers: ["sys.exit(2)", "exit(2)"]

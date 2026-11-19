@@ -1,0 +1,84 @@
+schemaVersion: 1
+id: q16
+title: "Check: Git objects, merge and rebase"
+questions:
+  - id: q16-1
+    type: trace
+    text: "The repository starts with one commit A on main, and main is checked out. Where do main, feature and HEAD point after each command? Write a commit letter for the branches, and a branch name for HEAD."
+    concepts: [git-branches, git-head, three-way-merge]
+    sources: [153]
+    code: |
+      git switch -c feature
+      git commit -m B
+      git switch main
+      git commit -m C
+      git merge feature        # creates merge commit M
+    variables: [main, feature, HEAD]
+    steps:
+      - {label: "Start", values: {main: "A", feature: "-", HEAD: "main"}, given: [main, feature, HEAD]}
+      - {label: "After switch -c feature", values: {main: "A", feature: "A", HEAD: "feature"}}
+      - {label: "After commit B", values: {main: "A", feature: "B", HEAD: "feature"}}
+      - {label: "After switch main", values: {main: "A", feature: "B", HEAD: "main"}}
+      - {label: "After commit C", values: {main: "C", feature: "B", HEAD: "main"}}
+      - {label: "After merge feature", values: {main: "M", feature: "B", HEAD: "main"}}
+    explanation: "Creating a branch adds a pointer to the current commit, and switching moves HEAD. A commit moves only the branch HEAD points to. Because main and feature both have new commits, the merge cannot fast-forward: it creates M with parents C and B and moves main to it, while feature stays at B."
+  - id: q16-2
+    type: match
+    text: "Match each mode in a tree object to what the entry is."
+    concepts: [git-objects]
+    sources: [153]
+    pairs:
+      - {left: "100644", right: "Normal file", explanation: "The usual mode for a non-executable file blob."}
+      - {left: "100755", right: "Executable file", explanation: "The same blob type, with the executable bit recorded in the tree."}
+      - {left: "120000", right: "Symbolic link", explanation: "The blob holds the link target."}
+      - {left: "040000", right: "Subdirectory (another tree)", explanation: "Directories are trees nested inside trees."}
+    distractors:
+      - "File name of a blob"
+  - id: q16-3
+    type: spot
+    text: "You ran `git merge bigger` while on main and got this file. Click the line that came from the bigger branch."
+    concepts: [merge-conflicts]
+    sources: [153]
+    code: |
+      name: vm-01
+      <<<<<<< HEAD
+      memory_mib: 1024
+      =======
+      memory_mib: 4096
+      >>>>>>> bigger
+      cpus: 2
+    correct: [5]
+    explanation: "Between <<<<<<< HEAD and ======= is the version of the branch you had checked out (main). Between ======= and >>>>>>> bigger is the version from the branch being merged in. Lines outside the markers merged cleanly."
+  - id: q16-4
+    type: mcq
+    text: "On main you run `git merge --squash tidy` and it succeeds. What is true right afterwards?"
+    concepts: [merge-options, squash-merge]
+    sources: [154]
+    options:
+      - {text: "The combined changes are in the index and working tree, and no commit has been made yet", correct: true, explanation: "--squash prepares the result but does not commit, move HEAD or record MERGE_HEAD; your next git commit makes one ordinary commit."}
+      - {text: "A merge commit with two parents was created", correct: false, explanation: "That is a normal merge (or --no-ff). --squash records no second parent at all."}
+      - {text: "main now points to the tip of tidy", correct: false, explanation: "That would be a fast-forward. --squash does not move HEAD or the branch."}
+      - {text: "The tidy branch was rewritten into one commit", correct: false, explanation: "The tidy branch is untouched; only main's index and working tree change."}
+  - id: q16-5
+    type: fill
+    text: "client was branched from server, which was branched from main. Complete the command that replays only client's own commits onto main."
+    concepts: [rebase-onto]
+    sources: [153, 154]
+    template: |
+      git rebase --onto {{1}} {{2}} {{3}}
+    chips:
+      - {text: "main", slot: 1, explanation: "The new base the commits are replayed onto."}
+      - {text: "server", slot: 2, explanation: "The old base: commits reachable from server are left behind."}
+      - {text: "client", slot: 3, explanation: "The branch being moved; it ends up pointing at the last replayed commit."}
+      - {text: "HEAD~1", explanation: "Would cut at a fixed count of commits, not at where client left server."}
+  - id: q16-6
+    type: open
+    text: "A colleague asks whether to merge or rebase a feature branch before it goes into main. Explain the difference in what each does to history, and give the rule for when rebasing is not acceptable."
+    concepts: [merge-vs-rebase, rewriting-history]
+    rubric: |
+      - Says merge keeps existing commits and records the integration as a merge commit (when it is not a fast-forward).
+      - Says rebase replays the commits as new commits with new hashes on top of the other branch, giving linear history.
+      - Says the final snapshot is the same either way; only the history differs.
+      - States the rule: do not rebase commits that have been pushed or that others may have based work on.
+      - Gives the consequence: collaborators must repair their history and duplicate commits appear.
+    sources: [153, 154]

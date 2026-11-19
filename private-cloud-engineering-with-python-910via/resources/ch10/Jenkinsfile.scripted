@@ -1,0 +1,85 @@
+// Jenkinsfile.scripted: the same vmapi pipeline as Jenkinsfile (same folder), in Scripted syntax (lesson l29).
+// Plain Groovy runs top to bottom; failures are exceptions, so cleanup goes in try/finally.
+// Needs the same plugins and labels as the Declarative version, plus a "Secret text"
+// credential with the id 'registry-token' (the registry user is fixed as ci-bot here).
+
+def image = 'registry.example.internal/platform/vmapi'
+def pythonVersions = ['3.12', '3.13']
+
+// Build a map of branch name -> closure for the parallel step.
+// A classic for loop, not .each { }, because Pipeline serializes state between steps.
+def testBranches = [:]
+for (int i = 0; i < pythonVersions.size(); i++) {
+    def py = pythonVersions[i]   // a fresh variable per iteration, captured by the closure
+    testBranches["Python ${py}"] = {
+        node('docker') {
+            checkout scm
+            docker.image("python:${py}-slim").inside {
+                try {
+                    // Double quotes are safe here: py comes from the constant list at the top
+                    // of this file, not from a secret or a build parameter.
+                    sh """
+                        python -m venv .venv
+                        .venv/bin/pip install --quiet -r requirements-dev.txt
+                        .venv/bin/pytest --junitxml=reports/junit-${py}.xml
+                    """
+                } finally {
+                    junit 'reports/*.xml'
+                }
+            }
+        }
+    }
+}
+
+timeout(time: 30, unit: 'MINUTES') {
+    try {
+        stage('Lint') {
+            node('docker') {
+                checkout scm
+                docker.image('python:3.13-slim').inside {
+                    sh '''
+                        python -m venv .venv
+                        .venv/bin/pip install --quiet -r requirements-dev.txt
+                        .venv/bin/ruff check .
+                    '''
+                }
+            }
+        }
+
+        stage('Test') {
+            parallel testBranches
+        }
+
+        stage('Build image') {
+            node('docker') {
+                checkout scm
+                withEnv(["IMAGE=${image}"]) {
+                    withCredentials([string(credentialsId: 'registry-token', variable: 'REG_TOKEN')]) {
+                        // Single quotes: the shell, not Groovy, expands the secret.
+                        sh 'docker build -t "$IMAGE:$BUILD_NUMBER" .'
+                        sh 'echo "$REG_TOKEN" | docker login -u ci-bot --password-stdin registry.example.internal'
+                        sh 'docker push "$IMAGE:$BUILD_NUMBER"'
+                    }
+                }
+            }
+        }
+
+        if (env.BRANCH_NAME == 'main') {
+            stage('Deploy') {
+                node('deploy') {
+                    checkout scm
+                    withEnv(["IMAGE=${image}"]) {
+                        sh './deploy.sh "$IMAGE:$BUILD_NUMBER"'
+                    }
+                }
+            }
+        }
+
+        echo "Built ${image}:${env.BUILD_NUMBER}"
+    } catch (err) {
+        mail to: 'platform-team@example.internal',
+             subject: "Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+             body: "See ${env.BUILD_URL}"
+        throw err
+    }
+}

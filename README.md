@@ -6,6 +6,7 @@ Course packages for Selfschool, a personal, AI-native course platform. Each fold
 |---|---|---|
 | `how-llms-work-from-zero-to-your-own-2iy8t7` | Engineer new to ML | about 13 h, 13 chapters, 65 lessons, Python labs |
 | `mlops-from-zero-to-production-gblt3l` | Beginner to practitioner | 52 lessons, hands-on labs |
+| `private-cloud-engineering-with-python-910via` | DevOps engineer, intermediate | about 13 h, 14 chapters, 34 lessons, self-checking Python exercises and Docker labs (Linux, Git, containers, a Flask/RQ job-queue API), plus system design, Jenkins, KVM and libvirt |
 | `rust-from-zero-to-hero-ti89lo` | C/C++ programmer new to Rust | about 12 h, 14 chapters, 38 lessons, 5 Cargo labs and a capstone |
 | `shipping-software-on-linux-ij3h66` | DevOps engineer, intermediate | about 6 h, 8 chapters, 33 lessons, 6 container labs (Python packaging, .deb and apt, Linux troubleshooting, Kubernetes nodes) |
 | `shipping-software-on-linux-essentials-e4w9pz` | DevOps engineer, intermediate | about 4 h, 8 chapters, 16 lessons, 2 container labs: the condensed, theory-first cut of the course above, with a Gotchas section per lesson |

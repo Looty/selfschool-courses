@@ -1,0 +1,80 @@
+schemaVersion: 1
+id: q08
+title: "Check: build order and graphlib"
+questions:
+  - id: q08-1
+    type: trace
+    text: "Kahn's algorithm on this graph. `deps = {app: [lib, cfg], lib: [base], cfg: [base], base: []}`. What are the in-degrees at the start, and the ready queue and levels after each round?"
+    concepts: [kahn-algorithm, in-degree]
+    sources: [9]
+    code: |
+      indegree = {"app": 2, "lib": 1, "cfg": 1, "base": 0}
+      ready = ["base"]
+      # each round: take everything in ready as one level,
+      # lower the in-degree of its dependents, collect those that reach 0
+    variables: [ready, levels]
+    steps:
+      - {label: "Start", values: {ready: "[base]", levels: "[]"}, given: [ready, levels]}
+      - {label: "After round 1", values: {ready: "[cfg, lib]", levels: "[[base]]"}}
+      - {label: "After round 2", values: {ready: "[app]", levels: "[[base], [cfg, lib]]"}}
+      - {label: "After round 3", values: {ready: "[]", levels: "[[base], [cfg, lib], [app]]"}}
+    explanation: "Finishing base lowers lib and cfg to 0, so both are ready together (sorted: cfg, lib). Finishing both lowers app from 2 to 0. app is the only node in the last level."
+  - id: q08-2
+    type: mcq
+    text: "You build `ts = TopologicalSorter({'app': ['lib'], 'lib': ['base']})`. What does `tuple(ts.static_order())` return?"
+    concepts: [graphlib, predecessors]
+    sources: [34]
+    options:
+      - {text: "('base', 'lib', 'app')", correct: true, explanation: "The values are predecessors, the things that must come first, so base comes before lib before app."}
+      - {text: "('app', 'lib', 'base')", correct: false, explanation: "That would be right only if the dict mapped a node to what depends on it."}
+      - {text: "It raises CycleError", correct: false, explanation: "There is no cycle; base is added automatically with no predecessors."}
+      - {text: "It raises KeyError because 'base' is not a key", correct: false, explanation: "A predecessor not seen before is added automatically."}
+  - id: q08-3
+    type: fill
+    text: "Complete the graphlib loop that yields groups that can build in parallel."
+    concepts: [graphlib, parallel-levels]
+    sources: [34]
+    template: |
+      ts = TopologicalSorter(deps)
+      ts.{{1}}()
+      while ts.{{2}}():
+          group = ts.{{3}}()
+          ts.done(*group)
+    chips:
+      - {text: "prepare", slot: 1, explanation: "Marks the graph finished and checks for cycles; required before get_ready."}
+      - {text: "is_active", slot: 2, explanation: "True while more progress can be made."}
+      - {text: "get_ready", slot: 3, explanation: "Returns a tuple of all nodes whose predecessors are done."}
+      - {text: "static_order", explanation: "static_order is the all-in-one iterator and must not be combined with prepare and done."}
+  - id: q08-4
+    type: spot
+    text: "Click the line that makes this Kahn's algorithm run in quadratic time for a long queue."
+    concepts: [deque, complexity]
+    sources: [9]
+    code: |
+      ready = [t for t in graph if indegree[t] == 0]
+      order = []
+      while ready:
+          node = ready.pop(0)
+          order.append(node)
+          for target in dependents[node]:
+              indegree[target] -= 1
+              if indegree[target] == 0:
+                  ready.append(target)
+    correct: [4]
+    explanation: "list.pop(0) shifts every remaining element, so each pop is O(n). A deque's popleft is O(1)."
+  - id: q08-5
+    type: mcq
+    text: "Kahn's algorithm finishes with 5 of 7 targets built and no exception from your code yet. What does that tell you?"
+    concepts: [cycle-detection]
+    sources: [34]
+    options:
+      - {text: "The 2 remaining targets are blocked by a cycle, or depend on one", correct: true, explanation: "Nodes in a cycle never reach in-degree 0, and nodes behind them wait forever too."}
+      - {text: "The input contained duplicate dependencies", correct: false, explanation: "Duplicates are removed by using sets and do not stop nodes becoming ready."}
+      - {text: "The algorithm needs a second pass to finish", correct: false, explanation: "One pass visits every node that can ever become ready."}
+      - {text: "Two targets have no dependencies", correct: false, explanation: "Those would be ready at the start and built."}
+  - id: q08-6
+    type: short
+    text: "Which exception class does `TopologicalSorter.prepare()` raise when the graph has a cycle?"
+    concepts: [graphlib, cycle-detection]
+    sources: [34]
+    answers: ["CycleError", "graphlib.CycleError"]

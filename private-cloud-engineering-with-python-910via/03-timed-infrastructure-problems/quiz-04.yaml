@@ -1,0 +1,84 @@
+schemaVersion: 1
+id: q09
+title: "Check: caches and rate limiters"
+questions:
+  - id: q09-1
+    type: trace
+    text: "An LRUCache with capacity 2 runs these calls. What are the keys in order, least recently used first, after each one?"
+    concepts: [lru-cache, ordereddict]
+    sources: [9]
+    code: |
+      cache.put("a", 1)
+      cache.put("b", 2)
+      cache.get("a")
+      cache.put("c", 3)
+      cache.put("b", 4)
+    variables: [keys]
+    steps:
+      - {label: "put a", values: {keys: "[a]"}}
+      - {label: "put b", values: {keys: "[a, b]"}}
+      - {label: "get a", values: {keys: "[b, a]"}}
+      - {label: "put c", values: {keys: "[a, c]"}}
+      - {label: "put b", values: {keys: "[c, b]"}}
+    explanation: "get a moves a to the most recent end. put c makes three entries, so b, the least recently used, is evicted. put b then adds b again and evicts a."
+  - id: q09-2
+    type: trace
+    text: "A token bucket with rate 1 token per second and burst 2 starts full. Calls to allow() arrive at the times shown. What is the result and the token count after each call?"
+    concepts: [token-bucket]
+    sources: [38]
+    code: |
+      tokens = min(burst, tokens + (now - last) * rate)
+      if tokens >= 1: tokens -= 1; allowed
+    variables: [allowed, tokens]
+    steps:
+      - {label: "t = 0", values: {allowed: "True", tokens: 1}}
+      - {label: "t = 0 again", values: {allowed: "True", tokens: 0}}
+      - {label: "t = 0 third", values: {allowed: "False", tokens: 0}}
+      - {label: "t = 1.5", values: {allowed: "True", tokens: 0.5}}
+      - {label: "t = 2", values: {allowed: "True", tokens: 0}}
+    explanation: "The bucket starts at 2. Two calls spend both tokens and the third fails. By 1.5 s, 1.5 tokens have refilled: one is spent, leaving 0.5. By 2 s another 0.5 arrives, making 1.0, spent again."
+  - id: q09-3
+    type: spot
+    text: "Click the line that makes an updated entry get evicted too early."
+    concepts: [lru-cache, ordereddict]
+    sources: [9]
+    code: |
+      def put(self, key, value):
+          expires_at = None if self.ttl is None else self.clock() + self.ttl
+          self._data[key] = (value, expires_at)
+          if len(self._data) > self.capacity:
+              self._data.popitem(last=False)
+    correct: [3]
+    explanation: "Assigning to an existing key keeps its old position. Without move_to_end(key) right after, a key that was just written still looks old and can be the one popitem(last=False) removes."
+  - id: q09-4
+    type: mcq
+    text: "Which clock should the default `clock` argument be for a TTL cache, and why?"
+    concepts: [monotonic-clock, injectable-clock]
+    sources: [38]
+    options:
+      - {text: "time.monotonic, because it cannot go backwards and ignores system clock updates", correct: true, explanation: "Elapsed-time logic breaks if the clock can jump."}
+      - {text: "time.time, because it is the only clock with fractional seconds", correct: false, explanation: "monotonic also returns fractional seconds; time() can go back if the system clock is set back."}
+      - {text: "time.process_time, because it measures this process", correct: false, explanation: "process_time counts CPU time and excludes sleeping, which is wrong for expiry."}
+      - {text: "time.sleep, because it waits for the TTL", correct: false, explanation: "sleep suspends the thread; it is not a clock."}
+  - id: q09-5
+    type: match
+    text: "Match each tool to what it gives you."
+    concepts: [lru-cache, functools]
+    sources: [9, 11]
+    pairs:
+      - {left: "functools.lru_cache", right: "Memoises a pure function's results, evicting the least recently used", explanation: "It needs hashable arguments and has no TTL."}
+      - {left: "OrderedDict.move_to_end", right: "Marks a key as most recently used", explanation: "The key operation of an LRU cache."}
+      - {left: "OrderedDict.popitem(last=False)", right: "Removes the oldest entry", explanation: "last=False takes from the front, the least recently used end."}
+      - {left: "deque.popleft", right: "Drops the oldest timestamp from a sliding window", explanation: "O(1) removal from the left end."}
+    distractors:
+      - "Sorts a cache by value"
+  - id: q09-6
+    type: open
+    text: "Explain why a sliding-window limiter should not record rejected requests, and what a client would experience if it did."
+    concepts: [sliding-window, rate-limiting]
+    sources: [53]
+    rubric: |
+      States that recorded rejected requests keep filling the window.
+      Says a client that retries immediately would stay blocked as long as it keeps retrying.
+      Contrasts with recording only allowed requests, so the window empties once the client backs off.
+      Optionally mentions HTTP 429 and Retry-After as the way to tell the client when to retry.

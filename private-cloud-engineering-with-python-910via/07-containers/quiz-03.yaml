@@ -1,0 +1,103 @@
+schemaVersion: 1
+id: q20
+title: "Check: networking, limits and Compose"
+questions:
+  - id: q20-1
+    type: spot
+    text: "db needs about four seconds after it starts before it accepts connections, and api checks the db once at start-up. Click the line that lets api start too early."
+    concepts: [compose-depends-on, readiness]
+    sources: [81, 82]
+    code: |
+      services:
+        db:
+          build: ./db
+          environment:
+            LOAD_SECONDS: "4"
+        api:
+          build: ./app
+          ports:
+            - "127.0.0.1:18080:8080"
+          depends_on: [db]
+    correct: [10]
+    explanation: "The short depends_on syntax only waits until the db container is running, not until it is ready. Add a healthcheck to db and use depends_on with condition: service_healthy (and retry in the api code as well)."
+  - id: q20-2
+    type: trace
+    text: "You fix the failing stack one fault at a time, running docker compose up -d after each. Fault 1 (DB_HOST) is already fixed. What do the worker status, the api health seen from inside the api container, and the probe's GET http://api:8080/health show after each step?"
+    concepts: [compose-debugging, readiness, listen-address, oom-kill]
+    sources: [77, 81, 82, 125]
+    code: |
+      start:  DB_HOST set; BATCH_MB=256, mem_limit 64m; depends_on: [db]; BIND_ADDR unset (127.0.0.1)
+      fix 2:  BATCH_MB=32, mem_limit 128m
+      fix 3:  db healthcheck + depends_on condition: service_healthy
+      fix 4:  BIND_ADDR=0.0.0.0
+    variables: [worker, health_inside, probe]
+    steps:
+      - {label: "start", values: {worker: ["Exited (137)", "137"], health_inside: ["503"], probe: ["refused", "connection refused"]}, given: [health_inside]}
+      - {label: "fix 2", values: {worker: ["Up"], health_inside: ["503"], probe: ["refused", "connection refused"]}}
+      - {label: "fix 3", values: {worker: ["Up"], health_inside: ["200"], probe: ["refused", "connection refused"]}}
+      - {label: "fix 4", values: {worker: ["Up"], health_inside: ["200"], probe: ["200"]}}
+    explanation: "At the start the worker is OOM-killed (137) and the api checked the db before it was listening, so it serves 503. Fixing the batch size keeps the worker up but changes nothing for the api. The health-check wait makes the api's one start-up check succeed (200 from inside), yet other containers are still refused because the api listens on its own loopback. Only BIND_ADDR=0.0.0.0 lets the probe reach it. These were the results in the course's test run."
+  - id: q20-3
+    type: match
+    text: "Match each symptom to its most likely cause."
+    concepts: [compose-debugging, exit-status]
+    sources: [79, 105, 125]
+    pairs:
+      - {left: "Exited (137), OOMKilled=true", right: "The cgroup memory limit was reached and the OOM killer sent SIGKILL", explanation: "128 + 9 = 137, and OOMKilled confirms the memory limit."}
+      - {left: "Exited (1) with a Python traceback", right: "The application raised an uncaught exception", explanation: "A KeyError for a missing environment variable is a typical case."}
+      - {left: "Name resolves but connection refused on the container port", right: "The process listens on 127.0.0.1 inside its container", explanation: "DNS works, so the network is fine; nothing listens on the container's network interface."}
+      - {left: "docker stop waits the full timeout, then exit 137, no shutdown log", right: "Shell-form ENTRYPOINT: /bin/sh is PID 1 and does not pass SIGTERM", explanation: "The app never sees SIGTERM, so the SIGKILL after the grace period ends it."}
+      - {left: "Service is up but reports its dependency unavailable forever", right: "It started before the dependency was ready and never retried", explanation: "Short depends_on waits for running, not ready."}
+    distractors:
+      - "The image was built with an unpinned base tag"
+  - id: q20-4
+    type: fill
+    text: "Complete the fixed api service: wait for a healthy db, publish to the host only, and restart unless someone stopped it."
+    concepts: [compose-depends-on, port-publishing, restart-policy]
+    sources: [77, 80, 81]
+    template: |
+      api:
+        build: ./app
+        ports:
+          - "{{1}}:18080:8080"
+        environment:
+          BIND_ADDR: "{{2}}"
+        depends_on:
+          db:
+            condition: {{3}}
+        restart: {{4}}
+    chips:
+      - {text: "127.0.0.1", slot: 1, explanation: "A host address in the port mapping keeps the published port off other hosts' reach."}
+      - {text: "0.0.0.0", slot: 2, explanation: "Inside the container the app must listen on all interfaces so the published port and other containers reach it."}
+      - {text: "service_healthy", slot: 3, explanation: "Waits until db's healthcheck passes."}
+      - {text: "unless-stopped", slot: 4, explanation: "Restarts after failures and daemon restarts, but not after a manual stop."}
+      - {text: "service_started", explanation: "Same as the short syntax: it waits for running, not ready."}
+      - {text: "always", explanation: "Close, but a manually stopped container would come back when the daemon restarts."}
+  - id: q20-5
+    type: sort
+    text: "In a Compose project whose network is pce-ch07-stack_default, does each connection work or fail?"
+    concepts: [container-networking, port-publishing]
+    sources: [75, 77, 82]
+    buckets: ["Works", "Fails"]
+    items:
+      - {text: "api connects to db:7000", bucket: "Works", explanation: "Service names resolve through Docker's DNS, and inside the network you use the container port."}
+      - {text: "api connects to localhost:7000 to reach db", bucket: "Fails", explanation: "localhost inside api is api's own loopback; db is a different container."}
+      - {text: "The host runs curl localhost:18080 with ports \"18080:8080\" and the app on 0.0.0.0:8080", bucket: "Works", explanation: "The published port forwards to a process listening on the container's interface."}
+      - {text: "The host runs curl localhost:18080 while the app listens on 127.0.0.1:8080 in its container", bucket: "Fails", explanation: "Forwarded traffic arrives on the container's network interface, where nothing listens."}
+      - {text: "worker connects to api:18080", bucket: "Fails", explanation: "18080 is the host port; inside the network the api listens on 8080."}
+      - {text: "Two containers on Docker's default bridge network reach each other by container name", bucket: "Fails", explanation: "The default bridge has no name resolution; only user-defined networks, such as Compose's, do."}
+  - id: q20-6
+    type: fill
+    text: "Complete the commands used in the lab: run the debug-only probe, see what PID 1 is in db, and stop db with a ten second grace period."
+    concepts: [compose-debugging, compose-profiles, pid-1, docker-stop]
+    sources: [79, 81]
+    template: |
+      docker compose {{1}} debug run --rm probe
+      docker compose exec db cat {{2}} | tr '\0' ' '
+      docker compose stop {{3}} 10 db
+    chips:
+      - {text: "--profile", slot: 1, explanation: "probe has profiles: [debug], so it only runs when that profile is activated."}
+      - {text: "/proc/1/cmdline", slot: 2, explanation: "PID 1's command line, with arguments separated by NUL bytes, shows whether a shell or the app is the main process."}
+      - {text: "-t", slot: 3, explanation: "Sets how many seconds to wait after SIGTERM before SIGKILL."}
+      - {text: "/proc/self/cgroup", explanation: "That shows the cgroup of the cat process itself, not which program is PID 1."}
+      - {text: "--signal", explanation: "It chooses which signal is sent, not how long to wait."}

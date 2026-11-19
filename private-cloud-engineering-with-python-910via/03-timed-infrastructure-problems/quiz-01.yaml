@@ -1,0 +1,71 @@
+schemaVersion: 1
+id: q06
+title: "Check: log aggregation"
+questions:
+  - id: q06-1
+    type: mcq
+    text: "`log_stats` receives an open file of 10 GB. Which first line of the function keeps it workable?"
+    concepts: [streaming-input, generators]
+    sources: [18, 20]
+    options:
+      - {text: "for line in lines:", correct: true, explanation: "Iterating a file object reads one line at a time, so memory stays flat."}
+      - {text: "lines = list(lines)", correct: false, explanation: "That loads every line into memory before any work starts."}
+      - {text: "lines = lines.read().splitlines()", correct: false, explanation: "read() returns the whole file as one string; it also fails on a generator, which has no read method."}
+      - {text: "lines = sorted(lines)", correct: false, explanation: "Sorting needs the whole input in memory and nothing in the problem asks for ordered input."}
+  - id: q06-2
+    type: spot
+    text: "Click the line that makes `parse_line` accept a line whose latency field is the text nan."
+    concepts: [input-validation, malformed-lines]
+    sources: [37, 35]
+    code: |
+      try:
+          when = datetime.strptime(ts, TS_FORMAT)
+          ipaddress.ip_address(ip)
+          status = int(status)
+          latency = float(latency)
+      except ValueError:
+          return None
+    correct: [5]
+    explanation: "float('nan') parses without error, so the try block cannot reject it. A range check such as 0 <= latency < math.inf is needed afterwards, because every comparison with nan is false."
+  - id: q06-3
+    type: trace
+    text: "Apply the nearest-rank rule (rank = ceil(pct * n / 100), 1-based) to the sorted list [10, 20, 30, 40]. What rank and value come out for each percentile?"
+    concepts: [percentile]
+    sources: [12]
+    code: |
+      values = [10, 20, 30, 40]
+      rank = ceil(pct * 4 / 100)
+      value = values[rank - 1]
+    variables: [rank, value]
+    steps:
+      - {label: "pct = 25", values: {rank: 1, value: 10}}
+      - {label: "pct = 50", values: {rank: 2, value: 20}}
+      - {label: "pct = 95", values: {rank: 4, value: 40}}
+    explanation: "25 percent of 4 is exactly 1, so rank 1 (value 10). 50 percent is rank 2 (20). 0.95 * 4 = 3.8 rounds up to 4, giving the maximum, 40. Nearest-rank always returns an observed value."
+  - id: q06-4
+    type: fill
+    text: "Complete the ranking of IP addresses by request count, highest first, ties by address ascending."
+    concepts: [sorting-keys, counter]
+    sources: [9, 12]
+    template: |
+      top = sorted(requests.items(), key=lambda kv: ({{1}}kv[1], {{2}}))[:top_n]
+    chips:
+      - {text: "-", slot: 1, explanation: "Negating the count sorts the highest count first while the sort stays ascending."}
+      - {text: "kv[0]", slot: 2, explanation: "The address is the second key, so equal counts are ordered by address."}
+      - {text: "reverse=True", explanation: "That would also reverse the tie-break, putting higher addresses first."}
+  - id: q06-5
+    type: mcq
+    text: "Why does the reference compute the error rate as errors divided by requests inside each minute rather than averaging per-request flags across the whole log?"
+    concepts: [error-rate, aggregation]
+    sources: [9]
+    options:
+      - {text: "The problem asks for a rate per minute, so each minute needs its own numerator and denominator", correct: true, explanation: "A single global ratio would hide a bad minute inside a long quiet period."}
+      - {text: "A defaultdict cannot store a float", correct: false, explanation: "It can store any value; the reference keeps a [requests, errors] list and divides at the end."}
+      - {text: "Counter.most_common() only works per minute", correct: false, explanation: "most_common is not used for the error rate at all."}
+      - {text: "Dividing early avoids integer overflow", correct: false, explanation: "Python integers do not overflow; this is not the reason."}
+  - id: q06-6
+    type: short
+    text: "Which exception type does `datetime.strptime` raise for a timestamp that does not match the format?"
+    concepts: [input-validation]
+    sources: [37]
+    answers: ["ValueError", "ValueError exception"]

@@ -1,0 +1,106 @@
+schemaVersion: 1
+id: q21
+title: "Check: HTTP semantics and Flask"
+questions:
+  - id: q21-1
+    type: sort
+    text: "Sort each method by the properties RFC 9110 gives it."
+    concepts: [safe-methods, idempotent-methods]
+    sources: [52]
+    buckets: ["Safe and idempotent", "Idempotent, not safe", "Neither"]
+    items:
+      - {text: "GET", bucket: "Safe and idempotent", explanation: "GET asks only to read, so it is safe, and every safe method is idempotent."}
+      - {text: "HEAD", bucket: "Safe and idempotent", explanation: "HEAD is GET without the body; it changes nothing."}
+      - {text: "OPTIONS", bucket: "Safe and idempotent", explanation: "OPTIONS asks what the server supports; it is read-only."}
+      - {text: "PUT", bucket: "Idempotent, not safe", explanation: "PUT changes state, but sending the same PUT twice leaves the same result."}
+      - {text: "DELETE", bucket: "Idempotent, not safe", explanation: "Deleting twice has the same intended effect as deleting once, even if the second response differs."}
+      - {text: "POST", bucket: "Neither", explanation: "Each POST may create something new, so repeating it can duplicate work."}
+  - id: q21-2
+    type: match
+    text: "Match each situation in the VM API to the status code it should return."
+    concepts: [http-status-codes]
+    sources: [52, 53]
+    pairs:
+      - {left: "POST /vms stored the request and queued the build", right: "202 Accepted", explanation: "The request is accepted but processing has not finished."}
+      - {left: "DELETE /vms/7 succeeded and there is nothing to return", right: "204 No Content", explanation: "Success with no body."}
+      - {left: "A VM with that name already exists", right: "409 Conflict", explanation: "The request clashes with the current state of the resource."}
+      - {left: "The request carries no token at all", right: "401 Unauthorized", explanation: "401 means valid authentication credentials are missing."}
+      - {left: "The token is valid but the user may not delete this VM", right: "403 Forbidden", explanation: "The server understood who it is and refuses."}
+      - {left: "The client sent 300 requests in a minute", right: "429 Too Many Requests", explanation: "Rate limiting, defined in RFC 6585, optionally with Retry-After."}
+    distractors:
+      - "201 Created"
+      - "504 Gateway Timeout"
+  - id: q21-3
+    type: spot
+    text: "With this app, `GET /nope` returns a JSON error body but status 200. Which line causes that?"
+    concepts: [flask-error-handlers]
+    sources: [46]
+    code: |
+      from flask import Flask, jsonify
+      from werkzeug.exceptions import HTTPException
+
+      def create_app():
+          app = Flask(__name__)
+
+          @app.errorhandler(HTTPException)
+          def json_error(error):
+              return jsonify(error=error.description)
+
+          @app.delete("/vms/<int:vm_id>")
+          def delete_vm(vm_id):
+              app.config.setdefault("VMS", {}).pop(vm_id, None)
+              return "", 204
+
+          return app
+    correct: [9]
+    explanation: "Flask does not set the response status to the handler's code. The handler must return it, for example `return jsonify(error=error.description), error.code`. In the course's test run this app answered GET /nope with 200."
+  - id: q21-4
+    type: fill
+    text: "Complete the Flask view for `POST /vms`. The VM is built later by a worker, so the response must not claim it exists yet."
+    concepts: [flask-routes, http-status-codes]
+    sources: [45, 52]
+    template: |
+      @bp.{{1}}("/vms")
+      def create_vm():
+          data = request.get_json(silent=True)
+          if validate(data):
+              {{2}}(400, description="invalid body")
+          vm = save_and_enqueue(data)
+          return vm, {{3}}, {"Location": f"/vms/{vm['id']}"}
+    chips:
+      - {text: "post", slot: 1, explanation: "A route answers only GET unless you ask for another method; @bp.post is the shortcut."}
+      - {text: "abort", slot: 2, explanation: "abort raises an HTTP error and stops the view."}
+      - {text: "202", slot: 3, explanation: "Accepted: processing has not completed, and Location points to where the status can be read."}
+      - {text: "201", explanation: "201 says a new resource has been created; here the build has not happened yet."}
+      - {text: "route", explanation: "@bp.route('/vms') with no methods list answers only GET, so POST would get 405."}
+  - id: q21-5
+    type: trace
+    text: "Send these requests, in order, to one app built by the drill's `create_app()`. What are the status code, the number of stored VMs and `next_id` after each?"
+    concepts: [idempotent-methods, flask-drill]
+    sources: [52]
+    code: |
+      1. POST   /vms    {"name": "web-1", "cpus": 2, "memory_mb": 2048}
+      2. POST   /vms    the same body again
+      3. DELETE /vms/1
+      4. DELETE /vms/1
+      5. GET    /vms/1
+      6. POST   /vms    {"name": "web-1", "cpus": 2, "memory_mb": 2048}
+    variables: [status, vm_count, next_id]
+    steps:
+      - {label: "After 1", values: {status: 201, vm_count: 1, next_id: 2}}
+      - {label: "After 2", values: {status: 409, vm_count: 1, next_id: 2}}
+      - {label: "After 3", values: {status: 204, vm_count: 0, next_id: 2}}
+      - {label: "After 4", values: {status: 204, vm_count: 0, next_id: 2}}
+      - {label: "After 5", values: {status: 404, vm_count: 0, next_id: 2}}
+      - {label: "After 6", values: {status: 201, vm_count: 1, next_id: 3}}
+    explanation: "The duplicate name is a 409 and stores nothing. DELETE answers 204 both times because it is idempotent. Ids are never reused, so the new web-1 gets id 2 and next_id becomes 3. These values come from the course's test run."
+  - id: q21-6
+    type: mcq
+    text: "A client's request timed out before any response arrived. Which requests may it resend automatically without extra safeguards?"
+    concepts: [idempotent-methods, retries]
+    sources: [52]
+    options:
+      - {text: "GET /vms/7", correct: true, explanation: "Safe methods are idempotent, so a repeat has the same intended effect."}
+      - {text: "DELETE /vms/7", correct: true, explanation: "DELETE is idempotent; the second call may answer differently, but the VM is gone either way."}
+      - {text: "POST /vms", correct: false, explanation: "POST is not idempotent; a resend could create a second VM. It needs an idempotency key or a way to detect the first request."}
+      - {text: "Any request, because the server logs each one separately", correct: false, explanation: "Logging is allowed even for idempotent methods; it does not make POST safe to repeat."}

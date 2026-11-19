@@ -1,0 +1,99 @@
+schemaVersion: 1
+id: q29
+title: "Check: credentials, parallel, shared libraries and Groovy"
+questions:
+  - id: q29-1
+    type: spot
+    text: "This pipeline's console log shows only ****, yet a security review flags it. Click the line that leaks the token."
+    concepts: [jenkins-credentials, groovy-interpolation]
+    sources: [144]
+    code: |
+      pipeline {
+          agent { label 'docker' }
+          environment {
+              API_TOKEN = credentials('vmapi-token')
+          }
+          stages {
+              stage('Smoke test') {
+                  steps {
+                      sh 'curl -fsS https://vmapi.example.internal/health'
+                      sh "curl -fsS -H 'Authorization: Bearer ${API_TOKEN}' https://vmapi.example.internal/vms"
+                  }
+              }
+          }
+      }
+    correct: [10]
+    explanation: "The double-quoted GString makes Groovy paste the secret into the command before it reaches the agent, so it lands in the process arguments, visible with ps, and any shell characters in it run. Jenkins warns 'A secret was passed to sh using Groovy String interpolation'. Write it in single quotes with the header in double quotes inside, so the shell expands $API_TOKEN from its environment."
+  - id: q29-2
+    type: trace
+    text: "STATEMENT is a build parameter whose value is: hello; ls /   For each line, what string does Groovy hand over (to echo or to the shell), and does ls / run?"
+    concepts: [groovy-interpolation, jenkins-injection]
+    sources: [144]
+    code: |
+      def user = 'ops'
+      echo 'Hi ${user}'              // 1
+      echo "Hi ${user}"              // 2
+      sh "echo ${STATEMENT}"         // 3
+      sh 'echo ${STATEMENT}'         // 4
+    variables: [string_passed, ls_runs]
+    steps:
+      - {label: "1", values: {string_passed: ["Hi ${user}"], ls_runs: ["no"]}}
+      - {label: "2", values: {string_passed: ["Hi ops"], ls_runs: ["no"]}}
+      - {label: "3", values: {string_passed: ["echo hello; ls /"], ls_runs: ["yes"]}}
+      - {label: "4", values: {string_passed: ["echo ${STATEMENT}"], ls_runs: ["no"]}}
+    explanation: "Single-quoted Groovy strings are literal (1, 4); double-quoted ones interpolate (2, 3). In 3 the parameter text becomes part of the command, so the shell sees two commands and lists the root directory. In 4 the shell expands $STATEMENT as data, and echo prints 'hello; ls /' without running ls."
+  - id: q29-3
+    type: fill
+    text: "Complete the Scripted snippet so the token is bound only inside the block and read by the shell, not by Groovy."
+    concepts: [jenkins-credentials, groovy-interpolation]
+    sources: [144]
+    template: |
+      node('docker') {
+          {{1}}([string(credentialsId: 'registry-token', variable: {{2}})]) {
+              sh {{3}}
+          }
+      }
+    chips:
+      - {text: "withCredentials", slot: 1, explanation: "withCredentials binds credentials for the duration of its block only."}
+      - {text: "'REG_TOKEN'", slot: 2, explanation: "The variable name the secret is exported under."}
+      - {text: "'echo \"$REG_TOKEN\" | docker login -u ci-bot --password-stdin registry.example.internal'", slot: 3, explanation: "Single quotes outside: the shell reads $REG_TOKEN from its environment."}
+      - {text: "\"echo ${REG_TOKEN} | docker login -u ci-bot --password-stdin registry.example.internal\"", explanation: "A GString: Groovy would paste the secret into the command line."}
+      - {text: "environment", explanation: "environment is a Declarative directive; Scripted uses withCredentials or withEnv."}
+  - id: q29-4
+    type: match
+    text: "Match each piece of a shared library to its role."
+    concepts: [jenkins-shared-libraries]
+    sources: [145]
+    pairs:
+      - {left: "vars/buildPythonService.groovy with def call(Map config)", right: "A custom step called buildPythonService(...)", explanation: "The file name is the variable name; a call method makes it behave like a step."}
+      - {left: "vars/buildPythonService.txt", right: "Help text for that step", explanation: "A .txt next to the .groovy file documents the variable."}
+      - {left: "src/org/example/Helper.groovy", right: "A class added to the classpath and imported", explanation: "src looks like a Java source tree."}
+      - {left: "resources/org/example/defaults.json", right: "A file read as a string with libraryResource", explanation: "For non-Groovy data files in external libraries."}
+      - {left: "@Library('platform-lib@v1.4.0') _", right: "Loads the library pinned to one tag", explanation: "The version after @ can be a branch, tag or commit; the underscore is just something for the annotation to sit on."}
+    distractors:
+      - "Runs the library code on the built-in node only"
+  - id: q29-5
+    type: sort
+    text: "Is each construct Declarative syntax or Scripted syntax?"
+    concepts: [jenkins-declarative-vs-scripted]
+    sources: [142, 143, 144]
+    buckets: ["Declarative", "Scripted"]
+    items:
+      - {text: "pipeline { agent none ... }", bucket: "Declarative", explanation: "The pipeline block is the Declarative top level."}
+      - {text: "post { failure { mail ... } }", bucket: "Declarative", explanation: "post is the Declarative way to handle the outcome."}
+      - {text: "when { branch 'main' }", bucket: "Declarative", explanation: "A stage directive in Declarative."}
+      - {text: "environment { CC = 'clang' }", bucket: "Declarative", explanation: "Scripted uses withEnv instead."}
+      - {text: "node('docker') { ... }", bucket: "Scripted", explanation: "node is the core block of Scripted Pipeline."}
+      - {text: "try { sh 'make check' } finally { junit '...' }", bucket: "Scripted", explanation: "Scripted handles failure with Groovy try/catch/finally."}
+      - {text: "if (env.BRANCH_NAME == 'main') { stage('Deploy') { ... } }", bucket: "Scripted", explanation: "Plain Groovy flow control."}
+      - {text: "parallel testBranches   (a Map of closures)", bucket: "Scripted", explanation: "Declarative writes parallel as a section with nested stage blocks."}
+  - id: q29-6
+    type: mcq
+    text: "environment { NEXUS = credentials('nexus-creds') } binds a Username with password credential. Which variables can the sh steps of that scope read?"
+    concepts: [jenkins-credentials]
+    sources: [143, 144]
+    options:
+      - {text: "NEXUS (as user:password), NEXUS_USR and NEXUS_PSW", correct: true, explanation: "For username/password credentials the helper sets the combined value plus the _USR and _PSW suffixes."}
+      - {text: "Only NEXUS_USER and NEXUS_PASSWORD", correct: false, explanation: "The suffixes are always _USR and _PSW, and the combined variable exists too."}
+      - {text: "Only NEXUS, holding the path of a temporary file", correct: false, explanation: "That describes a Secret file credential."}
+      - {text: "None: username/password needs withCredentials", correct: false, explanation: "credentials() supports secret text, username and password, and secret file."}

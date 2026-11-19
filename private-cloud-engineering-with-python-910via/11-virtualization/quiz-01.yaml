@@ -1,0 +1,80 @@
+schemaVersion: 1
+id: q30
+title: "Check: KVM, QEMU, Vagrant and cloud-init"
+questions:
+  - id: q30-1
+    type: sort
+    text: "Does each statement describe a container or a virtual machine?"
+    concepts: [containers-vs-vms]
+    sources: [102, 104]
+    buckets: ["Container", "Virtual machine"]
+    items:
+      - {text: "Boots its own kernel on virtual hardware", bucket: "Virtual machine", explanation: "A VM pretends to be a whole computer, including its own operating system kernel."}
+      - {text: "Shares the host's kernel with its neighbours", bucket: "Container", explanation: "A container is an isolated process, so every container on a machine uses the same kernel."}
+      - {text: "Starts in about a second because there is no OS to boot", bucket: "Container", explanation: "Nothing boots; a process starts."}
+      - {text: "Separated from neighbours by a hardware boundary the hypervisor creates", bucket: "Virtual machine", explanation: "That is why VM isolation is described as stronger."}
+      - {text: "On KVM, shows up on the host as a QEMU process you can see in top", bucket: "Virtual machine", explanation: "QEMU is the user-space process behind each KVM guest."}
+      - {text: "Isolated only by the shared kernel's features", bucket: "Container", explanation: "Namespaces and cgroups in one kernel, as chapter 7 showed."}
+  - id: q30-2
+    type: fill
+    text: "Create a thin overlay disk for a new VM on top of the golden image base.qcow2."
+    concepts: [qcow2-backing-file, qemu-img]
+    sources: [91, 101]
+    template: |
+      qemu-img create -f {{1}} -b {{2}} {{3}} qcow2 vm-demo-01.qcow2
+    chips:
+      - {text: "qcow2", slot: 1, explanation: "Backing files are a qcow2 feature; the overlay itself must be qcow2."}
+      - {text: "base.qcow2", slot: 2, explanation: "-b names the backing file the overlay records differences from."}
+      - {text: "-F", slot: 3, explanation: "-F gives the backing file's format, as in the cloud-init NoCloud example."}
+      - {text: "raw", explanation: "A raw image has no backing-file support."}
+      - {text: "-O", explanation: "-O is the output format of qemu-img convert, not of create."}
+  - id: q30-3
+    type: match
+    text: "Match each piece of the virtualization stack to its job."
+    concepts: [kvm-qemu-stack]
+    sources: [86, 87, 89, 90]
+    pairs:
+      - {left: "kvm.ko with kvm-intel.ko or kvm-amd.ko", right: "Kernel modules that run guest CPUs on the hardware extensions", explanation: "KVM is the in-kernel part, mainline since Linux 2.6.20."}
+      - {left: "/dev/kvm", right: "The device user space opens to create VMs and vCPUs with ioctl calls", explanation: "KVM_CREATE_VM, then KVM_CREATE_VCPU, then KVM_RUN."}
+      - {left: "QEMU", right: "User-space process that models the machine's memory and devices", explanation: "It provides the disks and network cards and asks KVM to run the CPU."}
+      - {left: "TCG", right: "QEMU's software CPU emulation, the default accelerator", explanation: "You must request KVM explicitly to avoid it."}
+      - {left: "virtio", right: "Paravirtualized devices recommended for guests", explanation: "Designed to be efficient to emulate, unlike copies of real hardware."}
+    distractors:
+      - "The daemon that stores domain XML definitions"
+  - id: q30-4
+    type: mcq
+    text: "On a new hypervisor host, egrep '^flags.*(vmx|svm)' /proc/cpuinfo prints lines, but ls /dev/kvm says No such file or directory. What does that tell you?"
+    concepts: [kvm-host-check]
+    sources: [88, 104]
+    options:
+      - {text: "The CPU advertises virtualization extensions, but KVM is not usable yet, for example because the module is not loaded or VT is disabled in the BIOS", correct: true, explanation: "kvm-ok checks exactly these two things in order, and as root also reads the MSRs to see whether the BIOS disabled VT."}
+      - {text: "KVM is ready; /dev/kvm is only created when the first VM starts", correct: false, explanation: "User space opens /dev/kvm to create a VM, so it must exist first."}
+      - {text: "The CPU has no virtualization support", correct: false, explanation: "The flags line says it does."}
+      - {text: "QEMU will use KVM automatically once installed", correct: false, explanation: "Without /dev/kvm there is nothing to accelerate with, and QEMU defaults to TCG anyway."}
+  - id: q30-5
+    type: trace
+    text: "A VM boots four times with the same user-data containing both runcmd and bootcmd entries. Does each list run?"
+    concepts: [cloud-init-first-boot]
+    sources: [101]
+    code: |
+      Boot 1: first boot, meta-data instance-id: vm-demo-01-v1
+      Boot 2: reboot, instance-id unchanged
+      Boot 3: user-data edited on the seed ISO, instance-id unchanged
+      Boot 4: instance-id changed to vm-demo-01-v2
+    variables: [runcmd, bootcmd]
+    steps:
+      - {label: "Boot 1", values: {runcmd: ["yes"], bootcmd: ["yes"]}}
+      - {label: "Boot 2", values: {runcmd: ["no"], bootcmd: ["yes"]}}
+      - {label: "Boot 3", values: {runcmd: ["no"], bootcmd: ["yes"]}}
+      - {label: "Boot 4", values: {runcmd: ["yes"], bootcmd: ["yes"]}}
+    explanation: "runcmd runs only on the first boot of an instance, and cloud-init decides 'first' by instance-id. Editing user-data alone (boot 3) does not count as a new instance; changing the instance-id (boot 4) does. bootcmd runs on every boot."
+  - id: q30-6
+    type: mcq
+    text: "You changed the shell provisioner in the Vagrantfile of a VM that is already running. Which command applies it without rebuilding the VM?"
+    concepts: [vagrant-commands]
+    sources: [99]
+    options:
+      - {text: "vagrant provision", correct: true, explanation: "It runs the configured provisioners against the running machine."}
+      - {text: "vagrant up", correct: false, explanation: "Provisioners run on the up that creates the machine; on an existing one up does not re-run them unless you add --provision."}
+      - {text: "vagrant destroy -f && vagrant up", correct: false, explanation: "It works, but it throws away the VM, which the question rules out."}
+      - {text: "vagrant halt", correct: false, explanation: "halt only shuts the machine down."}

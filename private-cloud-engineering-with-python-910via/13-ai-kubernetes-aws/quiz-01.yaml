@@ -1,0 +1,114 @@
+schemaVersion: 1
+id: q33
+title: "Check: AI tools, Kubernetes and AWS"
+questions:
+  - id: q33-1
+    type: spot
+    text: "This manifest should run three replicas and expose them on a port of every node. Which two lines are wrong?"
+    concepts: [k8s-resources, k8s-services]
+    sources: [169, 172]
+    code: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: vmapi
+      spec:
+        replicas: 3
+        selector:
+          matchLabels: {app: vmapi}
+        template:
+          metadata:
+            labels: {app: vmapi}
+          spec:
+            containers:
+              - name: api
+                image: registry.example.internal/vmapi:1.4.2
+                resources:
+                  requests: {cpu: "250m", memory: "256Mi"}
+                  limits: {cpu: "1", memory: "512m"}
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: vmapi
+      spec:
+        type: NodePort
+        selector: {app: vmapi}
+        ports:
+          - port: 80
+            targetPort: 8080
+            nodePort: 8080
+    correct: [18, 30]
+    explanation: "Line 18: a lower-case m means milli, so memory 512m is 0.512 bytes; write 512Mi. (cpu 250m on line 17 is fine: a quarter of a CPU.) Line 30: NodePort ports come from the range 30000-32767 by default, so 8080 is outside it; leave nodePort out and let Kubernetes pick one, or choose a port in the range."
+
+  - id: q33-2
+    type: match
+    text: "Match each Kubernetes component to its job."
+    concepts: [k8s-components]
+    sources: [166]
+    pairs:
+      - {left: "kube-apiserver", right: "Serves the Kubernetes HTTP API", explanation: "It is the control-plane component that exposes the API; kubectl commands are API requests."}
+      - {left: "etcd", right: "Stores all API data in a consistent key-value store", explanation: "It holds the desired and recorded state of every object."}
+      - {left: "kube-scheduler", right: "Picks a node for each Pod that has none yet", explanation: "It watches for unbound Pods and assigns them to suitable nodes."}
+      - {left: "kube-controller-manager", right: "Runs the built-in control loops, such as the Deployment controller", explanation: "Each controller moves current state towards the spec."}
+      - {left: "kubelet", right: "Makes sure the Pods' containers run on its node", explanation: "It is a node component; the container runtime underneath it does the actual running."}
+      - {left: "kube-proxy", right: "Maintains node network rules that implement Services", explanation: "It runs on every node and is listed as optional."}
+    distractors:
+      - "Builds container images from Dockerfiles"
+
+  - id: q33-3
+    type: sort
+    text: "Security group or network ACL: which does each statement describe?"
+    concepts: [aws-security-groups, aws-network-acls]
+    sources: [176]
+    buckets: ["Security group", "Network ACL"]
+    items:
+      - {text: "Attached at the instance level", bucket: "Security group", explanation: "It applies to every instance associated with it."}
+      - {text: "Attached at the subnet level", bucket: "Network ACL", explanation: "It applies to every instance in the associated subnets."}
+      - {text: "Has allow rules only", bucket: "Security group", explanation: "Anything not allowed is refused, so there is nothing to deny explicitly."}
+      - {text: "Can deny a specific range of addresses", bucket: "Network ACL", explanation: "Network ACLs have both allow and deny rules."}
+      - {text: "Return traffic is allowed automatically", bucket: "Security group", explanation: "It is stateful: it remembers the connection."}
+      - {text: "Return traffic needs its own rule", bucket: "Network ACL", explanation: "It is stateless, so replies are checked like any other packet."}
+      - {text: "Rules are checked in ascending order until one matches", bucket: "Network ACL", explanation: "The first matching rule decides; a security group looks at all its rules."}
+      - {text: "AWS recommends it as the primary access control", bucket: "Security group", explanation: "Network ACLs are suggested as a coarse, stateless second layer."}
+
+  - id: q33-4
+    type: sort
+    text: "Your organisation allows an AI coding assistant on its source code. Which of these can you paste into a prompt, and which must stay out?"
+    concepts: [ai-sensitive-data]
+    sources: [182, 183]
+    buckets: ["Fine to paste", "Keep out of the prompt"]
+    items:
+      - {text: "The .env file with the database password", bucket: "Keep out of the prompt", explanation: "Credentials are sensitive information that may later be disclosed; block the tool from reading .env with a deny rule."}
+      - {text: "A kubeconfig that contains a client token", bucket: "Keep out of the prompt", explanation: "The token grants cluster access; that is a security credential."}
+      - {text: "A CSV export of customer names and email addresses", bucket: "Keep out of the prompt", explanation: "Personal data is listed by OWASP LLM02 as sensitive."}
+      - {text: "A private SSH key from ~/.ssh", bucket: "Keep out of the prompt", explanation: "A key is a credential, whatever the task."}
+      - {text: "A failing unit test's traceback with hostnames and tokens removed", bucket: "Fine to paste", explanation: "It is the material the tool needs, with the sensitive parts stripped."}
+      - {text: "Made-up sample log lines for a regular expression you want written", bucket: "Fine to paste", explanation: "Invented data carries nothing to leak, and regexes are a listed strength."}
+      - {text: "A function from the repository the tool is allowed to read", bucket: "Fine to paste", explanation: "The organisation already allows the tool on its code."}
+
+  - id: q33-5
+    type: match
+    text: "Match each AWS term to what it is."
+    concepts: [aws-basics]
+    sources: [174, 175, 177, 178]
+    pairs:
+      - {left: "EC2 instance", right: "A virtual server", explanation: "Its instance type fixes CPU, memory and network capacity."}
+      - {left: "AMI", right: "A template with the operating system and software an instance starts from", explanation: "The closest private-cloud analogue is a golden VM image."}
+      - {left: "Subnet", right: "A range of IP addresses in a VPC, inside one Availability Zone", explanation: "A subnet cannot span Availability Zones."}
+      - {left: "S3 bucket", right: "A container for objects, each found by its key", explanation: "Buckets and their objects are private by default."}
+      - {left: "IAM policy", right: "A JSON document that defines what an identity or resource may do", explanation: "An explicit deny in any applicable policy beats an allow."}
+      - {left: "EBS volume", right: "A persistent disk for an instance", explanation: "Instance store volumes, by contrast, lose their data when the instance stops or terminates."}
+    distractors:
+      - "A stateless firewall attached to a subnet"
+
+  - id: q33-6
+    type: mcq
+    text: "A Deployment has replicas 8 and no strategy settings. While a new image rolls out, how many of its Pods can be up at once?"
+    concepts: [k8s-deployments, rolling-update]
+    sources: [168]
+    options:
+      - {text: "At least 6 and at most 10", correct: true, explanation: "The defaults are maxUnavailable 25% and maxSurge 25%: 25% of 8 is 2, so at least 8 - 2 = 6 and at most 8 + 2 = 10."}
+      - {text: "Exactly 8 the whole time", correct: false, explanation: "That would need both values to be 0, which is not allowed."}
+      - {text: "Between 0 and 8, because old Pods go first", correct: false, explanation: "That describes the Recreate strategy; RollingUpdate is the default."}
+      - {text: "At least 7 and at most 9", correct: false, explanation: "That would be maxUnavailable 1 and maxSurge 1; the defaults are 25%, which is 2 of 8."}

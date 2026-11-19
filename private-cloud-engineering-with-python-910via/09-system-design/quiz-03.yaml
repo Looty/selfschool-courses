@@ -1,0 +1,78 @@
+schemaVersion: 1
+id: q27
+title: "Check: designing a CI and build system"
+questions:
+  - id: q27-1
+    type: sort
+    text: "Should each check run on presubmit (before merge) or only on post-submit (after merge)?"
+    concepts: [presubmit-vs-postsubmit]
+    sources: [163]
+    buckets: ["Presubmit", "Post-submit"]
+    items:
+      - {text: "Lint and unit tests that finish in two minutes", bucket: "Presubmit", explanation: "Fast, reliable checks belong before merge, where the author is waiting."}
+      - {text: "A security scan that takes 90 seconds and never flakes", bucket: "Presubmit", explanation: "Fast and reliable: exactly what presubmit is for."}
+      - {text: "The full end-to-end suite that takes an hour", bucket: "Post-submit", explanation: "Too slow and expensive to make every author wait for it."}
+      - {text: "Tests known to be flaky, kept running to collect data", bucket: "Post-submit", explanation: "Flaky tests on presubmit block authors for failures they did not cause."}
+      - {text: "Catching two changes that each passed but break the build together", bucket: "Post-submit", explanation: "A mid-air collision only shows once both changes are on main."}
+  - id: q27-2
+    type: match
+    text: "Match each DORA metric to its definition."
+    concepts: [dora-metrics]
+    sources: [164]
+    pairs:
+      - {left: "Change lead time", right: "Time from a commit to that change running in production", explanation: "It measures how long the delivery pipeline takes for one change."}
+      - {left: "Deployment frequency", right: "Number of deployments in a period", explanation: "Or the time between deployments."}
+      - {left: "Failed deployment recovery time", right: "Time to recover from a deployment that needed immediate intervention", explanation: "Older material called a similar idea MTTR; the current guide uses this name and groups it under throughput."}
+      - {left: "Change fail rate", right: "Share of deployments that needed immediate intervention", explanation: "Usually a rollback or a hotfix."}
+      - {left: "Deployment rework rate", right: "Share of deployments that were unplanned, caused by a production incident", explanation: "The newest of the five metrics, grouped with change fail rate under instability."}
+    distractors:
+      - "Share of CI runs that are green"
+  - id: q27-3
+    type: fill
+    text: "Put the steps of a build that uses a remote cache, with read and write access, in order."
+    concepts: [remote-cache]
+    sources: [161]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+    chips:
+      - {text: "Build the graph of targets and the list of actions with their declared inputs and outputs", slot: 1, explanation: "Hashing declared inputs is what makes a cache lookup possible."}
+      - {text: "Reuse outputs already present on the local machine", slot: 2, explanation: "Local results are checked first."}
+      - {text: "Look up the remaining actions in the remote cache and download hits", slot: 3, explanation: "A hit skips running the action."}
+      - {text: "Run the actions that missed, locally", slot: 4, explanation: "Only misses cost build time."}
+      - {text: "Upload the new outputs to the remote cache", slot: 5, explanation: "The next machine can now reuse them."}
+      - {text: "Upload the whole source tree to the cache before building", explanation: "The cache stores action results and output files keyed by hashes, not source snapshots."}
+  - id: q27-4
+    type: mcq
+    text: "Two CI agents build the same commit. One has an older system compiler in /usr/bin. Both read and write one remote cache. What is the risk?"
+    concepts: [remote-cache, hermetic-builds]
+    sources: [161, 162]
+    options:
+      - {text: "Wrong cache hits: the compiler is not a tracked input, so outputs built with one compiler are reused by the other", correct: true, explanation: "Tools outside the workspace are not part of the action hash. A hermetic build treats the compiler as a declared input."}
+      - {text: "No risk: the cache key is the commit hash", correct: false, explanation: "Keys are per action, from declared inputs; anything not declared, like a system compiler, is invisible to them."}
+      - {text: "The cache rejects uploads from the second agent", correct: false, explanation: "Nothing in the cache detects the difference; that is the problem."}
+      - {text: "Every build becomes a cache miss", correct: false, explanation: "The inputs it can see are identical, so hits happen, which is exactly how wrong outputs spread."}
+  - id: q27-5
+    type: mcq
+    text: "Why should builds not run on the Jenkins controller's built-in node?"
+    concepts: [ci-build-isolation]
+    sources: [149, 151]
+    options:
+      - {text: "A build there has the same access to the controller's file system as Jenkins itself, and build content is often controlled by less trusted people", correct: true, explanation: "Build scripts and tests can be edited by people who are not administrators, so their code must run on separate agents."}
+      - {text: "The built-in node cannot run shell steps", correct: false, explanation: "It can; that is what makes it dangerous."}
+      - {text: "Jenkins refuses to start with executors on the built-in node", correct: false, explanation: "Out of the box Jenkins does run builds there; you set its executors to 0 yourself."}
+      - {text: "Only because it is slow", correct: false, explanation: "Performance is one reason, but security is the main one."}
+  - id: q27-6
+    type: open
+    text: "Presubmit builds take 40 minutes at p95 and engineers complain. Explain how you would find where the time goes and what you would change, in order."
+    concepts: [ci-performance, remote-cache]
+    sources: [161, 162, 163]
+    rubric: |
+      - Measures first, splitting the time into queue wait, agent start, checkout, dependency download, compile and tests.
+      - Addresses queue wait with more agents at peak, for example agents created on demand per label.
+      - Proposes a remote cache, and notes it needs hermetic builds to give correct hits.
+      - Proposes running only the tests the change affects, using a dependency graph, and parallel shards.
+      - Moves slow or flaky tests from presubmit to post-submit, keeping presubmit fast and reliable.

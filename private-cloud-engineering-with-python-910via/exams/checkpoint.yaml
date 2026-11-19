@@ -1,0 +1,21 @@
+schemaVersion: 1
+id: checkpoint
+title: Coding checkpoint
+duration_minutes: 20
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 12
+domains:
+  - id: editor-and-routine
+    title: The editor, the limits and a routine
+    weight: 10
+    chapters: [01-coding-in-a-browser-editor]
+  - id: python-from-memory
+    title: Python from memory
+    weight: 50
+    chapters: [02-python-from-memory]
+  - id: timed-problems
+    title: Timed infrastructure problems
+    weight: 40
+    chapters: [03-timed-infrastructure-problems]

@@ -1,0 +1,105 @@
+schemaVersion: 1
+id: q28
+title: "Check: Jenkins architecture and declarative pipelines"
+questions:
+  - id: q28-1
+    type: spot
+    diff: true
+    text: "A colleague tidied the Jenkinsfile of a Multibranch job. After the merge, every feature branch deploys to production. Click the changed line that causes it."
+    concepts: [jenkins-when, jenkins-multibranch]
+    sources: [143]
+    code: |2
+       stage('Test') {
+           agent { label 'docker' }
+      -    steps { sh 'make check' }
+      +    steps { sh 'make check-all' }
+       }
+       stage('Deploy') {
+      -    when { branch 'main' }
+           agent { label 'deploy' }
+      -    steps { sh './deploy.sh' }
+      +    steps { sh './deploy.sh --wait' }
+       }
+    correct: [7]
+    explanation: "The removed when { branch 'main' } was the only thing limiting the stage to main. Without a when directive a stage runs on every branch the Multibranch job builds. The other changed lines only alter which commands run."
+  - id: q28-2
+    type: sort
+    text: "The previous run was SUCCESS and the current run ends as FAILURE. Which post condition blocks run?"
+    concepts: [jenkins-post-conditions]
+    sources: [143]
+    buckets: ["Runs", "Does not run"]
+    items:
+      - {text: "always", bucket: "Runs", explanation: "always runs whatever the status."}
+      - {text: "changed", bucket: "Runs", explanation: "The status differs from the previous run (SUCCESS to FAILURE)."}
+      - {text: "regression", bucket: "Runs", explanation: "Failure, unstable or aborted after a successful run is a regression."}
+      - {text: "failure", bucket: "Runs", explanation: "The run has the failed status."}
+      - {text: "unsuccessful", bucket: "Runs", explanation: "Any status other than success."}
+      - {text: "cleanup", bucket: "Runs", explanation: "cleanup runs last after every other condition, whatever the status."}
+      - {text: "fixed", bucket: "Does not run", explanation: "fixed needs the current run to succeed after a failed or unstable one; this is the opposite."}
+      - {text: "success", bucket: "Does not run", explanation: "The run failed."}
+  - id: q28-3
+    type: match
+    text: "Match each Jenkins term to what it is."
+    concepts: [jenkins-architecture]
+    sources: [148, 149]
+    pairs:
+      - {left: "Controller", right: "Stores configuration, loads plugins, serves the UI and decides where tasks run", explanation: "The central coordinating process; with distributed builds it only schedules and serves HTTP."}
+      - {left: "Agent", right: "A small Java client that connects to the controller and runs tasks", explanation: "A 170 KB jar, assumed to be unreliable, on any OS with Java."}
+      - {left: "Executor", right: "A slot that runs one task at a time on a node", explanation: "Effectively a thread; the count sets how many tasks run concurrently on that node."}
+      - {left: "Label", right: "Text that groups agents by capability, such as docker", explanation: "agent { label 'docker' } picks any agent carrying that label."}
+      - {left: "Artifact", right: "An immutable build output archived on the controller", explanation: "Unlike the workspace, which is disposable."}
+    distractors:
+      - "A cron expression that schedules builds"
+  - id: q28-4
+    type: fill
+    text: "Complete this Declarative Jenkinsfile so no executor is held for the whole run and the deploy stage runs only on main, checked before its agent is allocated."
+    concepts: [jenkins-declarative-structure, jenkins-when]
+    sources: [143]
+    template: |
+      pipeline {
+          agent {{1}}
+          {{2}} {
+              stage('Test') {
+                  agent { label 'docker' }
+                  {{3}} {
+                      sh 'make check'
+                  }
+              }
+              stage('Deploy') {
+                  when {
+                      {{4}}
+                      branch 'main'
+                  }
+                  agent { label 'deploy' }
+                  steps {
+                      sh './deploy.sh'
+                  }
+              }
+          }
+      }
+    chips:
+      - {text: "none", slot: 1, explanation: "agent none allocates nothing at top level, so each stage must declare its own agent."}
+      - {text: "stages", slot: 2, explanation: "stages holds the sequence of stage directives and is required."}
+      - {text: "steps", slot: 3, explanation: "Every stage needs a steps block (or nested stages, parallel or matrix)."}
+      - {text: "beforeAgent true", slot: 4, explanation: "Evaluates when before entering the agent, so a skipped stage never waits for a deploy agent."}
+      - {text: "any", explanation: "agent any would hold an executor on some node for the whole run."}
+      - {text: "node", explanation: "node is a block in Scripted syntax; Declarative uses stages and steps here."}
+  - id: q28-5
+    type: mcq
+    text: "Why does the Jenkins documentation say to set the built-in node's executors to 0?"
+    concepts: [jenkins-controller-isolation]
+    sources: [151, 152]
+    options:
+      - {text: "Builds on the built-in node have the same file-system access as the controller, and build scripts are written by less trusted people", correct: true, explanation: "That is the Controller Isolation argument; it also keeps the controller's CPU and memory for scheduling."}
+      - {text: "The built-in node cannot run sh steps", correct: false, explanation: "It can; the course's demo pipeline ran sh on it. The problem is access, not ability."}
+      - {text: "Executors on the controller are not counted in the build queue", correct: false, explanation: "They are ordinary executors; the docs give no such reason."}
+      - {text: "Pipelines on the built-in node do not survive a controller restart", correct: false, explanation: "Durability across restarts is a property of Pipeline in general, not of where it runs."}
+  - id: q28-6
+    type: mcq
+    text: "A Deploy stage with when { branch 'main' } sits in a plain Pipeline job (not Multibranch) that builds main. What happens?"
+    concepts: [jenkins-when, jenkins-multibranch]
+    sources: [143, 146]
+    options:
+      - {text: "The stage is skipped: the log says Stage \"Deploy\" skipped due to when conditional", correct: true, explanation: "The branch condition only works in a Multibranch Pipeline, which sets BRANCH_NAME. The course's test run showed exactly this log line."}
+      - {text: "The stage runs, because the job builds main", correct: false, explanation: "A plain Pipeline job has no branch for the condition to compare, so it never matches."}
+      - {text: "The Jenkinsfile fails validation", correct: false, explanation: "It is valid syntax; the linter accepted it. The behaviour shows only at run time."}
