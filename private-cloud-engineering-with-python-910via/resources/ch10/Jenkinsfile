@@ -1,0 +1,120 @@
+// Jenkinsfile for vmapi, a small Python service (chapter 10, lesson l28).
+// Declarative Pipeline for a Multibranch Pipeline job.
+// Needs on the controller: Pipeline, Docker Pipeline, Credentials Binding, JUnit and Mailer plugins.
+// Needs agents labelled 'docker' (Docker installed) and 'deploy' (can reach the target hosts).
+// Needs a "Username with password" credential with the id 'registry-push'.
+
+pipeline {
+    agent none
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        IMAGE = 'registry.example.internal/platform/vmapi'
+    }
+
+    stages {
+        stage('Lint') {
+            agent {
+                docker {
+                    image 'python:3.13-slim'
+                    label 'docker'
+                }
+            }
+            steps {
+                sh '''
+                    python -m venv .venv
+                    .venv/bin/pip install --quiet -r requirements-dev.txt
+                    .venv/bin/ruff check .
+                '''
+            }
+        }
+
+        stage('Test') {
+            failFast true
+            parallel {
+                stage('Python 3.12') {
+                    agent {
+                        docker {
+                            image 'python:3.12-slim'
+                            label 'docker'
+                        }
+                    }
+                    steps {
+                        sh '''
+                            python -m venv .venv
+                            .venv/bin/pip install --quiet -r requirements-dev.txt
+                            .venv/bin/pytest --junitxml=reports/junit-3.12.xml
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'reports/*.xml'
+                        }
+                    }
+                }
+                stage('Python 3.13') {
+                    agent {
+                        docker {
+                            image 'python:3.13-slim'
+                            label 'docker'
+                        }
+                    }
+                    steps {
+                        sh '''
+                            python -m venv .venv
+                            .venv/bin/pip install --quiet -r requirements-dev.txt
+                            .venv/bin/pytest --junitxml=reports/junit-3.13.xml
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'reports/*.xml'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build image') {
+            agent { label 'docker' }
+            environment {
+                REGISTRY = credentials('registry-push')
+            }
+            steps {
+                sh 'docker build -t "$IMAGE:$BUILD_NUMBER" .'
+                sh 'echo "$REGISTRY_PSW" | docker login -u "$REGISTRY_USR" --password-stdin registry.example.internal'
+                sh 'docker push "$IMAGE:$BUILD_NUMBER"'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                beforeAgent true
+                branch 'main'
+            }
+            agent { label 'deploy' }
+            steps {
+                sh './deploy.sh "$IMAGE:$BUILD_NUMBER"'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Built ${env.IMAGE}:${env.BUILD_NUMBER}"
+        }
+        failure {
+            mail to: 'platform-team@example.internal',
+                 subject: "Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "See ${env.BUILD_URL}"
+        }
+        fixed {
+            echo 'Back to green after a failed or unstable run'
+        }
+    }
+}

@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: final
+title: Final practice run
+duration_minutes: 45
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 30
+domains:
+  - id: python
+    title: Python coding and the system
+    weight: 26
+    chapters: [01-coding-in-a-browser-editor, 02-python-from-memory, 03-timed-infrastructure-problems, 04-python-and-the-system]
+  - id: linux
+    title: Linux foundations
+    weight: 14
+    chapters: [05-linux]
+  - id: git
+    title: Git
+    weight: 8
+    chapters: [06-git]
+  - id: containers
+    title: Containers
+    weight: 10
+    chapters: [07-containers]
+  - id: backend
+    title: Python backend
+    weight: 12
+    chapters: [08-python-backend]
+  - id: system-design
+    title: System design
+    weight: 10
+    chapters: [09-system-design]
+  - id: jenkins
+    title: Jenkins pipelines
+    weight: 6
+    chapters: [10-jenkins-and-ci]
+  - id: virtualization
+    title: Virtualization
+    weight: 6
+    chapters: [11-virtualization]
+  - id: ansible-and-fabric
+    title: Ansible and Fabric
+    weight: 4
+    chapters: [12-ansible-and-fabric]
+  - id: ai-kubernetes-aws
+    title: AI tools, Kubernetes and AWS
+    weight: 4
+    chapters: [13-ai-kubernetes-aws]

@@ -1,0 +1,113 @@
+schemaVersion: 1
+id: q32
+title: "Check: Ansible playbooks and Fabric"
+questions:
+  - id: q32-1
+    type: spot
+    text: "This play is meant to install a config file and record how many error lines the log has. Which two lines are wrong?"
+    concepts: [ansible-modules, ansible-command-vs-shell, file-mode]
+    sources: [135]
+    code: |
+      - name: Configure vmapi
+        hosts: hv_mgmt
+        become: true
+        tasks:
+          - name: Write the config file
+            ansible.builtin.template:
+              src: vmapi.conf.j2
+              dest: /etc/vmapi.conf
+              mode: 644
+            notify: Restart vmapi
+          - name: Count error lines in the log
+            ansible.builtin.command: grep -c ERROR /var/log/vmapi/app.log | tee /tmp/errors
+            changed_when: false
+        handlers:
+          - name: Restart vmapi
+            ansible.builtin.service:
+              name: vmapi
+              state: restarted
+    correct: [9, 12]
+    explanation: "Line 9: an unquoted 644 is read as a decimal number, not octal; write \"0644\". Line 12: the command module does not go through a shell, so the pipe is passed to grep as a literal argument; use ansible.builtin.shell if you really need the pipe. Restarting in a handler (lines 15 to 18) is the intended pattern: it only runs when the template reports changed."
+
+  - id: q32-2
+    type: trace
+    text: "A play has a template task that notifies the handler Restart vmapi, and a later task that can fail. For each run on the same host, what does the template task report, and does the handler run? Assume default settings."
+    concepts: [ansible-handlers, idempotency]
+    sources: [131, 135]
+    code: |
+      Run 1: fresh host, the unit file does not exist yet
+      Run 2: nothing edited since run 1
+      Run 3: you edit the template source; the later task fails on this host
+      Run 4: nothing edited since run 3; you fixed what made the later task fail
+    variables: [template_task, handler]
+    steps:
+      - {label: "Run 1", values: {template_task: "changed", handler: "runs"}}
+      - {label: "Run 2", values: {template_task: "ok", handler: "skipped"}}
+      - {label: "Run 3", values: {template_task: "changed", handler: "skipped"}}
+      - {label: "Run 4", values: {template_task: "ok", handler: "skipped"}}
+    explanation: "Run 1 writes the file, so the task is changed and the handler runs at the end of the play. Run 2 finds the file already right, reports ok and notifies nothing. In run 3 the file is rewritten (changed), but a later task fails on that host, and by default notified handlers then do not run. In run 4 the file on disk already matches, so the template reports ok and the notification from run 3 is lost: the service still runs the old unit. Use --force-handlers (or force_handlers in the play) to avoid this."
+
+  - id: q32-3
+    type: match
+    text: "Match each keyword or option to what it does."
+    concepts: [ansible-playbooks, idempotency, rolling-update]
+    sources: [129, 130, 131, 135, 136]
+    pairs:
+      - {left: "serial: 1", right: "Runs the whole play on one host before starting the next", explanation: "serial sets the batch size, which turns a play into a rolling update."}
+      - {left: "creates:", right: "Skips a command task when a given path already exists", explanation: "It makes an arbitrary command repeatable; check mode can also predict it."}
+      - {left: "changed_when:", right: "Defines when a task counts as changed", explanation: "It decides whether the task notifies handlers, for example by reading registered output."}
+      - {left: "register:", right: "Saves a task's result in a variable for later tasks", explanation: "Registered variables live on that host for the rest of the run."}
+      - {left: "--limit", right: "Narrows the run to hosts matching an extra pattern", explanation: "For example --limit hvm01 to try one host first."}
+      - {left: "meta: flush_handlers", right: "Runs the pending handlers now instead of at the end of the play", explanation: "site.yml uses it so the health check sees the restarted service."}
+    distractors:
+      - "Encrypts a variable so it can be stored in Git"
+      - "Sets the number of parallel processes"
+
+  - id: q32-4
+    type: fill
+    text: "Complete the Fabric script: upload the config only where it is missing, then read uptime from two hosts in parallel."
+    concepts: [fabric-connection, fabric-groups]
+    sources: [137]
+    template: |
+      from fabric import Connection, {{1}}
+
+      c = Connection("deploy@hvm01")
+      if c.run("test -f /etc/vmapi.conf", {{2}}).failed:
+          c.{{3}}("vmapi.conf", remote="/tmp/vmapi.conf")
+
+      results = ThreadingGroup("hvm01", "hvm02").run("uptime", hide=True)
+      for conn, result in results.{{4}}():
+          print(conn.host, result.stdout.strip())
+    chips:
+      - {text: "ThreadingGroup", slot: 1, explanation: "The group class used on the results line has to be imported; it runs the command on the hosts in parallel threads."}
+      - {text: "warn=True", slot: 2, explanation: "Without it a non-zero exit raises an exception, so .failed would never be read."}
+      - {text: "put", slot: 3, explanation: "put uploads a local file; get downloads."}
+      - {text: "items", slot: 4, explanation: "A GroupResult is dict-like, mapping each Connection to its Result."}
+      - {text: "get", explanation: "get downloads from the remote host, the opposite direction."}
+      - {text: "pty=True", explanation: "A pseudo-terminal is for interactive commands such as sudo prompts; it does not stop a failing command from raising."}
+
+  - id: q32-5
+    type: sort
+    text: "You run the same playbook twice in a row with nothing edited in between. On the second run, which tasks report no change, and which report changed again?"
+    concepts: [idempotency, ansible-modules]
+    sources: [131, 135]
+    buckets: ["No change on the second run", "Changed on every run"]
+    items:
+      - {text: "apt with state: present", bucket: "No change on the second run", explanation: "The package is already installed, so the module does nothing."}
+      - {text: "service with state: started", bucket: "No change on the second run", explanation: "started only acts when the service is not running."}
+      - {text: "service with state: restarted", bucket: "Changed on every run", explanation: "restarted always bounces the service; put restarts in handlers instead."}
+      - {text: "file with state: directory", bucket: "No change on the second run", explanation: "The directory already exists with the right mode."}
+      - {text: "file with state: touch", bucket: "Changed on every run", explanation: "touch updates the timestamps, so it always reports changed."}
+      - {text: "template whose source prints the current date", bucket: "Changed on every run", explanation: "The rendered file differs each time, which the template docs call out."}
+      - {text: "command with creates: pointing at a file the first run made", bucket: "No change on the second run", explanation: "The path exists, so the step is skipped."}
+
+  - id: q32-6
+    type: mcq
+    text: "inventory.ini sets vmapi_workers=2 for the group and vmapi_workers=4 on host hvm04. The play also has vars with vmapi_workers set to 3. No -e is given. What value does hvm04 get?"
+    concepts: [variable-precedence]
+    sources: [130]
+    options:
+      - {text: "3", correct: true, explanation: "Play vars sit above both inventory group and host variables in the precedence list, so they override hvm04's own value. That is why site.yml keeps vmapi_workers out of play vars."}
+      - {text: "4", correct: false, explanation: "A host variable does beat a group variable, but both are inventory variables, which rank below play vars."}
+      - {text: "2", correct: false, explanation: "The group variable is the lowest of the three here."}
+      - {text: "The run fails because the variable is defined twice", correct: false, explanation: "Defining a variable in several places is normal; precedence decides which value wins."}

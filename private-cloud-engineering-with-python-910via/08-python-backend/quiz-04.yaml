@@ -1,0 +1,93 @@
+schemaVersion: 1
+id: q24
+title: "Check: the VM request API lab"
+questions:
+  - id: q24-1
+    type: spot
+    text: "This view stores the request and queues the build for a worker. Which line sends the wrong message to the client?"
+    concepts: [http-202, http-status-codes]
+    sources: [52]
+    code: |
+      @bp.post("/vms")
+      def create_vm():
+          data = request.get_json(silent=True)
+          error = validate(data)
+          if error:
+              abort(400, description=error)
+          vm_id = uuid.uuid4().hex[:12]
+          r.hset(f"vm:{vm_id}", mapping={"id": vm_id, "status": "requested", **data})
+          queue.enqueue(tasks.provision, vm_id, retry=tasks.RETRY)
+          return {"id": vm_id, "status": "requested"}, 201, {"Location": f"/vms/{vm_id}"}
+    correct: [10]
+    explanation: "201 Created says the resource now exists. The VM will only exist after the worker builds it, so the answer is 202 Accepted with a Location the client can poll."
+  - id: q24-2
+    type: sort
+    text: "In the lab, which operations do a read-decide-write on a shared VM record and so need `lock:vm:<id>`?"
+    concepts: [redis-lock, race-conditions]
+    sources: [51]
+    buckets: ["Needs the VM lock", "Safe without it"]
+    items:
+      - {text: "DELETE moving any state to deleted", bucket: "Needs the VM lock", explanation: "It reads the status and writes a new one; a worker could change it in between."}
+      - {text: "The job moving requested or building to building", bucket: "Needs the VM lock", explanation: "Read, check the allowed states, write: a classic race with DELETE."}
+      - {text: "record_failure counting an attempt and maybe setting error", bucket: "Needs the VM lock", explanation: "It checks for building before writing; without the lock it could overwrite deleted."}
+      - {text: "POST writing a new hash under a fresh random id", bucket: "Safe without it", explanation: "No other process knows the id yet, so nobody can race on it."}
+      - {text: "GET reading the hash", bucket: "Safe without it", explanation: "A single read changes nothing; at worst it shows a status that changes a moment later."}
+      - {text: "Claiming an Idempotency-Key with SET NX EX", bucket: "Safe without it", explanation: "SET with NX is itself a single conditional write; only one client gets OK."}
+  - id: q24-3
+    type: trace
+    text: "Send these POSTs to the lab's Flask `app.py` (fresh Redis). Give the HTTP status, whether the returned id equals the first request's id, and how many jobs have been enqueued so far."
+    concepts: [idempotency-key]
+    sources: [58]
+    code: |
+      1. POST /vms  Idempotency-Key: K   body A {"name": "web-1", ...}
+      2. POST /vms  Idempotency-Key: K   body A
+      3. POST /vms  Idempotency-Key: K   body B {"name": "db-9", ...}
+      4. POST /vms  (no key)              body A
+    variables: [http, same_id, jobs]
+    steps:
+      - {label: "After 1", values: {http: 202, same_id: "yes", jobs: 1}}
+      - {label: "After 2", values: {http: 202, same_id: "yes", jobs: 1}}
+      - {label: "After 3", values: {http: 202, same_id: "yes", jobs: 1}}
+      - {label: "After 4", values: {http: 202, same_id: "no", jobs: 2}}
+    explanation: "SET idem:K NX succeeds once, so later requests with K get the first VM back and enqueue nothing. Step 3 shows the lab's simplification: the draft says a key reused with a different payload should get 422, but app.py does not compare bodies. Without a key, every POST is a new VM. Values from the course's test run."
+  - id: q24-4
+    type: fill
+    text: "Complete the worker service in compose.yaml so retries with intervals run and the worker starts only when Redis answers."
+    concepts: [rq-workers, compose-healthcheck]
+    sources: [50, 81]
+    template: |
+      worker:
+        image: pce-ch08-vmapi
+        command: ["rq", "worker", "{{1}}", "--url", "redis://redis:6379/0", "{{2}}"]
+        depends_on:
+          redis:
+            condition: {{3}}
+    chips:
+      - {text: "--with-scheduler", slot: 1, explanation: "Retry intervals are handled by the scheduler, which this flag starts."}
+      - {text: "vms", slot: 2, explanation: "The queue name the API enqueues into (tasks.QUEUE_NAME)."}
+      - {text: "service_healthy", slot: 3, explanation: "Waits for the redis healthcheck (redis-cli ping) to pass, not just for the container to start."}
+      - {text: "--burst", explanation: "Burst mode exits when the queue is empty; a long-running service needs the normal loop."}
+      - {text: "service_started", explanation: "Only waits for the container to start; Redis may not accept connections yet."}
+  - id: q24-5
+    type: mcq
+    text: "In the lab, the worker is killed with SIGKILL while a VM is `building`. What brings the VM to `active` in the course's test run?"
+    concepts: [worker-failure, idempotent-jobs]
+    sources: [50]
+    options:
+      - {text: "A worker started later cleans the registries, the job runs again, and the job resumes from building because it is idempotent", correct: true, explanation: "The log showed the cleanup, then the same job id and Job OK; the status check allows building, so the build runs again."}
+      - {text: "The killed worker marks the job failed on its way out, and the API requeues it", correct: false, explanation: "kill -9 gives the worker no chance to mark anything; the API never requeues jobs."}
+      - {text: "Redis notices the dead worker and finishes the job itself", correct: false, explanation: "Redis only stores data; workers run jobs."}
+      - {text: "Nothing; the VM stays building forever", correct: false, explanation: "It stayed building until a worker cleaned up, then finished. Without an idempotent job, though, the rerun could have been harmful."}
+  - id: q24-6
+    type: match
+    text: "Match each part of the lab to its job."
+    concepts: [lab-architecture]
+    sources: [46, 50, 51]
+    pairs:
+      - {left: "api (Gunicorn running create_app())", right: "Validates, writes vm:<id>, enqueues, answers 202", explanation: "The web side does only fast work."}
+      - {left: "worker (rq worker)", right: "Runs provision(vm_id) in a forked work horse", explanation: "Each job runs in a child process of the worker."}
+      - {left: "redis", right: "Holds VM hashes, the queue, registries and locks", explanation: "One store for state, jobs and coordination; AOF keeps it across restarts."}
+      - {left: "FakeRedis and FakeQueue", right: "Let unit tests run with no server", explanation: "create_app accepts them in place of real clients."}
+      - {left: "smoke.sh", right: "Checks the running stack end to end with curl", explanation: "It creates, polls, deletes twice and checks failures over HTTP."}
+    distractors:
+      - "Builds the libvirt domain XML"

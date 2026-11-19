@@ -1,0 +1,84 @@
+schemaVersion: 1
+id: q05
+title: "Check: re, json, datetime and ipaddress"
+questions:
+  - id: q05-1
+    type: trace
+    text: "Track a, b and c."
+    concepts: [regex-greedy-lazy, search-vs-match]
+    sources: [24]
+    code: |
+      import re
+      s = "<a> b <c>"
+      a = b = c = None
+      a = re.search(r"<.*>", s).group()
+      b = re.search(r"<.*?>", s).group()
+      c = re.match(r"b", s)
+    variables: [a, b, c]
+    steps:
+      - {label: "After a = ...", values: {a: ["<a> b <c>"], b: ["None", "none"], c: ["None", "none"]}}
+      - {label: "After b = ...", values: {a: ["<a> b <c>"], b: ["<a>"], c: ["None", "none"]}}
+      - {label: "After c = ...", values: {a: ["<a> b <c>"], b: ["<a>"], c: ["None", "none"]}}
+    explanation: "The greedy .* runs to the end and backs off only as far as the last >, so a is the whole string. The lazy .*? stops at the first >, giving <a>. re.match only looks at the start of the string, which is <, not b, so c stays None."
+  - id: q05-2
+    type: spot
+    text: "This script raises TypeError when it runs. Which line is the problem?"
+    concepts: [naive-vs-aware]
+    sources: [37]
+    code: |
+      from datetime import datetime
+      created = datetime.fromisoformat("2026-11-19T08:00:00+00:00")
+      age = datetime.now() - created
+      print(age.total_seconds())
+    correct: [3]
+    explanation: "created is aware (it has a +00:00 offset) and datetime.now() with no argument is naive, and subtracting a naive from an aware datetime raises TypeError. Use datetime.now(timezone.utc)."
+  - id: q05-3
+    type: spot
+    text: "The function should return the log level of a line that looks like 'ERROR [kvm-07] disk full', or None. It also accepts '>>> ERROR [kvm-07] x'. Which line is at fault?"
+    concepts: [search-vs-fullmatch]
+    sources: [24]
+    code: |
+      import re
+      PAT = re.compile(r"(?P<level>[A-Z]+) \[(?P<host>[\w.-]+)\] (?P<msg>.*)")
+      def level_of(line):
+          m = PAT.search(line)
+          return m["level"] if m else None
+    correct: [4]
+    explanation: "search finds the pattern anywhere, so text before it is allowed. fullmatch (or match with an anchor) requires the line to start with the level and end after the message."
+  - id: q05-4
+    type: fill
+    text: "Get the first usable host of the network that contains 10.0.0.5/24."
+    concepts: [ipaddress, strict-networks]
+    sources: [35, 36]
+    template: |
+      net = ipaddress.{{1}}("10.0.0.5/24", {{2}})
+      first = next(net.{{3}}())
+    chips:
+      - {text: "ip_network", slot: 1, explanation: "ip_network builds a network object; ip_address builds a single host address."}
+      - {text: "strict=False", slot: 2, explanation: "The text has host bits set, so strict=False masks them off to give 10.0.0.0/24."}
+      - {text: "hosts", slot: 3, explanation: "hosts() yields the usable addresses, here starting at 10.0.0.1."}
+      - {text: "ip_address", explanation: "It parses one address and would reject the /24 suffix."}
+      - {text: "strict=True", explanation: "That is the default and raises ValueError because host bits are set."}
+  - id: q05-5
+    type: mcq
+    text: "What does json.loads(json.dumps({1: 'a'})) return?"
+    concepts: [json-types]
+    sources: [26]
+    options:
+      - {text: "{'1': 'a'}", correct: true, explanation: "JSON object keys are always strings, so the int key 1 is written as \"1\" and comes back as a str."}
+      - {text: "{1: 'a'}", correct: false, explanation: "Round-tripping does not restore int keys."}
+      - {text: "It raises TypeError because the key is not a string", correct: false, explanation: "int, float, bool and None keys are converted; other key types raise TypeError."}
+      - {text: "[1, 'a']", correct: false, explanation: "A dict is encoded as a JSON object, not an array."}
+  - id: q05-6
+    type: match
+    text: "Match each expression to its value."
+    concepts: [regex-functions, json-types, timedelta]
+    sources: [24, 26, 37]
+    pairs:
+      - {left: "re.findall(r\"(\\w+)=(\\d+)\", \"w=20 h=10\")", right: "[('w', '20'), ('h', '10')]", explanation: "Two groups give a list of tuples."}
+      - {left: "re.fullmatch(r\"\\d+\", \"42a\")", right: "None", explanation: "The whole string must match, and the trailing a does not."}
+      - {left: "re.sub(r\"\\s+\", \" \", \"a   b\")", right: "'a b'", explanation: "Every run of whitespace becomes one space."}
+      - {left: "json.dumps((1, 2))", right: "'[1, 2]'", explanation: "Tuples are encoded as JSON arrays."}
+      - {left: "timedelta(hours=25, minutes=30).seconds", right: "5400", explanation: "Only the seconds part is stored: 1 day plus 5400 seconds. total_seconds() would give 91800.0."}
+    distractors:
+      - "91800"

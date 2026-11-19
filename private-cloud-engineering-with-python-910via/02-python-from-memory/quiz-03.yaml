@@ -1,0 +1,96 @@
+schemaVersion: 1
+id: q03
+title: "Check: sorting, heaps, bisect and itertools"
+questions:
+  - id: q03-1
+    type: trace
+    text: "Track h, x and y. heapify and the heap operations keep h as a valid min-heap list."
+    concepts: [heapq, heap-operations]
+    sources: [8]
+    code: |
+      import heapq
+      h = [5, 1, 4]
+      x = y = None
+      heapq.heapify(h)
+      heapq.heappush(h, 2)
+      x = heapq.heappop(h)
+      y = heapq.heapreplace(h, 3)
+    variables: [h, x, y]
+    steps:
+      - {label: "After heapify", values: {h: ["[1, 5, 4]", "[1,5,4]"], x: ["None", "none"], y: ["None", "none"]}}
+      - {label: "After heappush(h, 2)", values: {h: ["[1, 2, 4, 5]", "[1,2,4,5]"], x: ["None", "none"], y: ["None", "none"]}}
+      - {label: "After heappop", values: {h: ["[2, 5, 4]", "[2,5,4]"], x: 1, y: ["None", "none"]}}
+      - {label: "After heapreplace(h, 3)", values: {h: ["[3, 5, 4]", "[3,5,4]"], x: 1, y: 2}}
+    explanation: "heapify turns [5, 1, 4] into [1, 5, 4]. Pushing 2 sifts it above 5. heappop returns 1 and moves the last item to the root, giving [2, 5, 4]. heapreplace pops the smallest (2) first and then pushes 3, so it returns 2 even though 3 is larger."
+  - id: q03-2
+    type: trace
+    text: "Track a, b and c. The generator yields 0, 10 and 20."
+    concepts: [generators, next-default]
+    sources: [16, 20]
+    code: |
+      def gen():
+          for i in range(3):
+              yield i * 10
+
+      g = gen()
+      a = b = c = None
+      a = next(g)
+      b = sum(g)
+      c = next(g, -1)
+    variables: [a, b, c]
+    steps:
+      - {label: "After a = next(g)", values: {a: 0, b: ["None", "none"], c: ["None", "none"]}}
+      - {label: "After b = sum(g)", values: {a: 0, b: 30, c: ["None", "none"]}}
+      - {label: "After c = next(g, -1)", values: {a: 0, b: 30, c: -1}}
+    explanation: "next(g) takes the first value, 0. sum(g) consumes the rest, 10 + 20 = 30. The generator is now exhausted, so next(g, -1) returns the default instead of raising StopIteration."
+  - id: q03-3
+    type: spot
+    text: "The code should count log lines per level, but it returns ERROR: 1 although there are two ERROR lines. Which line is the bug?"
+    concepts: [groupby-sorted-input]
+    sources: [10]
+    code: |
+      from itertools import groupby
+      lines = ["ERROR a", "INFO b", "ERROR c"]
+      counts = {}
+      for level, grp in groupby(lines, key=lambda l: l.split()[0]):
+          counts[level] = len(list(grp))
+    correct: [4]
+    explanation: "groupby starts a new group whenever the key changes, like uniq, so unsorted input gives two separate ERROR groups and the second overwrites the first. Sort with the same key first: groupby(sorted(lines, key=...), key=...)."
+  - id: q03-4
+    type: fill
+    text: "Count how many sorted values v satisfy lo <= v <= hi, both limits inclusive, in O(log n)."
+    concepts: [bisect, range-count]
+    sources: [13]
+    template: |
+      first = {{1}}(a, lo)
+      after = {{2}}(a, hi)
+      return {{3}}
+    chips:
+      - {text: "bisect_left", slot: 1, explanation: "The index of the first value >= lo, so values equal to lo are included."}
+      - {text: "bisect_right", slot: 2, explanation: "The index just past the last value <= hi, so values equal to hi are included."}
+      - {text: "after - first", slot: 3, explanation: "The slice a[first:after] holds exactly the values in the range."}
+      - {text: "first - after", explanation: "That is negative for any non-empty range."}
+      - {text: "insort", explanation: "insort inserts into the list; it does not search."}
+  - id: q03-5
+    type: mcq
+    text: "data = [('x', 2), ('y', 1), ('z', 2)]. What does sorted(data, key=lambda p: p[1], reverse=True) return?"
+    concepts: [sort-stability, reverse]
+    sources: [12]
+    options:
+      - {text: "[('x', 2), ('z', 2), ('y', 1)]", correct: true, explanation: "reverse=True keeps the sort stable, so the equal keys x and z stay in their original order."}
+      - {text: "[('z', 2), ('x', 2), ('y', 1)]", correct: false, explanation: "That would be a plain reversal of the sorted list; sorted with reverse=True preserves the order of equal items."}
+      - {text: "[('y', 1), ('x', 2), ('z', 2)]", correct: false, explanation: "That is ascending order."}
+      - {text: "It raises TypeError because the tuples tie", correct: false, explanation: "Only the key (the number) is compared, so ties are fine."}
+  - id: q03-6
+    type: match
+    text: "Match each itertools call to what list(...) gives. Letters are shown as strings."
+    concepts: [itertools-basics]
+    sources: [10]
+    pairs:
+      - {left: "accumulate([1, 2, 3])", right: "[1, 3, 6]", explanation: "Running sums."}
+      - {left: "pairwise([1, 5, 9])", right: "[(1, 5), (5, 9)]", explanation: "Overlapping neighbours, one fewer than the input."}
+      - {left: "islice('ABCDE', 1, 3)", right: "['B', 'C']", explanation: "Like the slice [1:3]."}
+      - {left: "combinations('ABC', 2)", right: "[('A', 'B'), ('A', 'C'), ('B', 'C')]", explanation: "Unordered pairs by position, in input order."}
+      - {left: "product('AB', repeat=2)", right: "[('A', 'A'), ('A', 'B'), ('B', 'A'), ('B', 'B')]", explanation: "Cartesian product, like two nested loops."}
+    distractors:
+      - "[('A', 'B'), ('B', 'A')]"

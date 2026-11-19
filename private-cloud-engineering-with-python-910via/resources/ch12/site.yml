@@ -1,0 +1,127 @@
+---
+# Install and configure the vmapi service on the hypervisor-management hosts,
+# one host at a time.
+#
+#   ansible-playbook -i inventory.ini site.yml --syntax-check
+#   ansible-playbook -i inventory.ini site.yml --check --diff
+#   ansible-playbook -i inventory.ini site.yml --limit hvm01
+#   ansible-playbook -i inventory.ini site.yml
+#
+# "vmapi" is a placeholder package name. Point vmapi_index_url at a package
+# index that really serves it before running this against hosts.
+
+- name: Preflight, every management host must answer
+  hosts: hv_mgmt
+  gather_facts: false
+  any_errors_fatal: true
+
+  tasks:
+    - name: Check the SSH connection and the remote Python
+      ansible.builtin.ping:
+
+- name: Deploy vmapi, one host at a time
+  hosts: hv_mgmt
+  become: true
+  serial: 1
+  any_errors_fatal: true
+
+  vars:
+    vmapi_version: "1.4.2"
+    vmapi_user: vmapi
+    vmapi_home: /opt/vmapi
+    # vmapi_port and vmapi_workers come from inventory.ini. Do not repeat them
+    # here: play vars beat inventory variables, so hvm04 would lose its override.
+    vmapi_index_url: https://pypi.example.internal/simple
+    # Code is owned by root, state and logs by the service account.
+    vmapi_dirs:
+      - {path: /opt/vmapi, owner: root, mode: "0755"}
+      - {path: /var/lib/vmapi, owner: "{{ vmapi_user }}", mode: "0750"}
+      - {path: /var/log/vmapi, owner: "{{ vmapi_user }}", mode: "0750"}
+
+  tasks:
+    - name: Install the operating system packages
+      ansible.builtin.apt:
+        name:
+          - python3
+          - python3-venv
+          - curl
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Create the service account
+      ansible.builtin.user:
+        name: "{{ vmapi_user }}"
+        system: true
+        shell: /usr/sbin/nologin
+
+    - name: Create the service directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        mode: "{{ item.mode }}"
+      loop: "{{ vmapi_dirs }}"
+
+    # command runs whatever it is given, so it needs help to be repeatable:
+    # "creates" skips the step when the file already exists.
+    - name: Create the virtual environment
+      ansible.builtin.command:
+        cmd: "python3 -m venv {{ vmapi_home }}/venv"
+        creates: "{{ vmapi_home }}/venv/bin/python"
+
+    # pip decides for itself whether there is work to do, so "creates" does not
+    # fit. Register the output and let changed_when read it.
+    - name: Install the pinned vmapi release into the virtual environment
+      ansible.builtin.command:
+        argv:
+          - "{{ vmapi_home }}/venv/bin/pip"
+          - install
+          - --index-url
+          - "{{ vmapi_index_url }}"
+          - "vmapi=={{ vmapi_version }}"
+          - gunicorn
+      register: pip_result
+      changed_when: "'Successfully installed' in pip_result.stdout"
+      notify: Restart vmapi
+
+    - name: Write the systemd unit
+      ansible.builtin.template:
+        src: templates/vmapi.service.j2
+        dest: /etc/systemd/system/vmapi.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload systemd
+        - Restart vmapi
+
+    - name: Run the pending handlers now, before the health check
+      ansible.builtin.meta: flush_handlers
+
+    - name: Make sure vmapi is running and starts at boot
+      ansible.builtin.service:
+        name: vmapi
+        state: started
+        enabled: true
+
+    - name: Wait until vmapi answers on its health endpoint
+      ansible.builtin.command:
+        cmd: "curl -fsS -o /dev/null http://127.0.0.1:{{ vmapi_port }}/healthz"
+      register: health
+      until: health.rc == 0
+      retries: 10
+      delay: 3
+      changed_when: false
+
+  handlers:
+    # Handlers run in the order written here, not in the order of a notify list.
+    - name: Reload systemd
+      ansible.builtin.command:
+        cmd: systemctl daemon-reload
+
+    - name: Restart vmapi
+      ansible.builtin.service:
+        name: vmapi
+        state: restarted

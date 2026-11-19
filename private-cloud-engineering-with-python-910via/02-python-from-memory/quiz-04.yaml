@@ -1,0 +1,106 @@
+schemaVersion: 1
+id: q04
+title: "Check: classes, dataclasses and exceptions"
+questions:
+  - id: q04-1
+    type: trace
+    text: "Track first and second. Remember that the same list object is returned and that finally runs before the function really returns."
+    concepts: [try-except-else-finally, mutation]
+    sources: [19]
+    code: |
+      def f(x):
+          out = []
+          try:
+              out.append("try")
+              r = 10 // x
+          except ZeroDivisionError:
+              out.append("except")
+              return out
+          else:
+              out.append("else")
+              return out
+          finally:
+              out.append("finally")
+
+      first = second = None
+      first = f(2)
+      second = f(0)
+    variables: [first, second]
+    steps:
+      - {label: "After first = f(2)", values: {first: ["['try', 'else', 'finally']", "[\"try\", \"else\", \"finally\"]"], second: ["None", "none"]}}
+      - {label: "After second = f(0)", values: {first: ["['try', 'else', 'finally']", "[\"try\", \"else\", \"finally\"]"], second: ["['try', 'except', 'finally']", "[\"try\", \"except\", \"finally\"]"]}}
+    explanation: "With x = 2 nothing is raised, so try and else run, and finally appends to the same list just before the function returns it. With x = 0 the except branch runs instead of else, and finally still runs. Each call builds its own out list, so first is unchanged by the second call."
+  - id: q04-2
+    type: trace
+    text: "Track first and second after each call."
+    concepts: [mutable-default-argument]
+    code: |
+      def add_tag(tag, tags=[]):
+          tags.append(tag)
+          return tags
+
+      first = second = None
+      first = add_tag("a")
+      second = add_tag("b")
+    variables: [first, second]
+    steps:
+      - {label: "After first = add_tag('a')", values: {first: ["['a']", "[\"a\"]"], second: ["None", "none"]}}
+      - {label: "After second = add_tag('b')", values: {first: ["['a', 'b']", "[\"a\", \"b\"]"], second: ["['a', 'b']", "[\"a\", \"b\"]"]}}
+    explanation: "The default list is created once and shared by every call that omits the argument. Both names refer to that one list, so the second call also changes what first shows. Use tags=None and create the list inside the function."
+  - id: q04-3
+    type: spot
+    text: "This class definition fails as soon as the module is imported. Which line is the problem?"
+    concepts: [dataclass-default-factory]
+    sources: [32]
+    code: |
+      from dataclasses import dataclass
+
+      @dataclass
+      class Host:
+          name: str
+          tags: list = []
+    correct: [6]
+    explanation: "A dataclass raises ValueError for a mutable default such as a list. Write tags: list = field(default_factory=list) so each instance gets its own list."
+  - id: q04-4
+    type: spot
+    text: "CapacityError is a subclass of InventoryError. When allocate raises CapacityError, the output is 'inventory problem'. Which lines can never run?"
+    concepts: [except-order, custom-exceptions]
+    sources: [19]
+    code: |
+      try:
+          inv.allocate(name, n)
+      except InventoryError:
+          print("inventory problem")
+      except CapacityError:
+          print("no room")
+    correct: [5, 6]
+    explanation: "The first matching except clause wins, and CapacityError is an instance of InventoryError, so the second handler is unreachable. Put the subclass handler before the base class handler."
+  - id: q04-5
+    type: fill
+    text: "Translate a low-level error into a clearer one and keep the original as its cause."
+    concepts: [raise-from, custom-exceptions]
+    sources: [19]
+    template: |
+      class CapacityError({{1}}):
+          pass
+
+      try:
+          inv.allocate("kvm-01", 99)
+      except {{2}} as err:
+          raise RuntimeError("placement failed") {{3}} err
+    chips:
+      - {text: "Exception", slot: 1, explanation: "User-defined exceptions normally derive from Exception."}
+      - {text: "CapacityError", slot: 2, explanation: "Catch the specific type that allocate raises, not a broad one."}
+      - {text: "from", slot: 3, explanation: "raise ... from err records err as the direct cause."}
+      - {text: "KeyError", explanation: "allocate does not raise a KeyError here, in this code, so this handler would never match."}
+      - {text: "and", explanation: "Not valid syntax in a raise statement."}
+  - id: q04-6
+    type: mcq
+    text: "A class defines __enter__ and an __exit__ that ends with return True. What happens when the body of the with block raises RuntimeError?"
+    concepts: [context-manager, exit-suppression]
+    sources: [21]
+    options:
+      - {text: "The exception is suppressed and execution continues after the with block", correct: true, explanation: "A true return value from __exit__ tells Python the exception was handled."}
+      - {text: "The exception propagates unchanged", correct: false, explanation: "That happens when __exit__ returns a false value or None."}
+      - {text: "The exception is converted to a warning", correct: false, explanation: "Python has no such conversion."}
+      - {text: "__exit__ is skipped because an error occurred", correct: false, explanation: "__exit__ always runs, and it receives the exception details."}

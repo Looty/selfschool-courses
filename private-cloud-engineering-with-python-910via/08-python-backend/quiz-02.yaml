@@ -1,0 +1,103 @@
+schemaVersion: 1
+id: q22
+title: "Check: FastAPI, Pydantic, WSGI and ASGI"
+questions:
+  - id: q22-1
+    type: spot
+    text: "Under load, every request to this service waits whenever one `GET /vms/...` is talking to Redis (redis-py is a blocking client). Changing one keyword on one line fixes it. Which line?"
+    concepts: [async-blocking, fastapi-threadpool]
+    sources: [48]
+    code: |
+      import time
+      import redis
+      from fastapi import FastAPI
+
+      app = FastAPI()
+      r = redis.Redis(decode_responses=True)
+
+      @app.get("/vms/{vm_id}")
+      async def get_vm(vm_id: str):
+          record = r.hgetall(f"vm:{vm_id}")
+          return record or {"status": "unknown"}
+
+      @app.get("/healthz")
+      def healthz():
+          time.sleep(0.1)
+          return {"ok": True}
+    correct: [9]
+    explanation: "Line 10 is the blocking call, but the fault is `async def` on line 9: an async handler runs on the event loop, so the blocking call stops everything. Declared with plain `def`, FastAPI runs it in its threadpool. The healthz handler is already `def`, so its sleep blocks only one threadpool thread."
+  - id: q22-2
+    type: match
+    text: "For `@app.post(\"/vms/{vm_id}/disks\")`, match each handler parameter to where FastAPI takes its value from."
+    concepts: [fastapi-parameters, fastapi-dependencies]
+    sources: [48]
+    pairs:
+      - {left: "vm_id: int", right: "The URL path, converted to int", explanation: "The name appears in the path string, so it is a path parameter."}
+      - {left: "dry_run: bool = False", right: "An optional query parameter", explanation: "A plain type not in the path is a query parameter; the default makes it optional."}
+      - {left: "pool: str", right: "A required query parameter", explanation: "A plain type with no default must be given as ?pool=..."}
+      - {left: "body: DiskCreate (a Pydantic model)", right: "The JSON request body", explanation: "A parameter typed as a Pydantic model is read from the body."}
+      - {left: "vm: Annotated[dict, Depends(find_vm)]", right: "The return value of find_vm", explanation: "FastAPI calls the dependency and passes its result in."}
+    distractors:
+      - "A form field"
+  - id: q22-3
+    type: trace
+    text: "Send these requests in order to the FastAPI drill's reference app. Give the status code and the type of the `detail` field in the JSON body (`none` when there is no `detail`)."
+    concepts: [fastapi-validation, http-status-codes]
+    sources: [48]
+    code: |
+      1. GET    /vms/abc
+      2. POST   /vms   {"name": "web-1", "cpus": 0, "memory_mb": 2048}
+      3. POST   /vms   {"name": "web-1", "cpus": 2, "memory_mb": 2048}
+      4. POST   /vms   the same body as 3
+      5. GET    /vms/1
+      6. DELETE /vms/1
+    variables: [status, detail]
+    steps:
+      - {label: "After 1", values: {status: 422, detail: "list"}}
+      - {label: "After 2", values: {status: 422, detail: "list"}}
+      - {label: "After 3", values: {status: 201, detail: "none"}}
+      - {label: "After 4", values: {status: 409, detail: ["str", "string"]}}
+      - {label: "After 5", values: {status: 200, detail: "none"}}
+      - {label: "After 6", values: {status: 204, detail: "none"}}
+    explanation: "Validation errors (a non-integer path value, cpus below the Field minimum) are 422 with a list of error objects. HTTPException(409, detail='...') gives a string detail. Successful responses carry the VM or nothing. Values from the course's test run."
+  - id: q22-4
+    type: fill
+    text: "Complete the interfaces and the commands."
+    concepts: [wsgi, asgi, app-servers]
+    sources: [54, 55, 56, 57]
+    template: |
+      def application({{1}}, start_response): ...          # WSGI
+      async def application(scope, {{2}}, send): ...       # ASGI
+      gunicorn -w 4 'app:{{3}}'                            # Flask factory
+      uvicorn app_fastapi:create_app {{4}}                 # FastAPI factory
+    chips:
+      - {text: "environ", slot: 1, explanation: "WSGI calls the app with the environ dict and start_response."}
+      - {text: "receive", slot: 2, explanation: "ASGI passes scope, then the receive and send async callables."}
+      - {text: "create_app()", slot: 3, explanation: "Gunicorn accepts a call expression, so the factory runs and returns the app."}
+      - {text: "--factory", slot: 4, explanation: "Tells Uvicorn that the name is a function that returns the app."}
+      - {text: "request", explanation: "Neither interface passes a request object; frameworks build one from environ or scope."}
+      - {text: "--reload", explanation: "--reload restarts on code changes and cannot be combined with --workers; it does not call a factory."}
+  - id: q22-5
+    type: mcq
+    text: "A handler must call `subprocess.run([\"virsh\", \"start\", name])`, which takes a few seconds. Which declaration does the FastAPI documentation's rule point to?"
+    concepts: [async-blocking, fastapi-threadpool]
+    sources: [48]
+    options:
+      - {text: "def start_vm(name: str)", correct: true, explanation: "The call does not support await, so use def; FastAPI runs def handlers in an external threadpool."}
+      - {text: "async def start_vm(name: str), because async is always faster", correct: false, explanation: "async def without await around a blocking call runs on the event loop and blocks every request."}
+      - {text: "async def start_vm(name: str) with `await subprocess.run(...)`", correct: false, explanation: "subprocess.run is not awaitable; the await would fail."}
+      - {text: "Either; FastAPI moves every handler to a thread", correct: false, explanation: "Only def handlers go to the threadpool; async def handlers are awaited directly."}
+  - id: q22-6
+    type: sort
+    text: "Sort each item by the interface it belongs to."
+    concepts: [wsgi, asgi]
+    sources: [46, 48, 54, 55, 56, 57]
+    buckets: ["WSGI", "ASGI"]
+    items:
+      - {text: "Flask", bucket: "WSGI", explanation: "The Flask docs call a Flask app a WSGI application."}
+      - {text: "FastAPI", bucket: "ASGI", explanation: "FastAPI is an ASGI framework built on Starlette."}
+      - {text: "Gunicorn's default sync worker", bucket: "WSGI", explanation: "Pre-forked processes, one request at a time each, calling a WSGI app."}
+      - {text: "Uvicorn", bucket: "ASGI", explanation: "Uvicorn is an ASGI web server."}
+      - {text: "A WebSocket connection with many messages", bucket: "ASGI", explanation: "ASGI's event model allows many incoming and outgoing events; a single WSGI call cannot."}
+      - {text: "An app that returns an iterable of bytes", bucket: "WSGI", explanation: "PEP 3333 requires the app to return an iterable of bytestrings."}
+      - {text: "An app that awaits `receive()` for events", bucket: "ASGI", explanation: "receive is one of the three ASGI arguments."}

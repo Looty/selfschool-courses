@@ -1,0 +1,82 @@
+schemaVersion: 1
+id: q25
+title: "Check: designing the VM provisioning service"
+questions:
+  - id: q25-1
+    type: hotspot
+    text: "Click the component that is the single source of truth for which VMs should exist and what state they are in."
+    concepts: [source-of-truth, provisioning-architecture]
+    sources: [158]
+    image: resources/ch09/vm-provisioning.svg
+    alt: "Architecture of the VM provisioning service: client, API service, auth and quotas, job queue, worker, scheduler, IPAM, hypervisors, database, reconciler and image store, joined by numbered arrows."
+    regions:
+      - {name: "Database", correct: true, shape: rect, x: 43, y: 60, w: 14, h: 13, explanation: "The relational database holds desired state: every VM row, its state, host, IP and quota usage. Everything else acts on it or is compared with it."}
+      - {name: "Job queue", shape: rect, x: 43, y: 35, w: 14, h: 13, explanation: "The queue holds work waiting for a worker. Jobs can be lost or expire; it is not the record of what should exist."}
+      - {name: "Hypervisors", shape: rect, x: 85, y: 34, w: 14.6, h: 14, explanation: "The hypervisors hold the actual state. When they disagree with the database, the reconciler decides what to repair; they are not the record of intent."}
+      - {name: "Reconciler", shape: rect, x: 64, y: 60, w: 14, h: 13, explanation: "The reconciler compares desired and actual state; it stores neither."}
+  - id: q25-2
+    type: sort
+    text: "Which component owns each responsibility in this design?"
+    concepts: [component-responsibilities, provisioning-architecture]
+    sources: [52, 158]
+    buckets: ["API service", "Database", "Worker", "Reconciler"]
+    items:
+      - {text: "Return 202 with a Location header", bucket: "API service", explanation: "The API owns the HTTP contract and answers before the slow work starts."}
+      - {text: "Reject a create that exceeds the project's quota", bucket: "API service", explanation: "Quota is checked at the door, in the same transaction that inserts the VM row."}
+      - {text: "Hold the authoritative list of VMs and their states", bucket: "Database", explanation: "It is the source of truth for desired state."}
+      - {text: "Make it impossible to assign one IP address twice", bucket: "Database", explanation: "A uniqueness constraint enforces this even when two workers race."}
+      - {text: "Call libvirt to define and start the domain", bucket: "Worker", explanation: "Workers run the slow, host-side steps of a job."}
+      - {text: "Retry a provisioning step that failed on a transient error", bucket: "Worker", explanation: "Retries belong to the job that runs the steps."}
+      - {text: "Notice a domain running on a host that the database does not know", bucket: "Reconciler", explanation: "Only a loop that compares both sides can see an orphan."}
+      - {text: "Re-enqueue a BUILDING VM whose job was lost", bucket: "Reconciler", explanation: "A crash between commit and enqueue leaves a row with no job; the reconciler finds it by age and state."}
+  - id: q25-3
+    type: fill
+    text: "Put the steps of one create request in order."
+    concepts: [provisioning-request-flow]
+    sources: [52, 50]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+      {{6}}
+    chips:
+      - {text: "Check quota and insert the VM row as BUILDING, in one transaction", slot: 1, explanation: "Desired state is recorded first, so nothing later can lose the request."}
+      - {text: "Enqueue the provision job and return 202 with a status URL", slot: 2, explanation: "Enqueue after the commit, then answer at once."}
+      - {text: "A worker filters and weighs hosts and claims capacity on one", slot: 3, explanation: "Placement happens in the worker, before any host work."}
+      - {text: "Reserve an IP address for the VM", slot: 4, explanation: "The address must be known before the guest's first boot configuration is written."}
+      - {text: "Create the disk, define and start the domain through libvirt", slot: 5, explanation: "The slow host-side work."}
+      - {text: "Mark the VM ACTIVE with its host and IP", slot: 6, explanation: "The status resource now shows the result."}
+      - {text: "Return 201 Created with the VM's IP address", explanation: "The VM does not exist yet when the API answers, so 201 and an IP are not available."}
+  - id: q25-4
+    type: mcq
+    text: "Hosts have 32 cores and 248 GiB of RAM available for VMs. Every VM is 4 vCPUs and 8 GiB. The CPU allocation ratio is 4.0 and the RAM ratio is 1.0. How many VMs fit on one host?"
+    concepts: [capacity-estimation, overcommit]
+    sources: [155, 156]
+    options:
+      - {text: "31", correct: true, explanation: "CPU allows 32 × 4.0 / 4 = 32 VMs, RAM allows 248 / 8 = 31. The smaller wins, so RAM is now the limit."}
+      - {text: "8", correct: false, explanation: "That is the figure with no CPU overcommit (32 / 4). The ratio of 4.0 raises the CPU limit."}
+      - {text: "32", correct: false, explanation: "That is the CPU limit alone; it ignores that RAM runs out first."}
+      - {text: "124", correct: false, explanation: "That applies the CPU ratio to RAM as well. The RAM ratio is 1.0, so RAM is not overcommitted."}
+  - id: q25-5
+    type: mcq
+    text: "Central workers reach every hypervisor with libvirt over SSH (`qemu+ssh://root@host/system`). What is the main cost of this choice compared with an agent on each host?"
+    concepts: [libvirt-remote, hypervisor-execution]
+    sources: [92, 158]
+    options:
+      - {text: "The workers' SSH key gives root-equivalent control of every host, so it must be guarded like a production secret", correct: true, explanation: "A read-write system connection to libvirt is equivalent to a root shell, and this key opens one to all hosts."}
+      - {text: "libvirt cannot manage a remote host, so this does not work", correct: false, explanation: "Remote URIs with an ssh transport are a standard libvirt feature."}
+      - {text: "Every host needs extra software installed and upgraded", correct: false, explanation: "That is the cost of the agent option, not of SSH from central workers."}
+      - {text: "libvirt then chooses the host itself, so the scheduler loses control", correct: false, explanation: "libvirt works on one node and leaves policies such as load balancing to the tools above it."}
+  - id: q25-6
+    type: open
+    text: "The fleet is 300 hosts (32 cores, 248 GiB usable each) running 2000 VMs of 4 vCPUs and 8 GiB. A colleague proposes running with no CPU overcommit. Argue for or against with numbers, and name the risk of the alternative."
+    concepts: [capacity-estimation, overcommit]
+    rubric: |
+      - Computes capacity without overcommit as about 8 VMs per host, about 2400 in total (or equivalent with stated assumptions).
+      - Concludes the fleet would be over 80% allocated, leaving little room to drain hosts for maintenance or absorb a host failure.
+      - States that with a CPU ratio such as 4.0, RAM becomes the limit at about 31 VMs per host.
+      - Names the risk of CPU overcommit: VMs compete for the same physical cores and slow down when many are busy at once.
+      - Proposes a mitigation such as a moderate CPU ratio, RAM kept at 1.0, measuring host CPU contention, or a separate non-overcommitted pool for latency-sensitive VMs.
+    sources: [155, 156, 120]

@@ -1,0 +1,9 @@
+# Keep the build context small: only requirements.txt and app/ are needed.
+failing-stack/
+inspect_container.sh
+Dockerfile*
+*.md
+**/__pycache__/
+**/*.pyc
+.git/
+.venv/

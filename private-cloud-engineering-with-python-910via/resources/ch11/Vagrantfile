@@ -1,0 +1,35 @@
+# Vagrantfile for a disposable vmapi development VM on KVM (lesson l30).
+#
+#   vagrant plugin install vagrant-libvirt
+#   vagrant up --provider=libvirt     # or: export VAGRANT_DEFAULT_PROVIDER=libvirt
+#   vagrant ssh -c 'cat /etc/vagrant_provisioned_at'
+#   vagrant destroy -f
+#
+# The box must exist for the libvirt provider: boxes are provider-specific.
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "fedora/36-cloud-base"
+  config.vm.hostname = "vmapi-dev"
+
+  # Guest port 8000 (the API) appears on the host as 127.0.0.1:8080 only.
+  config.vm.network "forwarded_port", guest: 8000, host: 8080, host_ip: "127.0.0.1"
+
+  # No default /vagrant share; this VM gets its code with git in the provisioner.
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider :libvirt do |lv|
+    lv.uri = "qemu:///system"
+    lv.memory = 2048        # MB
+    lv.cpus = 2
+    lv.cpu_mode = "host-model"
+    lv.disk_bus = "virtio"
+    lv.nic_model_type = "virtio"
+  end
+
+  # Runs on the first `vagrant up`, and again on `vagrant provision`.
+  config.vm.provision "shell", inline: <<-SHELL
+    set -eu
+    dnf install -y git python3
+    date > /etc/vagrant_provisioned_at
+  SHELL
+end

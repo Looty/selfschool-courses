@@ -1,0 +1,120 @@
+schemaVersion: 1
+id: q31
+title: "Check: libvirt, virsh and the Python bindings"
+questions:
+  - id: q31-1
+    type: trace
+    text: "Follow vm-demo-01 through these virsh commands. After each one, what state does virsh report, and is the domain persistent? Use 'undefined' once libvirt no longer knows it."
+    concepts: [libvirt-lifecycle, transient-vs-persistent]
+    sources: [94, 95]
+    code: |
+      1  virsh define domain.xml
+      2  virsh start vm-demo-01
+      3  virsh suspend vm-demo-01
+      4  virsh resume vm-demo-01
+      5  virsh destroy vm-demo-01
+      6  virsh start vm-demo-01
+      7  virsh undefine vm-demo-01
+      8  virsh destroy vm-demo-01
+    variables: [state, persistent]
+    steps:
+      - {label: "1 define", values: {state: ["shut off", "shutoff", "defined"], persistent: ["yes"]}}
+      - {label: "2 start", values: {state: ["running"], persistent: ["yes"]}}
+      - {label: "3 suspend", values: {state: ["paused"], persistent: ["yes"]}}
+      - {label: "4 resume", values: {state: ["running"], persistent: ["yes"]}}
+      - {label: "5 destroy", values: {state: ["shut off", "shutoff", "defined"], persistent: ["yes"]}}
+      - {label: "6 start", values: {state: ["running"], persistent: ["yes"]}}
+      - {label: "7 undefine", values: {state: ["running"], persistent: ["no"]}}
+      - {label: "8 destroy", values: {state: ["undefined", "gone"], persistent: ["no"]}}
+    explanation: "define registers a persistent domain without starting it. destroy is a power cut, not a deletion, so the persistent domain returns to shut off and can start again. undefine on a running domain keeps it running but makes it transient, and a transient domain disappears when it stops. The course's test run with the libvirt test driver showed exactly these states, including Persistent: no after step 7."
+  - id: q31-2
+    type: match
+    text: "Match each virsh command to what it does."
+    concepts: [virsh-verbs]
+    sources: [95]
+    pairs:
+      - {left: "define FILE", right: "Registers a persistent domain without starting it", explanation: "Start it later with virsh start."}
+      - {left: "create FILE", right: "Creates and starts a transient domain", explanation: "It vanishes when destroyed, unless the XML matches an existing persistent guest."}
+      - {left: "destroy", right: "Stops the guest at once, like pulling the power cord", explanation: "Storage and, for a persistent domain, the definition are kept."}
+      - {left: "shutdown", right: "Asks the guest OS to stop, with no guarantee", explanation: "It is asynchronous; poll domstate to see when it finished."}
+      - {left: "undefine", right: "Removes the stored configuration of a domain", explanation: "On a running domain it turns it transient instead of stopping it."}
+      - {left: "managedsave", right: "Writes RAM to a libvirt-managed file and stops; the next start resumes from it", explanation: "Disks are not part of the save."}
+    distractors:
+      - "Deletes the domain's disk volumes"
+  - id: q31-3
+    type: spot
+    text: "This guest must be live-migrated across a fleet of hosts with mixed CPU generations and shared NFS storage. Click the two lines most likely to stop that."
+    concepts: [libvirt-domain-xml, live-migration]
+    sources: [93, 95]
+    code: |
+      <domain type='kvm'>
+        <name>build-agent-07</name>
+        <memory unit='KiB'>8388608</memory>
+        <vcpu placement='static'>4</vcpu>
+        <os>
+          <type arch='x86_64'>hvm</type>
+        </os>
+        <cpu mode='host-passthrough'/>
+        <devices>
+          <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2' cache='writeback'/>
+            <source file='/srv/nfs/images/build-agent-07.qcow2'/>
+            <target dev='vda' bus='virtio'/>
+          </disk>
+          <interface type='network'>
+            <source network='default'/>
+            <model type='virtio'/>
+          </interface>
+        </devices>
+      </domain>
+    correct: [8, 11]
+    explanation: "host-passthrough shows the guest exactly the host's CPU, so it cannot be reproduced on different hardware; host-model is the portable choice. For QEMU, libvirt may refuse to migrate a disk whose cache mode is not none unless the image is on a coherent clustered filesystem. The NFS path itself is fine: migration expects shared storage at the same path."
+  - id: q31-4
+    type: spot
+    text: "This provisioning function runs from a job queue. The VM must survive a host reboot and come back with its configuration. Click the line that breaks that."
+    concepts: [idempotent-provisioning, transient-vs-persistent, libvirt-python]
+    sources: [97, 98]
+    code: |
+      import libvirt
+
+      def provision(uri, xml, name):
+          conn = libvirt.open(uri)
+          names = [d.name() for d in conn.listAllDomains()]
+          if name not in names:
+              dom = conn.createXML(xml, 0)
+          else:
+              dom = conn.lookupByName(name)
+          if not dom.isActive():
+              dom.create()
+          conn.close()
+    correct: [7]
+    explanation: "createXML creates and boots a transient guest, and when it stops all trace of it disappears, so after a host reboot libvirt no longer knows the VM. Use defineXML (persistent) and then create() to start it, as provision_vm.py does."
+  - id: q31-5
+    type: fill
+    text: "Complete the core of an idempotent define-and-start function."
+    concepts: [idempotent-provisioning, libvirt-python]
+    sources: [97, 98]
+    template: |
+      existing = {d.name(): d for d in conn.{{1}}()}
+      dom = existing.get(name)
+      if dom is None or not dom.isPersistent():
+          dom = conn.{{2}}(xml)
+      if not dom.{{3}}():
+          dom.{{4}}()
+    chips:
+      - {text: "listAllDomains", slot: 1, explanation: "Returns active and inactive domains as objects, so a stopped VM is found too."}
+      - {text: "defineXML", slot: 2, explanation: "Stores a persistent definition; it also makes a running transient guest persistent."}
+      - {text: "isActive", slot: 3, explanation: "True while the domain runs; only start it when this is false."}
+      - {text: "create", slot: 4, explanation: "virDomainCreate boots a defined domain; in Python it is dom.create()."}
+      - {text: "createXML", explanation: "That would create a separate transient guest instead of using the definition."}
+      - {text: "start", explanation: "start is the virsh verb; the Python method generated from virDomainCreate is create."}
+  - id: q31-6
+    type: mcq
+    text: "A provisioning worker connects to hypervisors with qemu+ssh://root@kvm-017/system. What should the team understand about that credential?"
+    concepts: [libvirt-uri, libvirt-security]
+    sources: [92, 95]
+    options:
+      - {text: "A read-write connection to the system daemon is equivalent to a root shell on that host", correct: true, explanation: "So the worker's SSH key is effectively root on every host it can reach; store and scope it accordingly."}
+      - {text: "It only reaches the worker user's own session daemon on the remote host", correct: false, explanation: "That would be a /session URI; /system is the root-run daemon."}
+      - {text: "It is read-only unless the worker passes --readonly", correct: false, explanation: "Connections are read-write by default; -r / --readonly asks for read-only."}
+      - {text: "The connection is unencrypted, like qemu+tcp", correct: false, explanation: "The +ssh transport tunnels over SSH; plain tcp is the transport the docs say not to use."}

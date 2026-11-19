@@ -1,0 +1,80 @@
+schemaVersion: 1
+id: q07
+title: "Check: reservations and placement"
+questions:
+  - id: q07-1
+    type: trace
+    text: "Run the merge loop on the reservations below, after sorting. What is `merged` after each reservation is processed?"
+    concepts: [interval-merge]
+    sources: [12]
+    code: |
+      for start, end in sorted([(6, 8), (1, 4), (2, 3), (8, 9)]):
+          if merged and start <= merged[-1][1]:
+              merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+          else:
+              merged.append((start, end))
+    variables: [merged]
+    steps:
+      - {label: "After (1, 4)", values: {merged: "[(1, 4)]"}}
+      - {label: "After (2, 3)", values: {merged: "[(1, 4)]"}}
+      - {label: "After (6, 8)", values: {merged: "[(1, 4), (6, 8)]"}}
+      - {label: "After (8, 9)", values: {merged: "[(1, 4), (6, 9)]"}}
+    explanation: "Sorted order is (1,4), (2,3), (6,8), (8,9). (2,3) lies inside (1,4) and max keeps the end at 4. (8,9) touches (6,8) because 8 <= 8, so they merge into (6,9)."
+  - id: q07-2
+    type: spot
+    text: "This sweep gives the wrong peak for [(1, 5), (5, 8)]. Which line is the bug?"
+    concepts: [sweep-line, half-open-interval]
+    sources: [12]
+    code: |
+      events = []
+      for start, end in reservations:
+          events.append((start, 1))
+          events.append((end, -1))
+      events.sort(key=lambda e: (e[0], -e[1]))
+    correct: [5]
+    explanation: "Sorting by (time, -delta) puts starts (-1) before ends (+1) at the same time, so the VM ending at 5 and the VM starting at 5 are counted together. Plain events.sort() orders (5, -1) before (5, 1)."
+  - id: q07-3
+    type: mcq
+    text: "Why does `sorted(vms, key=..., reverse=True)` still keep equal-sized VMs in arrival order?"
+    concepts: [sort-stability]
+    sources: [12]
+    options:
+      - {text: "Sorting is stable and reverse=True keeps stability", correct: true, explanation: "The Sorting HOWTO states that sorts are guaranteed stable and that reverse preserves it."}
+      - {text: "reverse=True reverses the final list, so equal items return to arrival order", correct: false, explanation: "reverse is applied as if the comparisons were flipped; equal items are not reordered at all."}
+      - {text: "Python sorts only by the first element of a tuple", correct: false, explanation: "Tuples compare element by element, which is why the key uses (cpu, ram)."}
+      - {text: "It does not; ties come out in random order", correct: false, explanation: "Sort order for equal keys is deterministic."}
+  - id: q07-4
+    type: fill
+    text: "Complete the heap-based peak: before adding a reservation, remove every VM that has already ended."
+    concepts: [heap, peak-concurrency]
+    sources: [8]
+    template: |
+      while ends and ends[0] {{1}} start:
+          heapq.{{2}}(ends)
+      heapq.{{3}}(ends, end)
+    chips:
+      - {text: "<=", slot: 1, explanation: "A VM ending exactly at start has already stopped, because intervals are half-open."}
+      - {text: "heappop", slot: 2, explanation: "Removes the smallest end time, the VM that finished earliest."}
+      - {text: "heappush", slot: 3, explanation: "Adds the new reservation's end time to the heap of running VMs."}
+      - {text: "heapify", explanation: "heapify converts a whole list into a heap; it does not remove or add one item."}
+  - id: q07-5
+    type: mcq
+    text: "Hosts hv1 and hv2 each have 10 CPUs. Requests arrive as 4, 4, 6, 6 CPUs and RAM is plentiful. What does first-fit give in arrival order, and in largest-first order?"
+    concepts: [first-fit, largest-first]
+    sources: [155]
+    options:
+      - {text: "Arrival order leaves one 6-CPU VM unplaced; largest-first places all four", correct: true, explanation: "Arrival: hv1 gets 4+4, hv2 gets one 6, the second 6 fits nowhere. Largest-first: a 6 on each host, then a 4 beside each."}
+      - {text: "Both orders place all four VMs", correct: false, explanation: "In arrival order the second 6 finds 2 CPUs left on hv1 and 4 left on hv2."}
+      - {text: "Both orders leave one VM unplaced", correct: false, explanation: "Largest-first places each 6 on its own host and the 4s in the gaps."}
+      - {text: "Largest-first leaves a VM unplaced; arrival order places all four", correct: false, explanation: "The reverse of what happens."}
+  - id: q07-6
+    type: sort
+    text: "Sort each statement about placement strategies."
+    concepts: [first-fit, best-fit, bin-packing]
+    sources: [155]
+    buckets: ["True of the heuristics here", "Not true"]
+    items:
+      - {text: "They run in O(V * H) time for V requests and H hosts", bucket: "True of the heuristics here", explanation: "Each request scans the hosts once."}
+      - {text: "They filter hosts that can take the VM, then choose among them", bucket: "True of the heuristics here", explanation: "The same two-phase shape as Nova's filter then weigh."}
+      - {text: "They are guaranteed to find a perfect packing when one exists", bucket: "Not true", explanation: "Greedy choices can block a better arrangement."}
+      - {text: "The result does not depend on the order of the requests", bucket: "Not true", explanation: "Order changes which VMs fit, which is why largest-first helps."}

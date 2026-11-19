@@ -1,0 +1,80 @@
+schemaVersion: 1
+id: q18
+title: "Check: namespaces, cgroups and runtimes"
+questions:
+  - id: q18-1
+    type: match
+    text: "Match each namespace type to what it isolates."
+    concepts: [namespaces]
+    sources: [60]
+    pairs:
+      - {left: "pid", right: "Process IDs, so the container's first process can be PID 1", explanation: "A new PID namespace numbers processes from 1, which is why sleep showed as PID 1 inside and PID 12725 on the host."}
+      - {left: "net", right: "Network devices, stacks and ports", explanation: "Each container gets its own interfaces and port space, so two containers can both listen on port 8000."}
+      - {left: "mnt", right: "Mount points", explanation: "The container sees its own root filesystem and mounts, not the host's."}
+      - {left: "uts", right: "Hostname and NIS domain name", explanation: "That is why the demo container could be called demo without renaming the host."}
+      - {left: "user", right: "User and group IDs", explanation: "A user namespace can map container root to an unprivileged host UID; Docker does not enable this by default."}
+      - {left: "cgroup", right: "The cgroup root directory", explanation: "It makes /proc/self/cgroup show / inside the container instead of the host path /docker/<id>."}
+    distractors:
+      - "CPU time and memory limits"
+  - id: q18-2
+    type: trace
+    text: "For each docker run command, what do cpu.max and memory.max contain inside the container? Write each file's content exactly as cat would print it (memory.max in bytes, or the word max when there is no limit)."
+    concepts: [cgroup-v2, resource-limits]
+    sources: [62, 78]
+    code: |
+      A: docker run --cpus 0.5 --memory 128m IMAGE
+      B: docker run --cpus 1.5 --memory 64m IMAGE
+      C: docker run IMAGE
+    variables: [cpu_max, memory_max]
+    steps:
+      - {label: "A", values: {cpu_max: "50000 100000", memory_max: "134217728"}}
+      - {label: "B", values: {cpu_max: "150000 100000", memory_max: "67108864"}}
+      - {label: "C", values: {cpu_max: "max 100000", memory_max: "max"}}
+    explanation: "--cpus sets a quota per 100000-microsecond period, so 0.5 CPUs is 50000 and 1.5 CPUs is 150000. 128 MiB is 128 * 1024 * 1024 = 134217728 bytes and 64 MiB is 67108864. Without flags a container has no limits, so both files keep their defaults: cpu.max is max 100000 and memory.max is max."
+  - id: q18-3
+    type: sort
+    text: "Container or virtual machine: which does each statement describe?"
+    concepts: [containers-vs-vms]
+    sources: [102, 103]
+    buckets: ["Container", "Virtual machine"]
+    items:
+      - {text: "Shares the host's kernel with its neighbours", bucket: "Container", explanation: "A container is a host process, so every container on the machine uses the same kernel."}
+      - {text: "Boots its own kernel", bucket: "Virtual machine", explanation: "Each VM runs a complete operating system, kernel included."}
+      - {text: "Separated from neighbours by a hypervisor's hardware boundary", bucket: "Virtual machine", explanation: "That boundary is why Docker's own docs call VM isolation stronger."}
+      - {text: "Starts in about a second because there is no OS to boot", bucket: "Container", explanation: "Starting one is starting a process, plus namespace and cgroup set-up."}
+      - {text: "Has its own virtual CPU, memory, network interface and disk", bucket: "Virtual machine", explanation: "The hypervisor presents a whole computer to the guest."}
+      - {text: "Packages an app with its dependencies and no guest OS", bucket: "Container", explanation: "The image holds userland files only; the kernel comes from the host."}
+  - id: q18-4
+    type: fill
+    text: "Put the programs in order, from the command you type to the one that creates the namespaces and cgroup."
+    concepts: [container-runtime]
+    sources: [63, 64, 66, 83]
+    template: |
+      {{1}} -> {{2}} -> {{3}} -> {{4}}
+    chips:
+      - {text: "docker (CLI)", slot: 1, explanation: "The client sends API requests over /var/run/docker.sock."}
+      - {text: "dockerd", slot: 2, explanation: "The daemon owns images, containers, networks and volumes and serves the API."}
+      - {text: "containerd", slot: 3, explanation: "dockerd delegates the container lifecycle to containerd."}
+      - {text: "runc", slot: 4, explanation: "containerd uses runc by default; runc starts the process from an OCI bundle."}
+      - {text: "systemd", explanation: "systemd may start dockerd as a service, but it is not a step in the container start path described here."}
+  - id: q18-5
+    type: mcq
+    text: "A container exits with status 137. Inside a similar container, memory.events shows oom_kill 1. What happened?"
+    concepts: [oom-kill, exit-status, cgroup-v2]
+    sources: [62, 105, 125]
+    options:
+      - {text: "The process hit memory.max and the OOM killer sent it SIGKILL (128 + 9 = 137)", correct: true, explanation: "A signal-killed process reports 128 plus the signal number, SIGKILL is 9, and oom_kill counts processes killed by the OOM killer in that cgroup."}
+      - {text: "The process went over memory.high and was killed", correct: false, explanation: "memory.high only throttles and reclaims; it never invokes the OOM killer."}
+      - {text: "Python raised an uncaught MemoryError", correct: false, explanation: "An uncaught exception exits with status 1 and prints a traceback; SIGKILL leaves no traceback."}
+      - {text: "docker stop sent SIGTERM and the app exited cleanly", correct: false, explanation: "A clean exit after SIGTERM is usually 0; 143 would be death by SIGTERM itself (128 + 15)."}
+  - id: q18-6
+    type: open
+    text: "Your team runs short build jobs from many internal projects on shared hosts. A colleague proposes moving from one VM per job to one container per job to save start-up time. Explain the trade-off in isolation and speed, and say what you would check or add before agreeing."
+    concepts: [containers-vs-vms, namespaces, cgroup-v2]
+    sources: [62, 65, 102]
+    rubric: |
+      States that containers share the host kernel while VMs each boot their own kernel behind a hypervisor.
+      States that VM isolation is stronger because of the hardware boundary, while containers rely on the shared kernel.
+      Names the speed or density gain of containers (about a second to start, many per host).
+      Mentions resource limits (cgroup memory, CPU or pids limits) to stop one job starving others.
+      Mentions a hardening step such as user namespaces, dropping capabilities, not giving jobs access to the Docker socket, or a sandboxed runtime such as gVisor or Kata.

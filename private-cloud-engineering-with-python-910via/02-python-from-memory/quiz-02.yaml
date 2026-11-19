@@ -1,0 +1,91 @@
+schemaVersion: 1
+id: q02
+title: "Check: built-in types and collections"
+questions:
+  - id: q02-1
+    type: trace
+    text: "Track d and x after each statement."
+    concepts: [deque, maxlen, rotate]
+    sources: [9]
+    code: |
+      from collections import deque
+      d = deque(maxlen=3)
+      x = None
+      for v in [1, 2, 3, 4]:
+          d.append(v)
+      d.appendleft(0)
+      d.rotate(1)
+      x = d.pop()
+    variables: [d, x]
+    steps:
+      - {label: "After the for loop", values: {d: ["[2, 3, 4]", "deque([2, 3, 4], maxlen=3)"], x: ["None", "none"]}}
+      - {label: "After appendleft(0)", values: {d: ["[0, 2, 3]", "deque([0, 2, 3], maxlen=3)"], x: ["None", "none"]}}
+      - {label: "After rotate(1)", values: {d: ["[3, 0, 2]", "deque([3, 0, 2], maxlen=3)"], x: ["None", "none"]}}
+      - {label: "After pop()", values: {d: ["[3, 0]", "deque([3, 0], maxlen=3)"], x: 2}}
+    explanation: "The bounded deque drops the oldest item when 4 arrives, leaving [2, 3, 4]. appendleft(0) on a full deque drops from the right end, giving [0, 2, 3]. rotate(1) moves the last item to the front, giving [3, 0, 2], and pop() removes and returns 2."
+  - id: q02-2
+    type: spot
+    text: "Every call with words of length 1 to 3 returns lists that all contain every word. Which line is the bug?"
+    concepts: [dict-fromkeys, shared-mutable]
+    sources: [15]
+    code: |
+      def group_by_len(words):
+          groups = dict.fromkeys(range(1, 4), [])
+          for w in words:
+              groups[len(w)].append(w)
+          return groups
+    correct: [2]
+    explanation: "dict.fromkeys uses one single list object as the value of every key, so all three keys point at the same list. Build distinct lists with a dict comprehension or use defaultdict(list)."
+  - id: q02-3
+    type: fill
+    text: "Group VM names by host, then count the VMs per host."
+    concepts: [defaultdict, grouping]
+    sources: [9, 16]
+    template: |
+      from collections import defaultdict
+      groups = defaultdict({{1}})
+      for host, vm in pairs:
+          groups[host].{{2}}(vm)
+      counts = {host: {{3}}(vms) for host, vms in groups.items()}
+    chips:
+      - {text: "list", slot: 1, explanation: "list is the factory that creates an empty list for a missing key."}
+      - {text: "append", slot: 2, explanation: "Each value is a list, so add the VM with append."}
+      - {text: "len", slot: 3, explanation: "len gives the number of VMs in each list."}
+      - {text: "int", explanation: "A defaultdict(int) creates 0, and an int has no append method."}
+      - {text: "add", explanation: "add is a set method; lists use append."}
+  - id: q02-4
+    type: sort
+    text: "Sort each operation by its typical cost on a container with n items."
+    concepts: [time-complexity, deque-vs-list]
+    sources: [9, 14]
+    buckets: ["O(1) or about O(1)", "O(n)"]
+    items:
+      - {text: "my_list.pop(0)", bucket: "O(n)", explanation: "Every remaining item shifts one place."}
+      - {text: "my_deque.popleft()", bucket: "O(1) or about O(1)", explanation: "Deque ends are about O(1)."}
+      - {text: "x in my_set", bucket: "O(1) or about O(1)", explanation: "Average-case hash lookup."}
+      - {text: "x in my_list", bucket: "O(n)", explanation: "A linear scan."}
+      - {text: "my_dict.get(k)", bucket: "O(1) or about O(1)", explanation: "Average-case hash lookup."}
+      - {text: "my_list.insert(0, x)", bucket: "O(n)", explanation: "Inserting at the front moves everything."}
+  - id: q02-5
+    type: match
+    text: "Match each expression to its result."
+    concepts: [str-split, counter-arithmetic, divmod]
+    sources: [9, 15, 16]
+    pairs:
+      - {left: "\"a,,b\".split(\",\")", right: "['a', '', 'b']", explanation: "With an explicit separator, consecutive separators delimit empty strings."}
+      - {left: "\" a  b \".split()", right: "['a', 'b']", explanation: "With no argument, whitespace runs are one separator and there are no empty strings."}
+      - {left: "\"k=v=w\".partition(\"=\")", right: "('k', '=', 'v=w')", explanation: "It splits at the first separator only."}
+      - {left: "Counter(a=3, b=1) - Counter(a=1, b=2)", right: "Counter({'a': 2})", explanation: "Subtraction keeps only positive counts; b would be -1."}
+      - {left: "divmod(-17, 5)", right: "(-4, 3)", explanation: "It equals (-17 // 5, -17 % 5), and floor division rounds down."}
+    distractors:
+      - "('k', 'v', 'w')"
+  - id: q02-6
+    type: mcq
+    text: "A scheduler pops the oldest of 100000 queued jobs from the front and appends new ones at the back, in a loop. Which structure fits?"
+    concepts: [deque-vs-list, queues]
+    sources: [9, 14]
+    options:
+      - {text: "collections.deque with popleft() and append()", correct: true, explanation: "Both ends are about O(1); a list pays O(n) memory movement for pop(0)."}
+      - {text: "A list with pop(0) and append()", correct: false, explanation: "pop(0) is O(n), so the loop becomes quadratic."}
+      - {text: "A set, because lookups are O(1)", correct: false, explanation: "A set has no order, so there is no oldest item to pop."}
+      - {text: "A Counter", correct: false, explanation: "A Counter stores counts, not a queue of jobs."}

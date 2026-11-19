@@ -1,0 +1,89 @@
+schemaVersion: 1
+id: q26
+title: "Check: placement, failures and reconciliation"
+questions:
+  - id: q26-1
+    type: spot
+    text: "This job is rerun after a worker crash and sometimes retried after a libvirt error. Which line makes a rerun leak a resource and give the VM a different setup than the first run?"
+    concepts: [idempotent-jobs, ip-allocation]
+    sources: [97, 98]
+    code: |
+      def provision(db, conn, vm_id):
+          vm = db.get_vm(vm_id)
+          if vm.state != "BUILDING":
+              return vm.state
+          host = vm.host or scheduler.claim_and_store_host(db, vm)
+          ip = ipam.allocate_next_free(db)
+          disk = ensure_disk(host, vm_id, base=vm.image)
+          ensure_running(conn[host], vm_id, render_xml(vm, disk, ip))
+          db.set_state(vm_id, "ACTIVE", host=host, ip=ip)
+          return "ACTIVE"
+    correct: [6]
+    explanation: "allocate_next_free is not keyed by the VM, so every rerun takes a new address and the first one is never released. Claim by VM id instead: return the existing allocation for vm_id if there is one, as claim_ip in ip_claim_demo.py does. The other steps already check before they act: claim_and_store_host saves the host on the VM row, so a rerun reuses it, and ensure_disk and ensure_running skip work that is done."
+  - id: q26-2
+    type: fill
+    text: "Complete the idempotent define-and-start step."
+    concepts: [idempotent-jobs, libvirt-python]
+    sources: [97, 98]
+    template: |
+      def ensure_running(conn, name, xml):
+          try:
+              dom = conn.{{1}}(name)
+          except libvirt.libvirtError:
+              dom = conn.{{2}}(xml)
+          if not dom.{{3}}():
+              dom.{{4}}()
+          return dom
+    chips:
+      - {text: "lookupByName", slot: 1, explanation: "Find the existing domain; it raises libvirtError if there is none."}
+      - {text: "defineXML", slot: 2, explanation: "Store a persistent definition only when the domain does not exist yet."}
+      - {text: "isActive", slot: 3, explanation: "Check whether the domain is already running before starting it."}
+      - {text: "create", slot: 4, explanation: "Boot the previously defined domain."}
+      - {text: "createXML", explanation: "createXML makes a transient domain that disappears when it shuts down, and calling it on every run would try to create a duplicate."}
+      - {text: "destroy", explanation: "destroy is a hard stop, the opposite of what this step wants."}
+  - id: q26-3
+    type: match
+    text: "The reconciler compares the database with a host. Match each difference to the action this design takes."
+    concepts: [reconciliation-loop]
+    sources: [160]
+    pairs:
+      - {left: "Database says ACTIVE; the host has no such domain", right: "Mark the VM ERROR and alert; do not recreate it silently", explanation: "The user's data is gone; a silent rebuild would hide a real incident."}
+      - {left: "A domain runs on the host; the database has no row for it", right: "Treat it as an orphan: shut it down after a grace period, delete it later", explanation: "Two stages give a human time to notice a mistake before data is destroyed."}
+      - {left: "Database says DELETED; the domain still exists", right: "Destroy and undefine it, then delete its disks", explanation: "Desired state is gone, so the host is brought in line, with storage removed explicitly."}
+      - {left: "Database says BUILDING with no progress for 15 minutes", right: "Re-enqueue the idempotent provision job", explanation: "The job was lost or its worker died; the rerun skips finished steps."}
+    distractors:
+      - "Delete it immediately on the first pass"
+      - "Ignore it; the queue will retry it"
+  - id: q26-4
+    type: sort
+    text: "Is each property a reason to spread VMs across hosts or to pack them onto as few hosts as possible?"
+    concepts: [placement-strategy]
+    sources: [155]
+    buckets: ["Spread", "Pack"]
+    items:
+      - {text: "One host failure takes down fewer VMs", bucket: "Spread", explanation: "Fewer VMs per host means a smaller blast radius."}
+      - {text: "CPU contention is shared out evenly", bucket: "Spread", explanation: "Preferring the emptiest host keeps busy vCPUs apart."}
+      - {text: "Whole hosts stay empty for the largest flavours", bucket: "Pack", explanation: "Filling hosts one by one keeps large free blocks."}
+      - {text: "Empty hosts can be drained or patched without moving anything", bucket: "Pack", explanation: "A host with no VMs needs no live migration."}
+      - {text: "Short-lived CI VMs come and go every few minutes", bucket: "Pack", explanation: "Their lifetime is short, so contention matters less than keeping capacity in large blocks."}
+  - id: q26-5
+    type: mcq
+    text: "Three replicas of a database VM must never run on the same hypervisor. Which Nova mechanism enforces that?"
+    concepts: [anti-affinity, placement-strategy]
+    sources: [155, 156]
+    options:
+      - {text: "A server group with anti-affinity, enforced by ServerGroupAntiAffinityFilter", correct: true, explanation: "The filter passes only hosts that do not already hold a member of the group; it is in the default filter list."}
+      - {text: "ServerGroupAffinityFilter", correct: false, explanation: "Affinity does the opposite: it keeps members of a group on the same hosts."}
+      - {text: "ServerGroupSoftAntiAffinityWeigher on its own", correct: false, explanation: "A weigher only ranks hosts lower; it cannot refuse one, so separation is preferred but not guaranteed."}
+      - {text: "Raising cpu_allocation_ratio", correct: false, explanation: "The allocation ratio changes how much capacity a host reports; it says nothing about which VMs share a host."}
+  - id: q26-6
+    type: open
+    text: "A worker is killed after it created the VM's disk but before it defined and started the domain. Explain what happens to the request in this design and what makes the outcome correct."
+    concepts: [idempotent-jobs, worker-failure, reconciliation-loop]
+    sources: [50, 51, 97, 98]
+    rubric: |
+      - States that the VM row stays BUILDING and the job may not be marked failed, because a killed worker cannot report.
+      - Says that something notices the stalled request, for example the reconciler finding a BUILDING row with no progress and re-enqueueing it, rather than relying only on the queue.
+      - Explains that each step checks before acting, so the rerun reuses the claimed host and IP and the existing disk.
+      - Says that the rerun then defines and starts the domain and marks the VM ACTIVE.
+      - Mentions a guard against two runs at once, such as a per-VM lock with an expiry or conditional database updates.

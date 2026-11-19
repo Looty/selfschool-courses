@@ -1,0 +1,94 @@
+schemaVersion: 1
+id: q23
+title: "Check: RQ, Redis and idempotent jobs"
+questions:
+  - id: q23-1
+    type: trace
+    text: "A job is enqueued with `retry=Retry(max=2, interval=[2, 4])` on a worker started with `--with-scheduler`. Its build always raises, and each failed attempt adds 1 to the VM's `attempts` field; the third failure also sets the VM to `error`. Fill in the RQ job status, the VM status and `attempts` at each point."
+    concepts: [rq-retry, rq-job-status]
+    sources: [50]
+    code: |
+      q.enqueue(provision, vm_id, retry=Retry(max=2, interval=[2, 4]))
+      # provision(): status -> building, build raises, attempts += 1,
+      #              on the 3rd failure status -> error, then re-raise
+    variables: [job, vm, attempts]
+    steps:
+      - {label: "Just enqueued", values: {job: "queued", vm: "requested", attempts: 0}, given: [job, vm, attempts]}
+      - {label: "First attempt running", values: {job: "started", vm: "building", attempts: 0}}
+      - {label: "After the 1st failure", values: {job: "scheduled", vm: "building", attempts: 1}}
+      - {label: "Second attempt running", values: {job: "started", vm: "building", attempts: 1}}
+      - {label: "After the 2nd failure", values: {job: "scheduled", vm: "building", attempts: 2}}
+      - {label: "Third attempt running", values: {job: "started", vm: "building", attempts: 2}}
+      - {label: "After the 3rd failure", values: {job: "failed", vm: "error", attempts: 3}}
+    explanation: "Retry(max=2) allows two retries, so three attempts. Between attempts the job waits as scheduled for 2 s and then 4 s. After the last failure it goes to FailedJobRegistry with status failed. The course's test run showed exactly this sequence."
+  - id: q23-2
+    type: spot
+    text: "This job is retried, requeued by hand, and sometimes enqueued for a VM that was never stored. Which line makes a second run (or a stray job) harmful?"
+    concepts: [idempotent-jobs]
+    sources: [50]
+    code: |
+      def provision(vm_id):
+          r = redis_from_env()
+          status = r.hget(f"vm:{vm_id}", "status")
+          if status in ("deleted", "error"):
+              return status
+          r.hset(f"vm:{vm_id}", mapping={"status": "building"})
+          create_domain(vm_id)
+          r.hset(f"vm:{vm_id}", mapping={"status": "active"})
+          return "active"
+    correct: [4]
+    explanation: "The guard lets an `active` VM through, so a requeue builds a second domain, and it lets a missing record (status None) through, so a stray job creates a VM nobody asked for. Allow only the states that still need work: `if status not in (\"requested\", \"building\"): return status`."
+  - id: q23-3
+    type: match
+    text: "Match each need in the VM service to the Redis type (or reply) that fits it."
+    concepts: [redis-types, redis-expiry]
+    sources: [51]
+    pairs:
+      - {left: "A VM record with fields name, cpus and status", right: "Hash", explanation: "Hashes are field-value records, like a Python dict."}
+      - {left: "A lock or an idempotency key holding one token", right: "String", explanation: "A string holds one value; SET NX EX makes it a lock."}
+      - {left: "Work items pushed at one end and popped at the other", right: "List", explanation: "Lists keep insertion order with O(1) push and pop at both ends, the docs' queue use case."}
+      - {left: "Jobs ordered by the time they should run", right: "Sorted set", explanation: "Members are kept ordered by a score, such as a timestamp."}
+      - {left: "An append-only log of VM events read by consumer groups", right: "Stream", explanation: "Streams act like an append-only log with consumer groups."}
+      - {left: "TTL on a key answers -2", right: "The key does not exist", explanation: "Since Redis 2.8, -2 means no key and -1 means a key with no expiry."}
+    distractors:
+      - "Set"
+      - "The key has no expiry"
+  - id: q23-4
+    type: fill
+    text: "Complete the lock so that only the holder can release it."
+    concepts: [redis-lock]
+    sources: [51]
+    template: |
+      token = secrets.token_hex(16)
+      if r.set("lock:vm:42", token, {{1}}=True, {{2}}=10):
+          try:
+              rebuild_vm(42)
+          finally:
+              r.eval(UNLOCK_IF_TOKEN_MATCHES, 1, "lock:vm:42", {{3}})
+    chips:
+      - {text: "nx", slot: 1, explanation: "Only set the key if it does not exist yet, so a second client gets nil."}
+      - {text: "ex", slot: 2, explanation: "The lock expires after 10 seconds even if the holder dies."}
+      - {text: "token", slot: 3, explanation: "The script deletes the key only if it still holds our random token."}
+      - {text: "xx", explanation: "XX sets only if the key already exists, the opposite of what a lock needs."}
+      - {text: "\"1\"", explanation: "A fixed value lets any client delete the lock, including after it expired and passed to someone else."}
+  - id: q23-5
+    type: mcq
+    text: "A provisioning job enqueued with default options takes about four minutes. What happens?"
+    concepts: [rq-timeouts]
+    sources: [50]
+    options:
+      - {text: "After 180 seconds the worker kills the work horse and marks the job failed", correct: true, explanation: "The default job_timeout is 180 seconds; pass job_timeout to allow longer."}
+      - {text: "It runs to completion; RQ has no timeout unless you set one", correct: false, explanation: "There is a default: jobs should finish within 180 seconds."}
+      - {text: "It is discarded after 500 seconds in the queue", correct: false, explanation: "500 seconds is the default result_ttl for successful results; the queue ttl defaults to None."}
+      - {text: "The worker starts a second copy after 180 seconds", correct: false, explanation: "A timeout fails the job; it is retried only if retry= was given."}
+  - id: q23-6
+    type: open
+    text: "Explain why `POST /vms` should enqueue a job and answer 202 instead of calling the hypervisor inside the request. Mention what goes wrong without a queue and what the queue adds."
+    concepts: [task-queues, http-202]
+    sources: [46, 50, 52]
+    rubric: |
+      Says that building a VM is slow, so a request that waits ties up a web worker and risks the client timing out.
+      Says that a client timeout can lead to a retry of the non-idempotent POST and so a duplicate build.
+      Says that 202 means accepted but not completed, with a status URL or id the client can poll.
+      Says that the job is stored in Redis, so it survives an API restart and workers can be scaled separately.
+      Mentions retries or the failed-job registry as a place where failures are kept and retried, which requires idempotent jobs.

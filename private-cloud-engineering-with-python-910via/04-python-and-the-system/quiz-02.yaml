@@ -1,0 +1,80 @@
+schemaVersion: 1
+id: q11
+title: "Check: threads, pools, asyncio and the GIL"
+questions:
+  - id: q11-1
+    type: sort
+    text: "Which tool fits each job best?"
+    concepts: [concurrency-choice, gil]
+    sources: [28, 29, 31]
+    buckets: ["Threads", "Processes", "asyncio"]
+    items:
+      - {text: "Checking 200 hosts over SSH, each call waits on the network", bucket: "Threads", explanation: "Blocking I/O releases the GIL while waiting, so threads overlap the waits."}
+      - {text: "Hashing large files in pure Python on all cores", bucket: "Processes", explanation: "A process pool side-steps the GIL, which blocks CPU parallelism in threads."}
+      - {text: "A service holding thousands of open sockets", bucket: "asyncio", explanation: "Tasks switch at await points on one thread, with no thread per connection."}
+      - {text: "Parsing many big logs with a CPU-heavy regex", bucket: "Processes", explanation: "CPU-bound; threads share one GIL."}
+      - {text: "Running a blocking library call from async code", bucket: "Threads", explanation: "asyncio.to_thread runs it on a thread so the loop is not blocked."}
+  - id: q11-2
+    type: mcq
+    text: "A task submitted to a ThreadPoolExecutor raises ValueError. Where does the exception appear in your code?"
+    concepts: [futures, exceptions]
+    sources: [28]
+    options:
+      - {text: "When you call result() on that task's Future", correct: true, explanation: "result() re-raises the exception that the call raised."}
+      - {text: "At the submit() call", correct: false, explanation: "submit only schedules the call and returns a Future."}
+      - {text: "Nowhere; the pool swallows it", correct: false, explanation: "The exception is stored on the Future; it is lost only if you never look."}
+      - {text: "In the main thread immediately, interrupting it", correct: false, explanation: "Exceptions do not cross threads on their own."}
+  - id: q11-3
+    type: spot
+    text: "This function must return after `timeout` even if a check hangs. Click the line that breaks that."
+    concepts: [executor-shutdown, timeouts]
+    sources: [28]
+    code: |
+      def check_all(hosts, check, timeout):
+          with ThreadPoolExecutor(max_workers=8) as pool:
+              futures = [pool.submit(check, h) for h in hosts]
+              done, not_done = wait(futures, timeout=timeout)
+          return done, not_done
+    correct: [2]
+    explanation: "Leaving a with block calls shutdown(wait=True), which waits for every pending future, including the hanging one. Create the pool without with and call shutdown(wait=False, cancel_futures=True)."
+  - id: q11-4
+    type: trace
+    text: "retry_call with attempts=5, base_delay=1, max_delay=10 and jitter returning the delay unchanged. The function fails every time. What does sleep receive before each retry (retry numbers start at 0)?"
+    concepts: [exponential-backoff]
+    sources: [38]
+    code: |
+      delay = min(max_delay, base_delay * 2 ** n)
+      sleep(jitter(delay))
+    variables: [slept]
+    steps:
+      - {label: "n = 0", values: {slept: 1}}
+      - {label: "n = 1", values: {slept: 2}}
+      - {label: "n = 2", values: {slept: 4}}
+      - {label: "n = 3", values: {slept: 8}}
+    explanation: "1 * 2**n gives 1, 2, 4, 8 and all are under the cap of 10 (a fifth wait would be min(10, 16) = 10). With 5 attempts there are only 4 sleeps: nothing sleeps after the last failure."
+  - id: q11-5
+    type: fill
+    text: "Complete this asyncio snippet that runs several checks concurrently with an overall 2-second limit."
+    concepts: [asyncio, taskgroup, timeout]
+    sources: [31]
+    template: |
+      async def main(hosts):
+          async with asyncio.{{1}}(2):
+              async with asyncio.{{2}}() as tg:
+                  tasks = [tg.{{3}}(check(h)) for h in hosts]
+          return [t.result() for t in tasks]
+    chips:
+      - {text: "timeout", slot: 1, explanation: "An async context manager that cancels the current task after the delay and raises TimeoutError outside the block."}
+      - {text: "TaskGroup", slot: 2, explanation: "Added in 3.11; awaits all its tasks when the block exits."}
+      - {text: "create_task", slot: 3, explanation: "TaskGroup.create_task adds a coroutine to the group."}
+      - {text: "gather", explanation: "gather is a function you await; it is not a context manager."}
+  - id: q11-6
+    type: mcq
+    text: "Which statement about the GIL is supported by the Python documentation read for this course?"
+    concepts: [gil, free-threading]
+    sources: [29, 44, 22]
+    options:
+      - {text: "In default CPython only one thread runs Python code at once; a free-threaded build without the GIL exists and is optional", correct: true, explanation: "The threading page says so, and the 3.14 notes say free-threaded Python is officially supported but still optional."}
+      - {text: "The GIL was removed from standard CPython in 3.15", correct: false, explanation: "The 3.15 notes read do not say the GIL was removed, and free threading is still a separate optional build."}
+      - {text: "The GIL makes threads useless, even for network calls", correct: false, explanation: "Threads are suited to I/O-bound work because waiting releases the chance to run."}
+      - {text: "Free-threaded builds are the default since 3.13", correct: false, explanation: "Added in 3.13 as optional; the default is still undecided."}
