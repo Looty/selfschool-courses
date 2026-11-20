@@ -2,9 +2,112 @@ schemaVersion: 1
 id: q08
 title: "Check: Git objects, merge and rebase"
 questions:
+  - id: q08-2
+    type: mcq
+    text: |
+      In a new repository you create `a.txt` and `b.txt`, both containing exactly `hello`, and commit them. How many blob objects does that commit add?
+
+      Hint: what is a blob's name computed from?
+    concepts: [git-objects]
+    sources: [153]
+    options:
+      - {text: "1", correct: true, explanation: "A blob is named by the hash of its contents. Identical contents give the same hash, so both tree entries point to one blob."}
+      - {text: "2", correct: false, explanation: "Misconception: one blob per file. Blobs are per content, not per file name; the tree holds the two names."}
+      - {text: "0, because Git stores only differences", correct: false, explanation: "Misconception: Git stores diffs. Git stores snapshots; every file content is a blob."}
+      - {text: "3, one per file plus one for the folder", correct: false, explanation: "Misconception: the folder is a blob. The folder is a tree object, not a blob; the commit added 1 blob, 1 tree and 1 commit."}
+  - id: q08-3
+    type: mcq
+    text: |
+      Which Git object stores the name `a.txt`?
+
+      Hint: a blob is only contents.
+    concepts: [git-objects]
+    sources: [153]
+    options:
+      - {text: "The tree for the folder that contains it", correct: true, explanation: "Each tree entry is a mode, type, hash and name. That is how one blob can appear under two names."}
+      - {text: "The blob", correct: false, explanation: "Misconception: a blob is a whole file with its name. A blob holds only contents, which is why identical files share it."}
+      - {text: "The commit, which lists every file", correct: false, explanation: "Misconception: a commit lists files. A commit points to one top-level tree; the tree lists names."}
+      - {text: "Only the index", correct: false, explanation: "Misconception: names are not stored in history. Committed trees keep the names."}
+  - id: q08-4
+    type: mcq
+    text: |
+      What is a Git branch, physically?
+
+      Hint: creating one is instant, even in a huge repository.
+    concepts: [git-branches]
+    sources: [153]
+    options:
+      - {text: "A small file holding one commit hash", correct: true, explanation: "A branch is a 41-byte file: 40 hex characters and a newline. It points; it does not contain."}
+      - {text: "A copy of the project's files", correct: false, explanation: "Misconception: a branch duplicates the working tree. Nothing is copied; that is why it is instant."}
+      - {text: "A list of the commits that belong to it", correct: false, explanation: "Misconception: commits belong to a branch. A branch stores one hash; its history is found by following parent links."}
+      - {text: "A folder inside .git/objects", correct: false, explanation: "Misconception: branches are objects. They live in .git/refs/heads, not in the object store."}
+  - id: q08-5
+    type: mcq
+    text: |
+      `main` and `feature` both point to commit A. You are on `feature` and commit B. Where does `main` point?
+
+      Hint: HEAD names exactly one branch.
+    concepts: [git-branches, git-head]
+    sources: [153]
+    options:
+      - {text: "Still A", correct: true, explanation: "A commit moves only the branch HEAD names, here feature."}
+      - {text: "B, because both branches pointed to the same commit", correct: false, explanation: "Misconception: branches on the same commit move together. Each is its own pointer; only the current one moves."}
+      - {text: "Nowhere: main is deleted until you switch back", correct: false, explanation: "Misconception: switching hides other branches. main's file is untouched."}
+  - id: q08-6
+    type: mcq
+    text: |
+      `main` is at A. `feature` was made from A and has one new commit, B. On `main` you run `git merge feature`. What happens?
+
+      Hint: does main have any commit of its own to combine?
+    concepts: [fast-forward]
+    sources: [153]
+    options:
+      - {text: "main moves to B; no new commit is made (fast-forward)", correct: true, explanation: "B is reachable forward from A, so there is nothing to combine and Git only moves the pointer."}
+      - {text: "Git creates a merge commit with parents A and B", correct: false, explanation: "Misconception: every merge makes a merge commit. Only when both sides moved, or with --no-ff."}
+      - {text: "Git copies B onto main with a new hash", correct: false, explanation: "Misconception: merge rewrites commits. That describes rebase or cherry-pick; a fast-forward reuses B as is."}
+      - {text: "It stops with a conflict", correct: false, explanation: "Misconception: any merge can conflict. A conflict needs both sides to change the same lines; main changed nothing."}
+  - id: q08-7
+    type: mcq
+    text: |
+      `main` has new commit C and `feature` has new commit B, both made from A. The merge on `main` makes commit M. How many parents does M have?
+
+      Hint: which two tips are being joined?
+    concepts: [three-way-merge]
+    sources: [153]
+    options:
+      - {text: "2: C and B", correct: true, explanation: "A three-way merge records both tips as parents; `git cat-file -p` shows two parent lines."}
+      - {text: "1: C", correct: false, explanation: "Misconception: a merge commit is an ordinary commit on main. It records the merged-in tip too, which is why history shows the join."}
+      - {text: "3: C, B and the ancestor A", correct: false, explanation: "Misconception: the common ancestor becomes a parent. A is used to compute the result but is not recorded as a parent."}
+  - id: q08-8
+    type: mcq
+    text: |
+      On `feature` you run `git rebase main`. B's file changes are the same afterwards. Does B keep its hash?
+
+      Hint: what does a commit object record besides its tree?
+    concepts: [rebase]
+    sources: [153, 154]
+    options:
+      - {text: "No: the copy has a new parent, so its content and hash change", correct: true, explanation: "A commit records its parent. Replaying it on C gives a new commit (8ac974d instead of 9c775df in the test run)."}
+      - {text: "Yes: the hash comes from the file changes only", correct: false, explanation: "Misconception: a commit hash covers only the diff. It covers the tree, parents and metadata."}
+      - {text: "No, and the old B is deleted at once", correct: false, explanation: "Misconception: rebase destroys the old commit. The old tip stays in the reflog and ORIG_HEAD."}
+  - id: q08-9
+    type: mcq
+    text: |
+      A colleague already pulled your `feature` branch. You want the new commits from `main` in it. Which is the safe choice?
+
+      Hint: the final files are the same either way; think about the colleague's clone.
+    concepts: [merge-vs-rebase, rewriting-history]
+    sources: [153, 154]
+    options:
+      - {text: "Merge main into feature", correct: true, explanation: "Merge keeps the existing commits, so the colleague's history stays valid."}
+      - {text: "Rebase feature onto main and force-push", correct: false, explanation: "Misconception: rebase only tidies history. It replaces commits others have, so they must repair their history and duplicates appear."}
+      - {text: "Either; the result is identical", correct: false, explanation: "Misconception: same files means same effect. The snapshot matches, but rebase rewrites shared commits."}
   - id: q08-1
     type: trace
-    text: "The repository starts with one commit A on main, and main is checked out. Where do main, feature and HEAD point after each command? Write a commit letter for the branches, and a branch name for HEAD."
+    text: |
+      The repository starts with one commit A on main, and main is checked out. Where do main, feature and HEAD point after each command? Write a commit letter for the branches, and a branch name for HEAD.
+
+      Hint: a commit moves only the branch HEAD names.
     concepts: [git-branches, git-head, three-way-merge]
     sources: [153]
     code: |
@@ -22,51 +125,3 @@ questions:
       - {label: "After commit C", values: {main: "C", feature: "B", HEAD: "main"}}
       - {label: "After merge feature", values: {main: "M", feature: "B", HEAD: "main"}}
     explanation: "Creating a branch adds a pointer to the current commit, and switching moves HEAD. A commit moves only the branch HEAD points to. Because main and feature both have new commits, the merge cannot fast-forward: it creates M with parents C and B and moves main to it, while feature stays at B."
-  - id: q08-2
-    type: spot
-    text: "You ran `git merge bigger` while on main and got this file. Click the line that came from the bigger branch."
-    concepts: [merge-conflicts]
-    sources: [153]
-    code: |
-      name: vm-01
-      <<<<<<< HEAD
-      memory_mib: 1024
-      =======
-      memory_mib: 4096
-      >>>>>>> bigger
-      cpus: 2
-    correct: [5]
-    explanation: "Between <<<<<<< HEAD and ======= is the version of the branch you had checked out (main). Between ======= and >>>>>>> bigger is the version from the branch being merged in. Lines outside the markers merged cleanly."
-  - id: q08-3
-    type: mcq
-    text: "On main you run `git merge --squash tidy` and it succeeds. What is true right afterwards?"
-    concepts: [merge-options, squash-merge]
-    sources: [154]
-    options:
-      - {text: "The combined changes are in the index and working tree, and no commit has been made yet", correct: true, explanation: "--squash prepares the result but does not commit or record a second parent; your next git commit makes one ordinary commit."}
-      - {text: "A merge commit with two parents was created", correct: false, explanation: "That is a normal merge (or --no-ff). --squash records no second parent at all."}
-      - {text: "main now points to the tip of tidy", correct: false, explanation: "That would be a fast-forward. --squash does not move HEAD or the branch."}
-      - {text: "The tidy branch was rewritten into one commit", correct: false, explanation: "The tidy branch is untouched; only main's index and working tree change."}
-  - id: q08-4
-    type: fill
-    text: "client was branched from server, which was branched from main. Complete the command that replays only client's own commits onto main."
-    concepts: [rebase-onto]
-    sources: [153, 154]
-    template: |
-      git rebase --onto {{1}} {{2}} {{3}}
-    chips:
-      - {text: "main", slot: 1, explanation: "The new base the commits are replayed onto."}
-      - {text: "server", slot: 2, explanation: "The old base: commits reachable from server are left behind."}
-      - {text: "client", slot: 3, explanation: "The branch being moved; it ends up pointing at the last replayed commit."}
-      - {text: "HEAD~1", explanation: "Would cut at a fixed count of commits, not at where client left server."}
-  - id: q08-5
-    type: open
-    text: "A colleague asks whether to merge or rebase a feature branch before it goes into main. Explain the difference in what each does to history, and give the rule for when rebasing is not acceptable."
-    concepts: [merge-vs-rebase, rewriting-history]
-    rubric: |
-      - Says merge keeps existing commits and records the integration as a merge commit (when it is not a fast-forward).
-      - Says rebase replays the commits as new commits with new hashes on top of the other branch, giving linear history.
-      - Says the final snapshot is the same either way; only the history differs.
-      - States the rule: do not rebase commits that have been pushed or that others may have based work on.
-      - Gives the consequence: collaborators must repair their history and duplicate commits appear.
-    sources: [153, 154]

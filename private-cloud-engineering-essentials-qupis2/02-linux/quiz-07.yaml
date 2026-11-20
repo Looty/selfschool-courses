@@ -3,8 +3,115 @@ id: q07
 title: "Check: the broken box and Bash strict mode"
 questions:
   - id: q07-1
+    type: mcq
+    text: |
+      A script with no `set` options runs `cd /nonexistent` and then `echo "report written"`. What happens?
+
+      Hint: what does plain Bash do after a failed command?
+    concepts: [strict-mode, set-e]
+    sources: [124]
+    options:
+      - {text: "cd prints an error, then 'report written' is printed and the script exits 0", correct: true, explanation: "Bash keeps going after a failure; the script's status is the last command's, and echo succeeded."}
+      - {text: "The script stops at cd with status 1", correct: false, explanation: "Misconception: Bash stops on errors by default. That needs set -e."}
+      - {text: "The script stops at cd with status 127", correct: false, explanation: "Misconception: a failed cd is 'not found'. 127 is for a command that does not exist; cd exists and failed."}
+      - {text: "cd silently creates the directory", correct: false, explanation: "Misconception: cd makes missing directories. It only fails; mkdir -p creates them."}
+  - id: q07-2
+    type: mcq
+    text: |
+      Under `set -e`, the script runs `false || echo fallback` and then `echo end`. What is printed?
+
+      Hint: which command of an || list can trigger -e?
+    concepts: [set-e]
+    sources: [124]
+    options:
+      - {text: "fallback, then end", correct: true, explanation: "Only the last command of an && or || list can trigger -e; false is tested, and echo fallback succeeds."}
+      - {text: "Nothing: the script stops at false", correct: false, explanation: "Misconception: -e stops on every failure. A failure that is tested by || is exempt."}
+      - {text: "end only", correct: false, explanation: "Misconception: || skips the fallback under -e. The fallback runs because false failed."}
+      - {text: "fallback, then the script stops", correct: false, explanation: "Misconception: -e fires after the list. The list as a whole succeeded, so the script goes on."}
+  - id: q07-3
+    type: mcq
+    text: |
+      Under `set -e`, does `if grep -q ERROR app.log; then alert; fi` stop the script when app.log has no ERROR line?
+
+      Hint: grep -q returns 1 when it finds nothing. Where is it used?
+    concepts: [set-e]
+    sources: [124]
+    options:
+      - {text: "No: a command tested by if is exempt from -e", correct: true, explanation: "The condition of if, elif, while or until never triggers -e; that is how you test things under strict mode."}
+      - {text: "Yes: grep returned 1, a failure", correct: false, explanation: "Misconception: -e stops on every non-zero status. Conditions are exempt."}
+      - {text: "Yes, but only if pipefail is also set", correct: false, explanation: "Misconception: pipefail changes if. pipefail only changes how a pipeline's status is computed."}
+      - {text: "No, because grep -q never fails", correct: false, explanation: "Misconception: -q hides the status. -q hides output; the status is still 1 when nothing matches."}
+  - id: q07-4
+    type: mcq
+    text: |
+      Under `set -e`: `f() { false; echo inside; }` then `if f; then echo ok; fi`. What is printed?
+
+      Hint: f is called as an if condition.
+    concepts: [set-e]
+    sources: [124]
+    options:
+      - {text: "inside, then ok", correct: true, explanation: "A function called as an if condition runs with -e off inside it, so false is ignored and f returns echo's 0."}
+      - {text: "Nothing: the script stops at false inside f", correct: false, explanation: "Misconception: -e still applies inside functions called from if. It is off for the whole call."}
+      - {text: "inside only", correct: false, explanation: "Misconception: f returns false's status. f returns its last command's status, echo's 0."}
+      - {text: "ok only", correct: false, explanation: "Misconception: if skips the function body. f runs fully; only -e is off."}
+  - id: q07-5
+    type: mcq
+    text: |
+      Under `set -u`, the script runs `echo "[$REGION]"` and REGION was never set. What happens?
+
+      Hint: -u is about variables that were never set.
+    concepts: [set-u]
+    sources: [124]
+    options:
+      - {text: "Bash prints 'REGION: unbound variable' and the script stops", correct: true, explanation: "With -u, expanding an unset variable is an error, and a non-interactive shell exits."}
+      - {text: "It prints [] and continues", correct: false, explanation: "Misconception: -u changes nothing for echo. That is the behaviour without -u."}
+      - {text: "It prints [REGION] literally", correct: false, explanation: "Misconception: unset variables stay as text. Bash never prints the name instead of the value."}
+      - {text: "It stops only if pipefail is set too", correct: false, explanation: "Misconception: the flags depend on each other. Each of -e, -u and pipefail works alone."}
+  - id: q07-6
+    type: mcq
+    text: |
+      Under `set -u`: `REGION=""` then `echo "[$REGION]"`. What happens?
+
+      Hint: is an empty variable unset?
+    concepts: [set-u]
+    sources: [124]
+    options:
+      - {text: "It prints [] and continues", correct: true, explanation: "REGION is set, to an empty string; -u only stops on variables that were never set."}
+      - {text: "It stops with 'unbound variable'", correct: false, explanation: "Misconception: -u rejects empty values. Empty is set; only unset variables are errors."}
+      - {text: "It prints [\"\"]", correct: false, explanation: "Misconception: the quotes are part of the value. REGION=\"\" stores an empty string; the quotes are shell syntax."}
+      - {text: "It stops, because set -u also implies set -e", correct: false, explanation: "Misconception: the flags imply each other. -u does not turn on -e, and nothing failed here."}
+  - id: q07-7
+    type: mcq
+    text: |
+      Under `set -u`, what does `echo "${PORT:-8080}"` print when PORT was never set?
+
+      Hint: :- means "use this when unset or empty".
+    concepts: [set-u]
+    sources: [124]
+    options:
+      - {text: "8080", correct: true, explanation: "${VAR:-default} supplies the default, so -u does not fire. The test run printed the default under -u."}
+      - {text: "It stops with 'unbound variable'", correct: false, explanation: "Misconception: any mention of an unset variable fails under -u. The :- form is the explicit 'unset is fine here'."}
+      - {text: "An empty line", correct: false, explanation: "Misconception: the default is ignored when unset. The default is used exactly when PORT is unset or empty."}
+      - {text: "PORT", correct: false, explanation: "Misconception: the variable's name is the fallback. The fallback is the text after :-."}
+  - id: q07-8
+    type: mcq
+    text: |
+      A script has `set -e` but not pipefail. `cat *.csv | sort > out.txt` runs in a directory with no CSV files, and cat fails. Does the script stop?
+
+      Hint: without pipefail, whose status is the pipeline's?
+    concepts: [pipefail, set-e]
+    sources: [124]
+    options:
+      - {text: "No: the pipeline's status is sort's, 0, so -e does not fire", correct: true, explanation: "Without pipefail a pipeline returns its last command's status; add set -o pipefail to catch cat."}
+      - {text: "Yes: -e stops on any failing command", correct: false, explanation: "Misconception: -e sees every command in a pipe. A pipeline element other than the last is exempt."}
+      - {text: "Yes, because the output file is empty", correct: false, explanation: "Misconception: Bash checks output. It only looks at exit statuses."}
+      - {text: "No, because cat never fails", correct: false, explanation: "Misconception: cat cannot fail. It fails when a file is missing; the pipe just hides it."}
+  - id: q07-9
     type: trace
-    text: "The lines run in order in one bash session. What does `echo $?` print after each?"
+    text: |
+      The lines run in order in one bash session. What does `echo $?` print after each?
+
+      Hint: once pipefail is on, look for the rightmost failure.
     concepts: [pipeline-exit-status, pipefail]
     sources: [124]
     code: |
@@ -22,53 +129,3 @@ questions:
       - {label: "Line 5", values: {status: "4"}}
       - {label: "Line 6", values: {status: "2"}}
     explanation: "Without pipefail a pipeline returns its last command's status, so line 1 gives 0. With pipefail it returns the status of the rightmost command that failed: 1 from false, 5 (not 3) because exit 5 is further right, 4 even though the last command succeeded, and 2 from grep, which could not open the file, while sort succeeded."
-  - id: q07-2
-    type: sort
-    text: "Each line runs in a script that starts with `set -e` (pipefail only where written). Does the script stop at it?"
-    concepts: [set-e, strict-mode]
-    sources: [124]
-    buckets: ["Script stops", "Script continues"]
-    items:
-      - {text: "cd /nonexistent", bucket: "Script stops", explanation: "A simple command that fails, outside any exception, ends the script."}
-      - {text: "set -o pipefail; false | true", bucket: "Script stops", explanation: "With pipefail the pipeline's status is 1, so -e fires."}
-      - {text: "if grep -q x /nonexistent; then :; fi", bucket: "Script continues", explanation: "A command tested by if is exempt from -e."}
-      - {text: "false || echo fallback", bucket: "Script continues", explanation: "Only the last command of an && or || list can trigger -e."}
-      - {text: "false && echo yes", bucket: "Script continues", explanation: "false is not the last command of the list, so -e ignores it."}
-      - {text: "false | true   (no pipefail)", bucket: "Script continues", explanation: "The pipeline returns true's status, 0."}
-      - {text: "f() { false; echo after; }; if f; then :; fi", bucket: "Script continues", explanation: "f runs as an if condition, so -e is ignored for every command inside it and 'after' is printed."}
-  - id: q07-3
-    type: fill
-    text: "Complete the nightly pipeline that counts running VMs per hypervisor from lines like `hv01,vm-101,running`."
-    concepts: [pipelines, text-processing]
-    sources: [124]
-    template: |
-      cat *.csv | grep {{1}} | cut -d, -f{{2}} | {{3}} | uniq -c
-    chips:
-      - {text: "',running$'", slot: 1, explanation: "Keeps only lines whose last field is running; the $ anchors it to the end of the line."}
-      - {text: "1", slot: 2, explanation: "The hypervisor is the first comma-separated field."}
-      - {text: "sort", slot: 3, explanation: "uniq -c counts only adjacent equal lines, so the input must be sorted first."}
-      - {text: "2", explanation: "Field 2 is the VM name, which would count each VM once."}
-      - {text: "uniq", explanation: "uniq before sort would miss repeated hypervisors that are not on adjacent lines."}
-  - id: q07-4
-    type: mcq
-    text: "A cron job uses `./backup.sh 2>&1 > /var/log/backup.log`. Errors still show up in the cron mail and not in the log. Why?"
-    concepts: [redirections]
-    sources: [124]
-    options:
-      - {text: "Redirections apply left to right: stderr was copied to the old stdout before stdout moved to the file", correct: true, explanation: "Write > /var/log/backup.log 2>&1 so stderr copies stdout after it points at the file."}
-      - {text: "2>&1 only works inside a pipeline", correct: false, explanation: "It works with any command; the order is the problem."}
-      - {text: "cron ignores redirections", correct: false, explanation: "The shell that cron starts processes them normally; stdout did go to the file."}
-      - {text: "Bash needs &> instead, and 2>&1 is obsolete", correct: false, explanation: "&> is a shorter form of > file 2>&1, but 2>&1 is valid; here it is just in the wrong position."}
-  - id: q07-5
-    type: match
-    text: "Match each broken-box finding to the fix that removes its cause."
-    concepts: [linux-troubleshooting]
-    sources: [105, 114, 122, 125]
-    pairs:
-      - {left: "boot.log: failed with exit status 126", right: "chmod 0755 on the program, then start it", explanation: "126 is 'found but not executable'; 755 adds execute without letting others write."}
-      - {left: "ss shows 127.0.0.1:8080", right: "bind = 0.0.0.0 in the config, then restart", explanation: "The service must listen on the address clients use."}
-      - {left: "SigIgn has bit 14 set (SIGTERM) in a script process", right: "Replace trap '' TERM with a handler that exits", explanation: "Ignored signals are inherited; killing with -9 fixes only the current copy."}
-      - {left: "Five <defunct> children of one parent", right: "Make the parent collect its children, then end the old parent", explanation: "A zombie has already exited; only collecting its status removes it."}
-      - {left: "df -i shows IUse% 100 while df -h shows 2%", right: "Delete the stale session files", explanation: "Each file uses an inode; the space was never the problem."}
-    distractors:
-      - "chmod 777 on the directory"

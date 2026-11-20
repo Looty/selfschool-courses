@@ -3,40 +3,115 @@ id: q04
 title: "Check: processes, signals and systemd"
 questions:
   - id: q04-1
-    type: match
-    text: "Match each signal to its number on x86 and what is special about it."
+    type: mcq
+    text: |
+      You run `kill 4242` with no option. Which signal does process 4242 receive?
+
+      Hint: the plain form is the polite one.
+    concepts: [signals]
+    sources: [105, 125]
+    options:
+      - {text: "SIGTERM (15)", correct: true, explanation: "Plain kill sends TERM; a sleep killed this way reports 143, which is 128+15."}
+      - {text: "SIGKILL (9)", correct: false, explanation: "Misconception: the command name kill means force. You need kill -9 for SIGKILL."}
+      - {text: "SIGHUP (1)", correct: false, explanation: "Misconception: kill starts at the lowest signal number. HUP is sent only with kill -HUP or when a terminal goes away."}
+      - {text: "SIGINT (2)", correct: false, explanation: "Misconception: kill is the same as Ctrl-C. Ctrl-C sends SIGINT; kill sends SIGTERM."}
+  - id: q04-2
+    type: mcq
+    text: |
+      A container job log says the process ended with exit status 137. What happened?
+
+      Hint: subtract 128.
+    concepts: [exit-status, signals]
+    sources: [125, 105]
+    options:
+      - {text: "It was killed by SIGKILL (137 - 128 = 9)", correct: true, explanation: "A process killed by signal N has status 128+N, and 9 is SIGKILL."}
+      - {text: "The program called exit(137) because of an internal error", correct: false, explanation: "Misconception: every status is chosen by the program. Statuses above 128 in the shell mean killed by a signal."}
+      - {text: "The command was not found", correct: false, explanation: "Misconception: any odd status means not found. Not found is exactly 127."}
+      - {text: "It received SIGTERM and stopped cleanly", correct: false, explanation: "Misconception: all kill statuses look alike. SIGTERM gives 143 (128+15), not 137."}
+  - id: q04-3
+    type: mcq
+    text: |
+      Which signal can a process neither catch nor ignore?
+
+      Hint: think about which one does not ask.
     concepts: [signals, signal-dispositions]
     sources: [105]
-    pairs:
-      - {left: "SIGTERM", right: "15; the polite stop request, can be caught or ignored", explanation: "Plain kill and systemctl stop send it; the program may run a handler first."}
-      - {left: "SIGKILL", right: "9; cannot be caught, blocked or ignored", explanation: "The kernel ends the process without asking it."}
-      - {left: "SIGSTOP", right: "19; stops the process and cannot be caught", explanation: "SIGSTOP and SIGKILL are the two signals no process can catch or ignore."}
-      - {left: "SIGCHLD", right: "17; sent when a child changes state, ignored by default", explanation: "Its default disposition is Ign, so a parent that does nothing never collects its children."}
-      - {left: "SIGHUP", right: "1; the controlling terminal or process went away", explanation: "Its default action is Term."}
-    distractors:
-      - "11; sent by systemd before every restart"
-  - id: q04-2
-    type: spot
-    text: "The team wants vmapi to start after Redis, to fail the start when the Python path is wrong, to restart after a crash and to start at boot. Click the two lines that break those goals."
-    concepts: [systemd-units, unit-dependencies, service-type]
-    sources: [119]
-    code: |
-      [Unit]
-      Description=vmapi
-      Requires=redis-server.service
+    options:
+      - {text: "SIGKILL", correct: true, explanation: "SIGKILL (and SIGSTOP) cannot be caught, blocked or ignored."}
+      - {text: "SIGTERM", correct: false, explanation: "Misconception: TERM means terminate, so it must be forced. A process can catch or ignore TERM, for example with trap '' TERM."}
+      - {text: "SIGHUP", correct: false, explanation: "Misconception: hanging up is final. HUP's default is Term, but a process may catch or ignore it."}
+      - {text: "SIGINT", correct: false, explanation: "Misconception: Ctrl-C always works. SIGINT's default is Term, but like every signal except KILL and STOP it can be caught or ignored."}
+  - id: q04-4
+    type: mcq
+    text: |
+      A start script contains `trap '' TERM` and then launches `worker`. You run `systemctl stop` on the unit (no `ExecStop=`). What happens to `worker`?
 
-      [Service]
-      Type=simple
-      ExecStart=/usr/bin/python3 /opt/vmapi/vmapi.py
-      Restart=on-failure
+      Hint: what does a child get from its parent, and what does systemd send after a timeout?
+    concepts: [signal-dispositions, systemd-stop]
+    sources: [105, 119]
+    options:
+      - {text: "It ignores the SIGTERM, keeps running until TimeoutStopSec= passes, then dies from SIGKILL", correct: true, explanation: "Ignored dispositions survive fork and execve, so worker ignores TERM too; systemd then sends SIGKILL."}
+      - {text: "It stops at once, because the trap applies only to the script itself", correct: false, explanation: "Misconception: a trap is private to the shell. An ignored signal is inherited by children and kept across execve."}
+      - {text: "It runs forever, because systemd only ever sends SIGTERM", correct: false, explanation: "Misconception: systemctl stop is one signal. systemd follows up with SIGKILL after TimeoutStopSec=."}
+      - {text: "systemd restarts it because Restart=on-failure sees a failure", correct: false, explanation: "Misconception: Restart= reacts to a manual stop. A unit stopped with systemctl stop is never restarted."}
+  - id: q04-5
+    type: mcq
+    text: |
+      `ps` shows five `<defunct>` children of PID 2057. You run `kill -9` on each. What changes?
 
-      [Install]
-      WantedBy=multi-user.target
-    correct: [3, 6]
-    explanation: "Requires= pulls Redis in but sets no order: without After=redis-server.service both units start at the same time. Type=simple counts the service as started as soon as it is forked, so a wrong path still reports success; Type=exec reports the failed execve. Restart=on-failure and WantedBy=multi-user.target are right."
-  - id: q04-3
+      Hint: has a zombie still got any code running?
+    concepts: [zombies, signals]
+    sources: [106]
+    options:
+      - {text: "Nothing: they have already exited; fix or end their parent", correct: true, explanation: "A zombie is only a leftover entry waiting for its exit status to be collected. kill -9 has nothing to kill; fix or end the parent."}
+      - {text: "They disappear, because SIGKILL cannot be ignored", correct: false, explanation: "Misconception: uncatchable means it always removes the entry. The process is already dead; only collecting its status removes it."}
+      - {text: "They become orphans and start running again", correct: false, explanation: "Misconception: a signal revives a zombie. An exited process never runs again."}
+      - {text: "PID 2057 dies, since signals go to the parent", correct: false, explanation: "Misconception: signals to a child are forwarded to its parent. kill targets only the PID you give."}
+  - id: q04-6
+    type: mcq
+    text: |
+      You changed `ExecStart=` in /etc/systemd/system/vmapi.service and ran `systemctl reload vmapi`. What happens?
+
+      Hint: which command is the only one that rereads unit files?
+    concepts: [systemctl, daemon-reload]
+    sources: [118]
+    options:
+      - {text: "The service is asked to reread its own config; systemd still uses the old unit file", correct: true, explanation: "reload is for the service's own configuration. Changed unit files need daemon-reload, then restart."}
+      - {text: "systemd rereads the unit file and restarts the service with the new command", correct: false, explanation: "Misconception: reload is short for daemon-reload plus restart. That takes two separate commands."}
+      - {text: "systemd rereads all unit files but leaves the process alone", correct: false, explanation: "Misconception: reload and daemon-reload are the same. That describes daemon-reload."}
+      - {text: "The new ExecStart= runs, because systemd watches unit files for changes", correct: false, explanation: "Misconception: systemd notices edits. It keeps its old copy until daemon-reload."}
+  - id: q04-7
+    type: mcq
+    text: |
+      On a fresh box you run `systemctl enable vmapi` and nothing else. Is vmapi running?
+
+      Hint: enable reads only the [Install] section.
+    concepts: [systemctl, systemd-units]
+    sources: [118, 119]
+    options:
+      - {text: "No: enable only creates the boot link; use enable --now or start", correct: true, explanation: "enable links the unit into multi-user.target.wants/; --now also starts it."}
+      - {text: "Yes: enable starts it and marks it for boot", correct: false, explanation: "Misconception: enable implies start. That is enable --now."}
+      - {text: "Yes, but only after daemon-reload", correct: false, explanation: "Misconception: daemon-reload starts services. It only rereads unit files."}
+      - {text: "No, and it will not start at boot either until you run daemon-reload", correct: false, explanation: "Misconception: enable needs a reload to count. The boot link is created at once."}
+  - id: q04-8
+    type: mcq
+    text: |
+      vmapi has `Restart=on-failure` and `RestartSec=2s`. You run `systemctl stop vmapi`. What does `systemctl is-active vmapi` print 5 seconds later?
+
+      Hint: is a stop you asked for a failure?
+    concepts: [systemd-units, systemctl]
+    sources: [119, 118]
+    options:
+      - {text: "inactive (exit status 3)", correct: true, explanation: "A unit stopped with systemctl stop is never restarted; is-active exits 3 when not active."}
+      - {text: "active, because it restarted after 2 s", correct: false, explanation: "Misconception: Restart= applies to every exit. It covers crashes such as a kill -9, not a requested stop."}
+      - {text: "failed, because stopping counts as a failure", correct: false, explanation: "Misconception: any stop is a failure. A clean requested stop leaves the unit inactive."}
+      - {text: "activating, because it is waiting for RestartSec", correct: false, explanation: "Misconception: RestartSec runs after every stop. No restart is scheduled after systemctl stop."}
+  - id: q04-9
     type: trace
-    text: "Each line runs in bash. What does `echo $?` print right after it?"
+    text: |
+      Each line runs in bash. What does `echo $?` print right after it?
+
+      Hint: 126, 127, or 128 plus the signal number.
     concepts: [exit-status, signals]
     sources: [125]
     code: |
@@ -50,20 +125,4 @@ questions:
       - {label: "Line 2", values: {status: "137"}}
       - {label: "Line 3", values: {status: "127"}}
       - {label: "Line 4", values: {status: "126"}}
-    explanation: "A command killed by signal N exits with 128+N: SIGTERM 15 gives 143, SIGKILL 9 gives 137. A command that is not found gives 127; one found but not executable gives 126, even for root, because no execute bit is set."
-  - id: q04-4
-    type: mcq
-    text: "You changed `ExecStart=` in /etc/systemd/system/vmapi.service and ran `systemctl reload vmapi`. What happens?"
-    concepts: [systemctl, daemon-reload]
-    sources: [118]
-    options:
-      - {text: "The service is asked to reload its own configuration; systemd still uses the old unit file", correct: true, explanation: "reload is for the service's own config. Reading changed unit files needs systemctl daemon-reload."}
-      - {text: "systemd rereads the unit file and restarts the service with the new command", correct: false, explanation: "That takes daemon-reload followed by restart."}
-      - {text: "systemd rereads all unit files but leaves the running process alone", correct: false, explanation: "That describes daemon-reload, not reload."}
-      - {text: "Nothing at all, because reload only works for socket units", correct: false, explanation: "reload works on any unit whose service supports it; it just does not reread unit files."}
-  - id: q04-5
-    type: short
-    text: "A unit has no `ExecStop=`. Which signal does `systemctl stop` send to it first? Give the name."
-    concepts: [signals, systemd-stop]
-    sources: [119]
-    answers: ["SIGTERM", "TERM", "sigterm"]
+    explanation: "A command killed by signal N exits with 128+N: SIGTERM 15 gives 143, SIGKILL 9 gives 137. A command that is not found gives 127; one found but not executable gives 126."

@@ -3,61 +3,104 @@ id: q06
 title: "Check: network and SSH troubleshooting"
 questions:
   - id: q06-1
-    type: sort
-    text: "Sort each observation by its most likely cause."
-    concepts: [network-troubleshooting, ssh-troubleshooting]
-    sources: [112, 117, 123]
-    buckets: ["Service not running", "Bound to loopback only", "Host key changed", "Public key not accepted"]
-    items:
-      - {text: "ss -ltn has no line for port 8080 and systemctl is-active prints inactive", bucket: "Service not running", explanation: "No listener and no active unit: start with the journal to see why it stopped."}
-      - {text: "journalctl -u vmapi ends with: Main process exited, code=killed, status=9/KILL", bucket: "Service not running", explanation: "The process was killed; without Restart= it stays down."}
-      - {text: "ss -ltn shows 127.0.0.1:8080", bucket: "Bound to loopback only", explanation: "Only connections to loopback on the same machine reach this socket."}
-      - {text: "A request on the box works; the same request from a neighbour gets Connection refused", bucket: "Bound to loopback only", explanation: "The service runs and listens, just not on the address the neighbour uses."}
-      - {text: "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!", bucket: "Host key changed", explanation: "The key differs from the one in known_hosts: a rebuilt host, or a spoofed one."}
-      - {text: "Host key verification failed. (exit status 255)", bucket: "Host key changed", explanation: "With strict checking ssh refuses to continue to a host whose key changed."}
-      - {text: "Client: Permission denied (publickey).", bucket: "Public key not accepted", explanation: "The server accepted none of the keys offered; ssh -v shows which ones were tried."}
-      - {text: "Server log: Authentication refused: bad ownership or modes for file authorized_keys", bucket: "Public key not accepted", explanation: "sshd ignores an authorized_keys file others can write to; set it to 600."}
-  - id: q06-2
-    type: fill
-    text: "Reach the web UI that listens on 127.0.0.1:8080 of vm-07, which only the bastion can reach, as http://127.0.0.1:9000 on your laptop."
-    concepts: [ssh-port-forwarding, ssh-jump-host]
-    sources: [123]
-    template: |
-      ssh -f -N -L {{1}}:{{2}}:{{3}} -J {{4}} ops@vm-07
-    chips:
-      - {text: "9000", slot: 1, explanation: "The local port ssh listens on."}
-      - {text: "127.0.0.1", slot: 2, explanation: "Resolved on the far end, so it is the VM's own loopback."}
-      - {text: "8080", slot: 3, explanation: "The port on the VM side."}
-      - {text: "ops@bastion", slot: 4, explanation: "-J names the jump host to connect through first."}
-      - {text: "-A", explanation: "Agent forwarding is not needed for a jump host and lets root on the remote side use your keys."}
-  - id: q06-3
-    type: spot
-    text: "`ssh vm-01` logs in as root instead of ops. Click the line that causes it."
-    concepts: [ssh-config]
-    sources: [123]
-    code: |
-      Host *
-          User root
-          ServerAliveInterval 30
+    type: mcq
+    text: |
+      vmapi is running, but plain `ss -tn` shows no line with port 8080. What is the most likely explanation?
 
-      Host vm-*
-          User ops
-          ProxyJump bastion
-    correct: [2]
-    explanation: "ssh uses the first value it finds for each option. Host * matches vm-01 and comes first, so User root wins and the later User ops is ignored. Put specific Host blocks first and Host * last."
+      Hint: what does each letter in -ltnp add?
+    concepts: [ss]
+    sources: [112]
+    options:
+      - {text: "Without -l, ss lists only established connections, so the listener is not shown", correct: true, explanation: "Add -l: ss -ltnp lists listening TCP sockets with numeric ports and the process."}
+      - {text: "vmapi is not listening, so it must be restarted", correct: false, explanation: "Misconception: plain ss shows listeners. It shows established connections only; check with -l first."}
+      - {text: "-n hides ports and shows names instead", correct: false, explanation: "Misconception: -n means names. -n means numeric: ports as numbers, not service names."}
+      - {text: "ss only shows UDP sockets unless you add -p", correct: false, explanation: "Misconception: -p picks the protocol. -t is TCP, -u is UDP; -p shows the owning process."}
+  - id: q06-2
+    type: mcq
+    text: |
+      `ss -ltnp` on the server shows `LISTEN ... 127.0.0.1:8080 ... python3`. A request from the box works; one from a neighbour gets "Connection refused". Where is the fix?
+
+      Hint: read the Local Address column.
+    concepts: [ss, network-troubleshooting]
+    sources: [112]
+    options:
+      - {text: "In the service's config: bind to 0.0.0.0 (or the box's address) and restart", correct: true, explanation: "127.0.0.1 is loopback: only callers on the same machine reach it."}
+      - {text: "In the firewall: open port 8080", correct: false, explanation: "Misconception: refused always means a firewall. The program accepts calls only on loopback; nothing listens on the address the neighbour uses."}
+      - {text: "In the routing table: add a route to 127.0.0.1", correct: false, explanation: "Misconception: loopback can be routed to from outside. 127.0.0.1 always means 'this machine' on every host."}
+      - {text: "Nowhere: the service is not running", correct: false, explanation: "Misconception: refused means down. ss shows it listening, and it answers on the box."}
+  - id: q06-3
+    type: mcq
+    text: |
+      From your laptop, `(exec 3<>/dev/tcp/10.0.3.7/8080 && echo open)` prints "Connection refused" immediately. What does that prove?
+
+      Hint: a refusal is an answer.
+    concepts: [connection-refused-vs-timeout]
+    options:
+      - {text: "The host was reached and answered that nothing listens on that address and port", correct: true, explanation: "Refused is a fast reply. Check ss -ltnp on the server: not started, wrong port, or bound elsewhere."}
+      - {text: "A firewall dropped the packets", correct: false, explanation: "Misconception: refused and dropped are the same. Dropped packets get no answer, so the client hangs and times out."}
+      - {text: "The host does not exist", correct: false, explanation: "Misconception: refused means unreachable. Something at that address answered."}
+      - {text: "bash cannot open TCP connections", correct: false, explanation: "Misconception: /dev/tcp is a real file. bash opens a TCP connection for that file name itself."}
   - id: q06-4
     type: mcq
-    text: "A deploy script runs `ssh ops@hv12 systemctl restart vmapi` and gets exit status 255. What does that tell you?"
+    text: |
+      A request to `10.0.3.7:8080` hangs and finally times out. On the server, `ss -ltnp` shows `0.0.0.0:8080` and requests on the box work. What do you suspect?
+
+      Hint: silence means no reply came back at all.
+    concepts: [connection-refused-vs-timeout, network-troubleshooting]
+    options:
+      - {text: "Something between you and the box drops the packets, such as a firewall or a missing route", correct: true, explanation: "The service listens on every IPv4 address, so the problem is on the path: check ip route and firewall rules."}
+      - {text: "The service is bound to loopback only", correct: false, explanation: "Misconception: wrong bind causes a timeout. ss shows 0.0.0.0, and a wrong bind gives a fast 'refused'."}
+      - {text: "The service has crashed", correct: false, explanation: "Misconception: a crash looks like a hang. It works on the box; and with nothing listening the host would refuse."}
+      - {text: "The port number is wrong", correct: false, explanation: "Misconception: a wrong port hangs. A port nobody listens on is refused at once."}
+  - id: q06-5
+    type: mcq
+    text: |
+      A deploy script runs `ssh ops@hv12 systemctl restart vmapi` and gets exit status 255. What does that tell you?
+
+      Hint: whose exit status does ssh normally return?
     concepts: [ssh-exit-status]
     sources: [123]
     options:
-      - {text: "ssh itself failed (name resolution, connection, host key or authentication); the remote command may never have run", correct: true, explanation: "ssh returns the remote command's status, or 255 when ssh has an error of its own."}
-      - {text: "systemctl restart failed on hv12", correct: false, explanation: "Then ssh would return systemctl's own status, such as 1 or 5, not 255."}
-      - {text: "vmapi was killed by signal 127", correct: false, explanation: "Signal statuses are 128+N and there is no signal 127 in the standard set."}
-      - {text: "The command ran but its output was too long", correct: false, explanation: "Output size does not affect the exit status."}
-  - id: q06-5
-    type: short
-    text: "Give the `ss` options that list listening TCP sockets with numeric ports and the owning process."
-    concepts: [ss]
-    sources: [112]
-    answers: ["-ltnp", "-tlnp", "-lntp", "-tnlp", "-ntlp", "-nltp", "-plnt", "-ltpn", "ss -ltnp", "ss -tlnp", "ss -lntp"]
+      - {text: "ssh itself failed (resolve, connect, host key or auth); the remote command may never have run", correct: true, explanation: "ssh returns the remote command's status, or 255 for its own errors."}
+      - {text: "systemctl restart failed on hv12", correct: false, explanation: "Misconception: 255 comes from the remote command. Then ssh would return systemctl's own status."}
+      - {text: "vmapi was killed by a signal", correct: false, explanation: "Misconception: every large status is 128+N. 255 from ssh is reserved for ssh's own errors."}
+      - {text: "The command ran but its output was too long", correct: false, explanation: "Misconception: output size affects the status. It does not."}
+  - id: q06-6
+    type: mcq
+    text: |
+      `ssh -i ~/.ssh/deploy_key ops@vm` fails, and the key is not used. `ls -l` shows `-rw-r----- deploy_key`. What is the fix?
+
+      Hint: who besides you can read 640?
+    concepts: [ssh-key-permissions, permission-bits]
+    sources: [123]
+    options:
+      - {text: "chmod 600 ~/.ssh/deploy_key", correct: true, explanation: "ssh ignores a private key others can access; 640 lets the group read it. 600 leaves only the owner."}
+      - {text: "Nothing is wrong with 640, because only the owner can write it", correct: false, explanation: "Misconception: only write access matters. Reading the private key is enough to steal it, so group read is refused too."}
+      - {text: "chmod 644 so ssh can read it", correct: false, explanation: "Misconception: ssh runs as another user. ssh runs as you; 644 is even more open and is refused."}
+      - {text: "Copy deploy_key into the server's ~/.ssh/authorized_keys", correct: false, explanation: "Misconception: the private key goes on the server. Only the public key (.pub) goes into authorized_keys; the private key never leaves your machine."}
+  - id: q06-7
+    type: mcq
+    text: |
+      Your key is correct and loaded, but login fails with "Permission denied (publickey)". The server log says "Authentication refused: bad ownership or modes for file authorized_keys". `authorized_keys` is mode 666. What fixes it?
+
+      Hint: the server is as strict about its file as the client is about the key.
+    concepts: [ssh-key-permissions]
+    sources: [123]
+    options:
+      - {text: "chmod 600 ~/.ssh/authorized_keys (and keep ~/.ssh at 700) on the server", correct: true, explanation: "sshd ignores an authorized_keys file others can write to; in the test run it refused mode 666."}
+      - {text: "Generate a new key pair on the laptop", correct: false, explanation: "Misconception: Permission denied always means a bad key. The server refused its own file, so any key fails."}
+      - {text: "chmod 777 ~/.ssh so sshd can read it", correct: false, explanation: "Misconception: sshd lacks access. The problem is too much access for others, not too little."}
+      - {text: "Delete the host's line from known_hosts", correct: false, explanation: "Misconception: every SSH error is a host key problem. known_hosts is about the server's key, checked before login."}
+  - id: q06-8
+    type: mcq
+    text: |
+      ssh prints "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!" and "Host key verification failed." What do you do first?
+
+      Hint: the warning exists to catch something.
+    concepts: [ssh-host-keys]
+    sources: [123]
+    options:
+      - {text: "Find out why the key changed (for example, a rebuilt VM), then run ssh-keygen -R HOST", correct: true, explanation: "A changed host key may mean a man-in-the-middle; remove the old entry only once you know the cause."}
+      - {text: "Run ssh-keygen -R HOST right away and reconnect", correct: false, explanation: "Misconception: the warning is just noise. Deleting by reflex removes the protection against a spoofed server."}
+      - {text: "Generate a new key pair with ssh-keygen", correct: false, explanation: "Misconception: it is about your key. It is the server's host key that changed."}
+      - {text: "chmod 600 ~/.ssh/known_hosts", correct: false, explanation: "Misconception: it is a permission error. The stored key differs from the one the server sent."}

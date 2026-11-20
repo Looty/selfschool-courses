@@ -3,79 +3,118 @@ id: l12
 title: "A Flask API with an RQ job queue"
 quiz: quiz-12.yaml
 resources: [../resources/ch05/vmapi/app.py, ../resources/ch05/vmapi/tasks.py, ../resources/ch05/vmapi/fakes.py, ../resources/ch05/vmapi/test_api.py, ../resources/ch05/vmapi/app_fastapi.py, ../resources/ch05/vmapi/test_api_fastapi.py, ../resources/ch05/vmapi/requirements.txt, ../resources/ch05/vmapi/Dockerfile, ../resources/ch05/vmapi/compose.yaml, ../resources/ch05/vmapi/smoke.sh]
-sources: [45, 46, 48, 50, 51, 52, 55, 58]
+sources: [45, 46, 50, 51, 52, 58]
 ---
-After this lesson you can choose methods and status codes for a VM API, write it in Flask, queue the slow build with RQ, and run the stack.
+After this lesson you can pick methods and status codes for a VM API, queue a slow build with RQ, make a job safe to rerun, and run the stack.
 
-## Methods and status codes
+## Safe vs idempotent: what a repeat does
 
-**Safe** asks for no change; **idempotent** means many sends have the effect of one, so only these may be retried automatically [52].
+**Rule:** *safe* means "only reads"; *idempotent* means "sending it five times leaves the server as sending it once" [52]. Hook: safe = looking at the lift button; idempotent = pressing it again.
 
-| Method | Safe | Idempotent |
+```text
+start: VM 7 exists with cpus=4
+GET    /vms/7               x2 -> nothing changed          safe
+PUT    /vms/7 {"cpus": 2}   x2 -> cpus=2, same as once     idempotent
+DELETE /vms/7               x2 -> VM 7 gone, same as once  idempotent
+POST   /vms {"name": "db"}  x2 -> TWO new VMs              neither
+```
+
+| Method | Safe | Idempotent | Auto-resend after a lost reply? [52] |
+| --- | --- | --- | --- |
+| GET, HEAD, OPTIONS | yes | yes | yes |
+| PUT, DELETE | no | yes | yes |
+| POST | no | no | only with the draft `Idempotency-Key` header [58] |
+
+**P1.** The reply to `DELETE /vms/7` is lost. May the client resend it? And `POST /vms`?
+
+## Status codes: one per outcome
+
+**Rule:** a 2xx code says how far the work got; a 4xx code says what the client got wrong [52].
+
+```text
+store holds VM 1, named web-1
+GET    /vms/1                 -> 200 OK           here it is
+GET    /vms/99                -> 404 Not Found    no such VM
+POST   /vms "hello"           -> 400 Bad Request  not JSON
+POST   /vms {"name":"web-1"}  -> 409 Conflict     name taken
+DELETE /vms/1                 -> 204 No Content   done, empty body
+```
+
+| Code | Meaning [52] | VM API use |
 | --- | --- | --- |
-| GET, HEAD, OPTIONS | yes | yes |
-| PUT, DELETE | no | yes |
-| POST | no | no |
+| 201 Created | the resource exists now | create that builds before replying |
+| 202 Accepted | accepted, not finished | `POST /vms` with a queue |
+| 409 Conflict | clashes with current state | duplicate name |
 
-| Code | Use in the VM API |
-| --- | --- |
-| 200 / 204 | read a VM / deleted, no body [52] |
-| 201 Created | the resource exists now [52] |
-| 202 Accepted | accepted, not finished: `POST /vms` with a queue [52] |
-| 400 / 409 / 422 | bad JSON / duplicate name / content invalid [52] |
-| 401 / 403 | no credentials / known caller, refused [52] |
-| 502 / 504 | gateway got a bad answer / no answer in time [52] |
+**P2.** `POST /vms` saves the request, queues the build and replies at once. 201 or 202?
 
-## Flask in one screen
+## The 202 route: enqueue, then a worker builds
+
+**Rule:** the web request only records and enqueues; a separate worker process does the minutes-long build [46].
 
 ```python
-bp = Blueprint("vms", __name__)
+import uuid
+from flask import Flask
+from redis import Redis
+from rq import Queue, Retry
+import tasks                       # provision() lives in a module, not __main__
 
-@bp.get("/vms/<int:vm_id>")         # only GET unless told otherwise
-def get_vm(vm_id):
-    vm = current_app.config["STORE"].get(vm_id)
-    if vm is None:
-        abort(404, description="not found")   # raises
-    return vm                       # dict -> JSON, 200
+app = Flask(__name__)
+queue = Queue("vms", connection=Redis())
 
-@bp.delete("/vms/<int:vm_id>")
-def delete_vm(vm_id):
-    current_app.config["STORE"].pop(vm_id, None)
-    return "", 204                  # (body, status[, headers])
-
-def create_app():                   # factory: a fresh app per test
-    app = Flask(__name__)
-    app.config["STORE"] = {}
-    app.register_blueprint(bp)
-    app.register_error_handler(HTTPException,
-        lambda e: (jsonify(error=e.description), e.code))
-    return app
+@app.post("/vms")
+def create_vm():
+    vm_id = uuid.uuid4().hex[:12]
+    # first store the record with status "requested"
+    job = queue.enqueue(tasks.provision, vm_id,
+                        job_id=f"provision-{vm_id}", job_timeout=60,
+                        retry=Retry(max=2, interval=[2, 4]))
+    return {"id": vm_id, "job": job.id}, 202, {"Location": f"/vms/{vm_id}"}
 ```
 
-The error handler must return its own code, or it answers 200; register it on the app, not the blueprint [46]. `app.test_client()` tests without a server. Production runs `gunicorn -w 4 'app:create_app()'`, never `flask run --debug` [45] [46].
+A tuple `(body, status, headers)` sets the code; a dict becomes JSON [45]. Pass only the id [46].
 
-**FastAPI in brief.** Flask is a WSGI app: one synchronous call per request [46] [55]. FastAPI is an ASGI framework, async with events both ways, run by Uvicorn [48] [55]. It validates bodies itself and answers 422 [48].
+A worker with `--with-scheduler` runs an always-failing job (test run) [50]:
 
-## RQ: return 202, let a worker build
-
-A build takes minutes, so `POST /vms` stores the record, enqueues only the VM id and answers 202 with `Location` [46] [52].
-
-```python
-q = Queue("vms", connection=Redis())
-q.enqueue(provision, vm_id, job_id=f"provision-{vm_id}",
-          job_timeout=60, retry=Retry(max=2, interval=[2, 4]))
+```text
+  0.0s job=started    vm=building  attempts=0
+  2.4s job=scheduled  vm=building  attempts=1   # waits 2 s
+  4.4s job=started    vm=building  attempts=1
+  7.5s job=scheduled  vm=building  attempts=2   # waits 4 s
+ 11.5s job=started    vm=building  attempts=2
+ 14.5s job=failed     vm=error     attempts=3   # max=2 retries = 3 runs
 ```
 
-What to know cold [50]:
+Edge cases [50]: intervals need `--with-scheduler`; `job_timeout` defaults to 180 s, then the job is killed and failed.
 
-- The job function lives in an importable module, not `__main__`.
-- `rq worker vms` runs one job at a time in a forked work horse: no native Windows.
-- Defaults: `job_timeout` 180 s, `result_ttl` 500 s, failed jobs kept 1 year.
-- Retry intervals need `rq worker --with-scheduler`.
+**P3.** A job has `retry=Retry(max=4)` and always fails. How many runs?
 
-**Idempotent jobs.** Retries, requeues and `kill -9` can run a job twice, so read the VM status first: skip `active`, `error` or `deleted`, resume `building`.
+## Idempotent jobs and a Redis lock
 
-**Redis lock:** `SET lock:vm:42 <token> NX EX 10`, deleted only if the token still matches [51]. The draft **Idempotency-Key** header makes POST retries safe [58].
+**Rule:** write the job as "make this VM built", not "build a VM": read the status first. Retries, requeues and `kill -9` can all run it twice [50].
+
+```text
+status found   -> what tasks.provision does
+requested      -> set building, build, set active
+building       -> build again: an earlier run died
+active         -> nothing
+error, deleted -> nothing
+no record      -> nothing
+```
+
+A lock stops overlapping runs: `SET ... NX EX` sets only an absent key, with an expiry [51].
+
+```text
+SET lock:vm:42 tok-a NX EX 10   -> OK     worker A holds it
+SET lock:vm:42 tok-b NX EX 10   -> nil    B must wait
+(10 s pass, the key expires)
+SET lock:vm:42 tok-b NX EX 10   -> OK     B holds it
+A, late: delete if value == tok-a -> 0    B's lock survives
+```
+
+Contrast: a plain `DEL` from late A would delete B's lock; compare-and-delete leaves it [51].
+
+**P4.** A worker is killed with `kill -9` mid-build; status stays `building`. The job runs again. What does it do?
 
 ## Lab: run the stack (30 minutes)
 
@@ -87,12 +126,55 @@ What to know cold [50]:
 6. `docker compose down -v --rmi local`; read `tasks.py` as the solution.
 
 :::low-confidence
-Step 5 comes from one run. RQ's docs say an abandoned job ends up in `FailedJobRegistry` [50]; here, with retries left, it ran again and finished. Check your RQ version before relying on either.
+Step 5 is from one run. RQ's docs say an abandoned job goes to `FailedJobRegistry` [50]; here, with retries left, it reran. Check your RQ version.
 :::
 
+## Cheat sheet
+
+| Tool | Rule | Tiny example → result |
+| --- | --- | --- |
+| idempotent | repeat = once | `DELETE` x2 → gone |
+| 202 | accepted, not done | queued create → 202 |
+| `Retry(max=n)` | n+1 runs | `max=2` → 3 |
+| `SET NX EX` | set if absent | second SET → nil |
+
+## Answers
+
+**P1.** DELETE yes: idempotent. POST no: it may make a second VM, unless it carries an `Idempotency-Key`.
+
+**P2.** 202: the VM does not exist yet.
+
+**P3.** 5: one run plus four retries.
+
+**P4.** It builds again: `building` means an earlier run died.
+
+**R1.** 409: the JSON is fine; the name clashes.
+
+**R2.** Killed at 180 s, marked failed.
+
+**R3.** It deletes B's lock.
+
+**R4.** No: it changes state.
+
+## If you missed a quiz question
+
+| If you thought... | Reread | Re-check |
+| --- | --- | --- |
+| Idempotent means read-only | Safe vs idempotent | **R4.** Is `PUT` safe? |
+| Queued create is 201; duplicate is 400 | Status codes | **R1.** Valid JSON, taken name? |
+| `max=2` is 2 runs; no timeout | The 202 route | **R2.** A 4-minute job? |
+| `building` means someone is working; `DEL` releases | Idempotent jobs | **R3.** Why not `DEL`? |
+
 :::key-takeaways
-- Safe: GET, HEAD, OPTIONS. Idempotent: those plus PUT and DELETE. POST is neither. [52]
-- 201 means created now; 202 means accepted for later; 204 means done, no body. [52]
-- Flask: dict means JSON, tuple sets status, error handlers must return their own code. [45] [46]
-- RQ: 180 s default timeout; retry intervals need `--with-scheduler`; jobs must be idempotent. [50]
+- Idempotent: GET, HEAD, OPTIONS, PUT, DELETE; only the first three are safe. 202 means accepted for later. [52]
+- RQ: 180 s default timeout; `max=n` gives n+1 runs; jobs read state first. [50]
+- Locks: `SET NX EX` plus compare-and-delete. [51]
+:::
+
+:::glossary
+- **Safe**: a request that changes nothing on the server.
+- **Idempotent**: sending it many times has the effect of sending it once.
+- **RQ**: a Python library that keeps jobs in Redis and runs them in workers.
+- **Worker**: a long-running process that takes jobs from a queue and runs them.
+- **Idempotency-Key**: a unique value that lets the server spot a retried request.
 :::

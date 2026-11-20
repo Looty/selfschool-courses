@@ -4,99 +4,157 @@ title: "Files, permissions and disks"
 quiz: quiz-05.yaml
 sources: [114, 115, 122]
 ---
-After this lesson you can read and set any permission mode in octal, predict what a user can do in a directory, and answer "the disk is full, walk me through it".
+After this lesson you can read a permission mode as a number, predict what a user can do in a directory, and answer "the disk is full".
 
-## Who gets which bits
+## Permission bits as numbers
 
-The kernel uses exactly one bit group: owner if the process's user owns the file, else group if the file's group is one of the process's groups, else other. [122] Each group has read (4), write (2) and execute (1), which for a directory means search; a leading fourth digit holds setuid (4), setgid (2) and sticky (1). [122]
+**Rule:** each digit is a sum of three switches, read 4, write 2, execute 1; the three digits are owner, group, other. [122]
+
+One digit first:
 
 ```text
-0644  rw-r--r--   config file
-0600  rw-------   private key, authorized_keys
-0755  rwxr-xr-x   program, public directory
-0750  rwxr-x---   directory for one team
-2775  rwxrwsr-x   shared team directory (setgid)
-1777  rwxrwxrwt   /tmp (sticky)
+7 = 4+2+1   rwx
+6 = 4+2     rw-
+5 = 4  +1   r-x
+4 = 4       r--
+0           ---   edge: nothing at all
 ```
 
-```bash
-chmod 750 dir
-chmod u=rwx,g=rx,o= dir     # same thing; + adds, - removes, = sets
-```
-
-[122]
-
-Root skips these checks through `CAP_DAC_OVERRIDE`, but still needs at least one execute bit to run a file. [122] So even root gets exit status 126 running a `0644` script. Reproduce permission bugs as the service's user, not as root. [122]
-
-## Directories
-
-- To open `/srv/box/file` you need search (`x`) on `/`, `/srv` and `/srv/box`. [122]
-- Removing a name needs write on the directory, not on the file. [122]
-
-:::low-confidence
-The course's test run on Debian 12 showed `r` on a directory lists names, `w` (with `x`) creates and deletes entries, and `x` alone lets you open a file whose name you know. The notes do not state this in one place; see the "Mode Structure" node of the GNU coreutils manual.
-:::
-
-## umask, setgid and sticky
-
-The umask turns bits off at creation: `0666 & ~022` gives `0644`; the typical default is `022`. [122]
-
-- **setuid** on a program: it runs with the file owner's user ID, which is how `passwd` updates root-owned files. Linux ignores it on `#!` scripts. [122]
-- **setgid on a directory**: new files get the directory's group. [122]
-- **sticky on a directory**: only a file's owner, the directory's owner or a privileged process can delete or rename it. [122]
-
-## Inodes and links
-
-An inode holds type, mode, owner, size, link count and timestamps, but not the name, which lives in the directory. [122]
+Three digits (Ubuntu; `stat` prints both forms):
 
 ```console
-$ ln orig hard; ln -s orig soft; ls -li
-341267 -rw-r--r-- 2 root root 5 hard
-341267 -rw-r--r-- 2 root root 5 orig
-341268 lrwxrwxrwx 1 root root 4 soft -> orig
-$ rm orig; cat hard; cat soft
-data
-cat: soft: No such file or directory
+$ chmod 640 f; stat -c '%a %A' f
+640 -rw-r-----        # owner rw, group r, other nothing
+$ chmod 755 f; stat -c '%a %A' f
+755 -rwxr-xr-x        # program, public directory
+$ chmod 0 f; stat -c '%a %A' f
+0 ----------          # edge: even the owner is locked out
 ```
 
-A hard link is a second name for the same inode; a symlink stores a path and dangles once it is gone. [122] Data is freed only when the last name is gone and no process holds the file open. [122]
+Which digit applies? Exactly one: owner if you own the file, else group if you are in its group, else other. [122] Edge: the owner of a `0077` file cannot read it, though everyone else can. [122] Edge: root skips read and write checks but still needs one `x` bit to run a file, so root gets 126 on a `0644` script. [122]
 
-## "The disk is full": the walk-through
+**Contrast:** `640` (team can read, others nothing) versus `777` (anyone can replace your files): give the group what it needs, never 777. [122]
 
-```bash
-df -h                        # 1. free blocks per filesystem
-df -i                        # 2. free inodes: many small files exhaust them
-du -sh /var/*                # 3. who uses the blocks
-du -s --inodes DIR/*         #    who uses the inodes
-du -x                        #    stay on one filesystem
-lsof +L1                     # 4. deleted files still held open
+**P1.** File `app.conf` is `0640`, owner `alice`, group `ops`. Can `bob`, who is in `ops`, edit it?
+
+## Permission bits on a directory
+
+**Rule:** a directory is a list of names; `r` reads the list, `w` changes it (create, delete, rename), `x` lets you pass through. [122]
+
+Test run: `bob` (group `ops`), directory owned by `alice:ops`, holding a `0640` file:
+
+| Directory mode (group digit) | `ls dir` | `cat dir/file` | create a file |
+| --- | --- | --- | --- |
+| `750` (r-x) | ok | ok | denied |
+| `740` (r--) | ok, but `-?????????` per entry | denied | denied |
+| `710` (--x) | denied | ok, if he knows the name | denied |
+| `770` (rwx) | ok | ok | ok |
+
+Edge: with `770`, `bob` deleted `alice`'s `0400` file: deleting needs `w` on the directory, not the file. [122] Opening `/srv/box/file` needs `x` on `/`, `/srv` and `/srv/box`. [122]
+
+:::low-confidence
+The sources state the `x` and delete rules; the `r` and create columns are what the Debian 12 test run showed. See "Mode Structure" in the GNU coreutils manual.
+:::
+
+**P2.** `/srv/exports` is `750 root:export`. A job running as user `export` (group `export`) creates `/srv/exports/out.txt`. What happens? Smallest fix?
+
+## df, du and the deleted-but-open file
+
+**Prerequisite:** a file's record (owner, mode, size, link count) is its inode; its name lives in the directory. [122] The data is freed only when the last name is gone *and* no process holds the file open. [122]
+
+**Rule:** `df` asks the filesystem how much is free; `du` walks the directory tree and adds up the files it finds by name. [114]
+
+Ladder from the course's test runs:
+
+```console
+$ df -h /data                       # 1. 40 MB log, held open by tail
+tmpfs  100M   40M   60M  40% /data
+$ rm /data/app.log; df -h /data     # 2. name gone, data still held
+tmpfs  100M   40M   60M  40% /data
+$ du -sh /data                      # 3. du finds no name, counts 0
+0	/data
+$ lsof +L1                          # 4. open files with link count 0
+tail  229 root  3r  REG ... /data/app.log (deleted)
 ```
 
-[114] [115]
-
-A full inode table refuses new files even with free space:
+[114] [115] Restart the holder (here PID 229) and `df` drops. Edge, the other "full": a filesystem out of inodes refuses new files while `df -h` shows space:
 
 ```console
 # touch /var/spool/vmjobs/incoming/job-0021.json
 touch: cannot touch '...': No space left on device
-# df -h /var/spool/vmjobs
-tmpfs           4.0M   80K  4.0M   2% /var/spool/vmjobs
-# df -i /var/spool/vmjobs
-tmpfs            2048  2048     0  100% /var/spool/vmjobs
+# df -h /var/spool/vmjobs     → 4.0M size, 2% used
+# df -i /var/spool/vmjobs     → 2048 inodes, 2048 used, 100%
 ```
 
-And a deleted log that a process still holds open frees nothing: after `rm /data/app.log`, `df` stayed at 40 MB used while `du` showed 0, and `lsof +L1` listed `/data/app.log (deleted)` held by PID 229. [115] Restart the holder.
+[114]
 
-Never "fix" permissions with `chmod 777`: every user can then replace the files; give the group what it needs (`750`, `640`). [122]
+**Contrast:**
+
+| Command | Counts | Blind to |
+| --- | --- | --- |
+| `df -h` | blocks on the filesystem | which files |
+| `df -i` | inodes | blocks |
+| `du -sh DIR` | files reachable by name | deleted-but-open files |
+| `lsof +L1` | open files with no name | named files |
+
+[114] [115]
+
+**P3.** `df -h` says `/var` is 100% full, `du -sh /var` says 3 GB of a 20 GB disk. What do you run next?
+
+## "The disk is full": the walk-through
+
+1. `df -h`: which filesystem is full? [114]
+2. `df -i`: or out of inodes? [114]
+3. `du -sh /var/*` (`-x`: one filesystem); `du -s --inodes DIR/*`. [114]
+4. `df` and `du` disagree? `lsof +L1`, restart the holder. [115]
+5. Delete or rotate the culprit.
+
+## Cheat sheet
+
+| Tool | Rule | Tiny example → result |
+| --- | --- | --- |
+| octal digit | r 4 + w 2 + x 1 | `6` → `rw-` |
+| `chmod 640 f` | owner, group, other | `-rw-r-----` |
+| dir `x` / `w` | pass through / change names | `w` deletes others' files |
+| `df -h` / `df -i` | free blocks / inodes | 2% vs 100% |
+| `du`, `lsof +L1` | sum by name; open, nameless | deleted log → 0, `(deleted)` |
+
+## Answers
+
+**P1.** No. `bob` is not the owner, so the group digit 4 (`r--`) applies: read only.
+
+**P2.** Permission denied: group digit 5 (`r-x`) has no `w`, and creating a name changes the directory. Fix: `chmod 770`, not `777`.
+
+**P3.** `lsof +L1`: a deleted but open file uses blocks `df` counts and `du` cannot see.
+
+**R1.** `r-x`.
+
+**R2.** Write on the directory.
+
+**R3.** `df -i`.
+
+**R4.** No: removing the name frees nothing while a process holds the file.
+
+**R5.** No: a non-owner group member gets only the group digit.
+
+## If you missed a quiz question
+
+| If you thought... | Reread | Re-check |
+| --- | --- | --- |
+| 5 means `rw-` | Bits as numbers | **R1.** What is digit 5? |
+| deleting needs `w` on the file | Directory bits | **R2.** What does deleting a file need? |
+| "No space left" always means no blocks | df, du | **R3.** `df -h` says 2%; what next? |
+| `rm` frees space at once | df, du | **R4.** Does `rm` on an open 2 GB log free 2 GB? |
+| a user gets every digit that matches | Bits as numbers | **R5.** Do the "other" bits add to a group member's rights? |
 
 :::key-takeaways
-- One bit group applies: owner, else group, else other. [122]
-- Octal: 4 read, 2 write, 1 execute; leading 4 setuid, 2 setgid, 1 sticky. [122]
-- Deleting needs write on the directory; reaching a path needs search on every directory. [122]
-- Disk full: `df -h`, `df -i`, `du`, then `lsof +L1`. [114] [115]
+- 4 read, 2 write, 1 execute; one digit applies: owner, else group, else other. [122]
+- Directory `x` passes through; `w` creates and deletes names. [122]
+- `df -h`, `df -i`, `du`, then `lsof +L1`. [114] [115]
 :::
 
 :::glossary
-- **umask**: a per-process mask of bits removed from new files and directories.
-- **Inode**: the on-disk record of a file's metadata, without its name.
+- **Octal**: base-8 numbers; one digit holds three permission bits.
+- **Inode**: the on-disk record of a file (owner, mode, size), without its name.
+- **Link count**: how many names point to one inode.
 :::

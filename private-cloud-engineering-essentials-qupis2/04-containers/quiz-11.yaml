@@ -2,9 +2,109 @@ schemaVersion: 1
 id: q11
 title: "Check: networking, limits and Compose"
 questions:
+  - id: q11-2
+    type: mcq
+    text: |
+      A Compose file has `ports: ["18080:8080"]` for api. Which number is the port on the host?
+
+      Hint: host on the left.
+    concepts: [port-publishing]
+    sources: [77]
+    options:
+      - {text: "18080", correct: true, explanation: "The mapping is host:container, so host port 18080 forwards to container port 8080."}
+      - {text: "8080", correct: false, explanation: "Misconception: the container port comes first. It is the other way round: host first, container second."}
+      - {text: "Both: the two numbers are the same port seen twice", correct: false, explanation: "Misconception: -p only names one port. It joins two different ports, one on the host and one in the container."}
+  - id: q11-3
+    type: mcq
+    text: |
+      An app listens on `127.0.0.1:8080` inside its container, which runs with `-p 9000:8080`. What does `curl localhost:9000` on the host get?
+
+      Hint: whose loopback is 127.0.0.1 inside a container?
+    concepts: [listen-address, port-publishing]
+    sources: [77]
+    options:
+      - {text: "No HTTP answer: nothing listens on the container's network interface", correct: true, explanation: "Forwarded traffic arrives on the container's interface. In the test run curl printed 000 for exactly this case."}
+      - {text: "A normal 200 response", correct: false, explanation: "Misconception: 127.0.0.1 inside a container is the host. It is the container's own loopback; the app must listen on 0.0.0.0."}
+      - {text: "A 200 response, because -p forwards to the loopback", correct: false, explanation: "Misconception: published ports reach any listener. They reach the container's interface, not its loopback."}
+  - id: q11-4
+    type: mcq
+    text: |
+      A container runs `python -m http.server 8000` with `-p 18080:8000`. On the host you run `curl localhost:8000`. What happens?
+
+      Hint: which port did -p open on the host?
+    concepts: [port-publishing]
+    sources: [77]
+    options:
+      - {text: "No HTTP answer: only 18080 is published on the host", correct: true, explanation: "The container port is reachable from the host only through the published host port. The test run printed 000."}
+      - {text: "200, because the container listens on 8000", correct: false, explanation: "Misconception: a container port is open on the host by itself. Only -p publishes it, and here on 18080."}
+      - {text: "200 on both 8000 and 18080", correct: false, explanation: "Misconception: -p opens both numbers on the host. It opens only the left one."}
+  - id: q11-5
+    type: mcq
+    text: |
+      Two containers run on Docker's default `bridge` network. Can one reach the other by container name?
+
+      Hint: the probe on the default bridge printed something about the name.
+    concepts: [container-networking]
+    sources: [75, 76]
+    options:
+      - {text: "No: on the default bridge they reach each other only by IP", correct: true, explanation: "Name resolution needs a user-defined network, such as the one Compose creates; the probe printed name not found."}
+      - {text: "Yes: Docker always resolves container names", correct: false, explanation: "Misconception: every Docker network has name resolution. Only user-defined networks do."}
+      - {text: "Only if both use the same image", correct: false, explanation: "Misconception: the image decides networking. The network the containers join decides it."}
+  - id: q11-6
+    type: mcq
+    text: |
+      In a Compose project, api has `ports: ["18080:8080"]`. Which address should the worker service use to reach api?
+
+      Hint: inside the network nobody goes through the host.
+    concepts: [container-networking, port-publishing]
+    sources: [82]
+    options:
+      - {text: "api:8080", correct: true, explanation: "Compose services resolve each other by service name, and inside the network they use the container port."}
+      - {text: "localhost:8080", correct: false, explanation: "Misconception: localhost reaches other containers. In the worker it is the worker itself."}
+      - {text: "api:18080", correct: false, explanation: "Misconception: the published port works everywhere. 18080 exists only on the host; the probe got refused on it."}
+      - {text: "127.0.0.11:8080", correct: false, explanation: "Misconception: the DNS server is the service. 127.0.0.11 only answers name lookups."}
+  - id: q11-7
+    type: mcq
+    text: |
+      Inside a container on a user-defined network, `/etc/resolv.conf` says `nameserver 127.0.0.11`. What is that?
+
+      Hint: what turns `web1` into an address?
+    concepts: [container-networking]
+    sources: [75]
+    options:
+      - {text: "Docker's embedded DNS server, which answers container and service names", correct: true, explanation: "Containers on custom networks use Docker's DNS at 127.0.0.11."}
+      - {text: "The host's loopback address", correct: false, explanation: "Misconception: 127.x inside a container means the host. It is local to the container's network namespace, where Docker answers DNS."}
+      - {text: "The address of the first container on the network", correct: false, explanation: "Misconception: it is a peer container. Containers get addresses like 172.x; 127.0.0.11 is the resolver."}
+  - id: q11-8
+    type: mcq
+    text: |
+      api has `depends_on: [db]`. db needs 4 seconds after starting before it accepts connections. When does Compose start api?
+
+      Hint: started and ready are different moments.
+    concepts: [compose-depends-on, readiness]
+    sources: [81, 82]
+    options:
+      - {text: "As soon as db's container is running, before db is ready", correct: true, explanation: "Short depends_on only orders start-up; in the lab api checked db too early and served 503."}
+      - {text: "After db accepts connections", correct: false, explanation: "Misconception: depends_on waits for ready. That needs a healthcheck and condition: service_healthy."}
+      - {text: "After a fixed 10-second wait", correct: false, explanation: "Misconception: Compose adds a delay. It waits for running only, with no timer."}
+  - id: q11-9
+    type: mcq
+    text: |
+      Which change makes Compose hold back api until db is ready?
+
+      Hint: Compose needs a way to ask db whether it is ready.
+    concepts: [compose-depends-on, readiness]
+    sources: [81, 82]
+    options:
+      - {text: "A healthcheck on db, and depends_on db with condition: service_healthy on api", correct: true, explanation: "In the test run Compose printed db Waiting, then Healthy, then started api, which answered 200."}
+      - {text: "restart: on-failure on api", correct: false, explanation: "Misconception: a restart policy handles readiness. It restarts a container that exits; the lab's api stayed up and kept serving 503."}
+      - {text: "Listing db above api in the file", correct: false, explanation: "Misconception: file order means start order. The tool for order is depends_on, and on its own it does not wait for ready either."}
   - id: q11-1
     type: spot
-    text: "db needs about four seconds after it starts before it accepts connections, and api checks the db once at start-up. Click the line that lets api start too early."
+    text: |
+      db needs about four seconds after it starts before it accepts connections, and api checks the db once at start-up. Click the line that lets api start too early.
+
+      Hint: which line says what api waits for?
     concepts: [compose-depends-on, readiness]
     sources: [81, 82]
     code: |
@@ -20,69 +120,3 @@ questions:
           depends_on: [db]
     correct: [10]
     explanation: "The short depends_on syntax only waits until the db container is running, not until it is ready. Add a healthcheck to db and use depends_on with condition: service_healthy (and retry in the api code as well)."
-  - id: q11-2
-    type: trace
-    text: "You fix the failing stack one fault at a time, running docker compose up -d after each. Fault 1 (DB_HOST) is already fixed. What do the worker status, the api health seen from inside the api container, and the probe's GET http://api:8080/health show after each step?"
-    concepts: [compose-debugging, readiness, listen-address, oom-kill]
-    sources: [77, 81, 82, 125]
-    code: |
-      start:  DB_HOST set; BATCH_MB=256, mem_limit 64m; depends_on: [db]; BIND_ADDR unset (127.0.0.1)
-      fix 2:  BATCH_MB=32, mem_limit 128m
-      fix 3:  db healthcheck + depends_on condition: service_healthy
-      fix 4:  BIND_ADDR=0.0.0.0
-    variables: [worker, health_inside, probe]
-    steps:
-      - {label: "start", values: {worker: ["Exited (137)", "137"], health_inside: ["503"], probe: ["refused", "connection refused"]}, given: [health_inside]}
-      - {label: "fix 2", values: {worker: ["Up"], health_inside: ["503"], probe: ["refused", "connection refused"]}}
-      - {label: "fix 3", values: {worker: ["Up"], health_inside: ["200"], probe: ["refused", "connection refused"]}}
-      - {label: "fix 4", values: {worker: ["Up"], health_inside: ["200"], probe: ["200"]}}
-    explanation: "At the start the worker is OOM-killed (137) and the api checked the db before it was listening, so it serves 503. Fixing the batch size keeps the worker up but changes nothing for the api. The health-check wait makes the api's one start-up check succeed (200 from inside), yet other containers are still refused because the api listens on its own loopback. Only BIND_ADDR=0.0.0.0 lets the probe reach it. These were the results in the course's test run."
-  - id: q11-3
-    type: match
-    text: "Match each symptom to its most likely cause."
-    concepts: [compose-debugging, exit-status]
-    sources: [79, 105, 125]
-    pairs:
-      - {left: "Exited (137), OOMKilled=true", right: "The cgroup memory limit was reached and the OOM killer sent SIGKILL", explanation: "128 + 9 = 137, and OOMKilled confirms the memory limit."}
-      - {left: "Exited (1) with a Python traceback", right: "The application raised an uncaught exception", explanation: "A KeyError for a missing environment variable is a typical case."}
-      - {left: "Name resolves but connection refused on the container port", right: "The process listens on 127.0.0.1 inside its container", explanation: "DNS works, so the network is fine; nothing listens on the container's network interface."}
-      - {left: "docker stop waits the full timeout, then exit 137, no shutdown log", right: "Shell-form ENTRYPOINT: /bin/sh is PID 1 and does not pass SIGTERM", explanation: "The app never sees SIGTERM, so the SIGKILL after the grace period ends it."}
-      - {left: "Service is up but reports its dependency unavailable forever", right: "It started before the dependency was ready and never retried", explanation: "Short depends_on waits for running, not ready."}
-    distractors:
-      - "The image was built with an unpinned base tag"
-  - id: q11-4
-    type: fill
-    text: "Complete the fixed api service: wait for a healthy db, publish to the host only, and restart unless someone stopped it."
-    concepts: [compose-depends-on, port-publishing, restart-policy]
-    sources: [77, 80, 81]
-    template: |
-      api:
-        build: ./app
-        ports:
-          - "{{1}}:18080:8080"
-        environment:
-          BIND_ADDR: "{{2}}"
-        depends_on:
-          db:
-            condition: {{3}}
-        restart: {{4}}
-    chips:
-      - {text: "127.0.0.1", slot: 1, explanation: "A host address in the port mapping keeps the published port off other hosts' reach."}
-      - {text: "0.0.0.0", slot: 2, explanation: "Inside the container the app must listen on all interfaces so the published port and other containers reach it."}
-      - {text: "service_healthy", slot: 3, explanation: "Waits until db's healthcheck passes."}
-      - {text: "unless-stopped", slot: 4, explanation: "Restarts after failures and daemon restarts, but not after a manual stop."}
-      - {text: "service_started", explanation: "Same as the short syntax: it waits for running, not ready."}
-      - {text: "always", explanation: "Close, but a manually stopped container would come back when the daemon restarts."}
-  - id: q11-5
-    type: sort
-    text: "In a Compose project whose network is pce-ch07-stack_default, does each connection work or fail?"
-    concepts: [container-networking, port-publishing]
-    sources: [75, 77, 82]
-    buckets: ["Works", "Fails"]
-    items:
-      - {text: "api connects to db:7000", bucket: "Works", explanation: "Service names resolve through Docker's DNS, and inside the network you use the container port."}
-      - {text: "api connects to localhost:7000 to reach db", bucket: "Fails", explanation: "localhost inside api is api's own loopback; db is a different container."}
-      - {text: "The host runs curl localhost:18080 with ports \"18080:8080\" and the app on 0.0.0.0:8080", bucket: "Works", explanation: "The published port forwards to a process listening on the container's interface."}
-      - {text: "The host runs curl localhost:18080 while the app listens on 127.0.0.1:8080 in its container", bucket: "Fails", explanation: "Forwarded traffic arrives on the container's network interface, where nothing listens."}
-      - {text: "worker connects to api:18080", bucket: "Fails", explanation: "18080 is the host port; inside the network the api listens on 8080."}
-      - {text: "Two containers on Docker's default bridge network reach each other by container name", bucket: "Fails", explanation: "The default bridge has no name resolution; only user-defined networks, such as Compose's, do."}

@@ -2,10 +2,117 @@ schemaVersion: 1
 id: q14
 title: "Check: Jenkins pipelines and KVM"
 questions:
+  - id: q14-2
+    type: mcq
+    text: |
+      A Declarative pipeline starts with `agent none` at the top. What must each stage that runs steps then have?
+
+      Hint: `none` means no machine is chosen for the whole run.
+    concepts: [jenkins-declarative-structure]
+    sources: [143]
+    options:
+      - {text: "Its own agent directive, such as agent { label 'docker' }", correct: true, explanation: "With agent none nothing is allocated at the top, so each stage declares where it runs."}
+      - {text: "Nothing; the stages run on the controller", correct: false, explanation: "Misconception: no agent means the controller. agent none allocates nothing; the stage needs its own agent."}
+      - {text: "A node block around its steps", correct: false, explanation: "Misconception: Scripted syntax mixes into Declarative. node is a Scripted block; Declarative uses agent."}
+      - {text: "A post block", correct: false, explanation: "Misconception: post chooses where a stage runs. post runs after the stage; it chooses nothing."}
+  - id: q14-3
+    type: mcq
+    text: |
+      A stage has `when { branch 'main' }`. The file runs in a plain Pipeline job, not a Multibranch one, building `main`. What happens to the stage?
+
+      Hint: where does `branch` get the branch name from?
+    concepts: [jenkins-when, jenkins-multibranch]
+    sources: [143, 146]
+    options:
+      - {text: "It is skipped: the condition never matches outside Multibranch", correct: true, explanation: "branch works only in a Multibranch Pipeline. The course's test run printed: Stage \"Deploy\" skipped due to when conditional."}
+      - {text: "It runs, because the code is on main", correct: false, explanation: "Misconception: Jenkins reads the branch from Git in any job. The branch condition needs the Multibranch job type."}
+      - {text: "The whole pipeline fails with a syntax error", correct: false, explanation: "Misconception: an unmatched condition is invalid syntax. The file is valid; the stage is quietly skipped."}
+      - {text: "It runs on every branch", correct: false, explanation: "Misconception: an unusable condition is ignored. It does not match, so the stage is skipped, not always run."}
+  - id: q14-4
+    type: mcq
+    text: |
+      The previous run was FAILURE and this run is SUCCESS. Which comparing `post` block runs?
+
+      Hint: one hook means back to green, the other fell back to red.
+    concepts: [jenkins-post-conditions]
+    sources: [143]
+    options:
+      - {text: "fixed", correct: true, explanation: "fixed runs on a success after a failed or unstable run."}
+      - {text: "regression", correct: false, explanation: "Misconception: the two names are swapped. regression is failure, unstable or aborted after a success."}
+      - {text: "failure", correct: false, explanation: "Misconception: failure looks at the previous run. It looks at this run, which succeeded."}
+      - {text: "None; comparing blocks only run on failures", correct: false, explanation: "Misconception: post exists only for errors. changed and fixed both run here."}
+  - id: q14-5
+    type: mcq
+    text: |
+      The previous run failed and this run failed again. Does `changed` run?
+
+      Hint: changed compares this status with the previous one.
+    concepts: [jenkins-post-conditions]
+    sources: [143]
+    options:
+      - {text: "No: the status is the same as last time", correct: true, explanation: "changed needs a different status from the previous run. always, failure and cleanup run here."}
+      - {text: "Yes: something in the code changed", correct: false, explanation: "Misconception: changed means a code change. It means the build status changed."}
+      - {text: "Yes: changed runs on every failure", correct: false, explanation: "Misconception: changed is another failure block. A second failure in a row is no change."}
+      - {text: "Only if cleanup ran first", correct: false, explanation: "Misconception: cleanup runs first. cleanup runs last, after every other condition."}
+  - id: q14-6
+    type: mcq
+    text: |
+      Which layer of the stack models the VM's memory, disks and network cards?
+
+      Hint: one layer is kernel code that only runs the CPU.
+    concepts: [kvm-qemu-stack]
+    sources: [89, 104]
+    options:
+      - {text: "QEMU, a user-space process per VM", correct: true, explanation: "QEMU models the machine and asks KVM to run the guest CPU."}
+      - {text: "KVM, the kernel modules", correct: false, explanation: "Misconception: KVM is the whole hypervisor. KVM runs the CPU through /dev/kvm; QEMU provides the devices."}
+      - {text: "libvirt", correct: false, explanation: "Misconception: the manager is the emulator. libvirt defines, starts and stops VMs; QEMU runs them."}
+      - {text: "Intel VT / AMD-V", correct: false, explanation: "Misconception: the CPU extension emulates devices. It only lets guest code run on the real CPU."}
+  - id: q14-7
+    type: mcq
+    text: |
+      On a host, `egrep -c '^flags.*(vmx|svm)' /proc/cpuinfo` prints 8, but `ls -l /dev/kvm` says "No such file or directory". Can VMs here use KVM?
+
+      Hint: there are two checks; how many must pass?
+    concepts: [kvm-qemu-stack]
+    sources: [86, 104]
+    options:
+      - {text: "No: the CPU has VT, but the KVM device is missing", correct: true, explanation: "Both checks must pass. The course's test container showed exactly this: flags present, no /dev/kvm."}
+      - {text: "Yes: the CPU flags are enough", correct: false, explanation: "Misconception: CPU support equals KVM access. User space talks to KVM through /dev/kvm, which is missing."}
+      - {text: "Yes, once libvirt is installed", correct: false, explanation: "Misconception: libvirt supplies KVM. libvirt manages VMs; KVM is kernel modules exposed as /dev/kvm."}
+      - {text: "The 8 means 8 VMs can run", correct: false, explanation: "Misconception: -c counts VM slots. It counts the matching lines in /proc/cpuinfo."}
+  - id: q14-8
+    type: mcq
+    text: |
+      You run `virsh destroy web1` on a persistent domain. What is true afterwards?
+
+      Hint: the name sounds worse than the effect.
+    concepts: [virsh-verbs]
+    sources: [95]
+    options:
+      - {text: "It is shut off, still defined, and `virsh start web1` boots it again", correct: true, explanation: "destroy is a power cut; storage and definition are kept."}
+      - {text: "Its disk images are deleted", correct: false, explanation: "Misconception: destroy deletes data. Storage is kept."}
+      - {text: "Its definition is removed", correct: false, explanation: "Misconception: destroy and undefine are the same. undefine removes the stored config."}
+      - {text: "The guest OS was asked to stop and may still be running", correct: false, explanation: "Misconception: destroy is a polite stop. That is shutdown; destroy stops it at once."}
+  - id: q14-9
+    type: mcq
+    text: |
+      You start a long-lived VM with `virsh create vm.xml`. After its first stop, `virsh list --all` no longer shows it. Why?
+
+      Hint: create and define make two different kinds of domain.
+    concepts: [virsh-verbs, persistent-transient]
+    sources: [94, 95]
+    options:
+      - {text: "create makes a transient domain, which vanishes when it stops; use define, then start", correct: true, explanation: "A transient domain exists only while it runs; a persistent one is defined first and kept."}
+      - {text: "Someone ran undefine on it", correct: false, explanation: "Misconception: only undefine removes a domain. A transient domain disappears by itself when it stops."}
+      - {text: "list --all hides shut-off domains", correct: false, explanation: "Misconception: --all shows running ones only. --all includes shut-off persistent domains."}
+      - {text: "create deleted the XML file", correct: false, explanation: "Misconception: the file is the domain. libvirt keeps its own copy for persistent domains; the file is untouched."}
   - id: q14-1
     type: spot
     diff: true
-    text: "A colleague tidied the Jenkinsfile of a Multibranch job. After the merge, every feature branch deploys to production. Click the changed line that causes it."
+    text: |
+      A colleague tidied the Jenkinsfile of a Multibranch job. After the merge, every feature branch deploys to production. Click the changed line that causes it.
+
+      Hint: which line limited the Deploy stage?
     concepts: [jenkins-when, jenkins-multibranch]
     sources: [143]
     code: |2
@@ -22,76 +129,3 @@ questions:
        }
     correct: [7]
     explanation: "The removed when { branch 'main' } was the only thing limiting the stage to main. Without a when directive a stage runs on every branch the Multibranch job builds. The other changed lines only alter which commands run."
-  - id: q14-2
-    type: sort
-    text: "The previous run was SUCCESS and the current run ends as FAILURE. Which post condition blocks run?"
-    concepts: [jenkins-post-conditions]
-    sources: [143]
-    buckets: ["Runs", "Does not run"]
-    items:
-      - {text: "always", bucket: "Runs", explanation: "always runs whatever the status."}
-      - {text: "changed", bucket: "Runs", explanation: "The status differs from the previous run (SUCCESS to FAILURE)."}
-      - {text: "regression", bucket: "Runs", explanation: "Failure, unstable or aborted after a successful run is a regression."}
-      - {text: "failure", bucket: "Runs", explanation: "The run has the failed status."}
-      - {text: "cleanup", bucket: "Runs", explanation: "cleanup runs last after every other condition, whatever the status."}
-      - {text: "fixed", bucket: "Does not run", explanation: "fixed needs the current run to succeed after a failed or unstable one; this is the opposite."}
-      - {text: "success", bucket: "Does not run", explanation: "The run failed."}
-  - id: q14-3
-    type: fill
-    text: "Complete this Declarative Jenkinsfile so no executor is held for the whole run and the deploy stage runs only on main, checked before its agent is allocated."
-    concepts: [jenkins-declarative-structure, jenkins-when]
-    sources: [143]
-    template: |
-      pipeline {
-          agent {{1}}
-          {{2}} {
-              stage('Test') {
-                  agent { label 'docker' }
-                  {{3}} {
-                      sh 'make check'
-                  }
-              }
-              stage('Deploy') {
-                  when {
-                      {{4}}
-                      branch 'main'
-                  }
-                  agent { label 'deploy' }
-                  steps {
-                      sh './deploy.sh'
-                  }
-              }
-          }
-      }
-    chips:
-      - {text: "none", slot: 1, explanation: "agent none allocates nothing at top level, so each stage must declare its own agent."}
-      - {text: "stages", slot: 2, explanation: "stages holds the sequence of stage directives and is required."}
-      - {text: "steps", slot: 3, explanation: "Every stage needs a steps block (or nested stages, parallel or matrix)."}
-      - {text: "beforeAgent true", slot: 4, explanation: "Evaluates when before entering the agent, so a skipped stage never waits for a deploy agent."}
-      - {text: "any", explanation: "agent any would hold an executor on some node for the whole run."}
-      - {text: "node", explanation: "node is a block in Scripted syntax; Declarative uses stages and steps here."}
-  - id: q14-4
-    type: match
-    text: "Match each piece of the virtualization stack to its job."
-    concepts: [kvm-qemu-stack]
-    sources: [86, 87, 89]
-    pairs:
-      - {left: "kvm.ko with kvm-intel.ko or kvm-amd.ko", right: "Kernel modules that run guest CPUs on the hardware extensions", explanation: "KVM is the in-kernel part, mainline since Linux 2.6.20."}
-      - {left: "/dev/kvm", right: "The device user space opens to create VMs and vCPUs with ioctl calls", explanation: "KVM_CREATE_VM, then KVM_CREATE_VCPU, then KVM_RUN."}
-      - {left: "QEMU", right: "User-space process that models the machine's memory and devices", explanation: "It provides the disks and network cards and asks KVM to run the CPU."}
-      - {left: "TCG", right: "QEMU's software CPU emulation, the default accelerator", explanation: "You must request KVM explicitly to avoid it."}
-    distractors:
-      - "The daemon that stores domain XML definitions"
-  - id: q14-5
-    type: match
-    text: "Match each virsh command to what it does."
-    concepts: [virsh-verbs]
-    sources: [95]
-    pairs:
-      - {left: "define FILE", right: "Registers a persistent domain without starting it", explanation: "Start it later with virsh start."}
-      - {left: "create FILE", right: "Creates and starts a transient domain", explanation: "It vanishes when destroyed, unless the XML matches an existing persistent guest."}
-      - {left: "destroy", right: "Stops the guest at once, like pulling the power cord", explanation: "Storage and, for a persistent domain, the definition are kept."}
-      - {left: "shutdown", right: "Asks the guest OS to stop, with no guarantee", explanation: "It is asynchronous; poll domstate to see when it finished."}
-      - {left: "undefine", right: "Removes the stored configuration of a domain", explanation: "On a running domain it turns it transient instead of stopping it."}
-    distractors:
-      - "Deletes the domain's disk volumes"
