@@ -42,6 +42,10 @@ Ignored signals are inherited by children and survive `execve`, so `trap '' TERM
 
 **P1.** A script with `trap '' TERM` starts `worker`. What do `kill WORKER_PID` and then `kill -9 WORKER_PID` do?
 
+:::answer
+`kill` does nothing: the worker inherited the ignored TERM. `kill -9` ends it; `wait` reports 137.
+:::
+
 ## Exit statuses: how a command ended
 
 **Rule:** 127 is not found, 126 is found but not executable, above 128 is killed by signal (status minus 128). [125]
@@ -58,6 +62,10 @@ $ sleep 30 & kill -INT $!; wait $!; echo $?    # 130 = 128 + 2, SIGINT (Ctrl-C)
 [125] [105]
 
 **P2.** A job log says `exit status 143`. Crash, bad path, or stop request?
+
+:::answer
+A stop request: 143 − 128 = 15, SIGTERM.
+:::
 
 ## systemctl: which command rereads what
 
@@ -92,6 +100,10 @@ inactive                                         # edge: a stop is never restart
 
 **P3.** You change `ExecStart=`, run `systemctl reload vmapi`, and the old command still runs. Why? What fixes it?
 
+:::answer
+`reload` does not reread unit files. Run `systemctl daemon-reload`, then `systemctl restart vmapi`.
+:::
+
 ## "The service is down": the walk-through
 
 1. `systemctl status vmapi`: state, main PID, last 10 log lines. [118]
@@ -111,33 +123,37 @@ inactive                                         # edge: a stop is never restart
 | `daemon-reload` | reread unit files | then `restart` |
 | `enable --now` | boot link and start | `enable` alone: not started |
 
-## Answers
-
-**P1.** `kill` does nothing: the worker inherited the ignored TERM. `kill -9` ends it; `wait` reports 137.
-
-**P2.** A stop request: 143 − 128 = 15, SIGTERM.
-
-**P3.** `reload` does not reread unit files. Run `systemctl daemon-reload`, then `systemctl restart vmapi`.
-
-**R1.** No. Plain `kill` sends 15, TERM.
-
-**R2.** 128 + 9 = 137: killed by SIGKILL.
-
-**R3.** No: it already exited. Fix or end its parent.
-
-**R4.** No: `enable` only creates the boot link.
-
-**R5.** No: a unit stopped with `systemctl stop` is never restarted.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| `kill` means "force" | Signals | **R1.** Does `kill PID` send signal 9? |
-| status 137 means "exited with 137" or "not found" | Exit statuses | **R2.** Decode 137. |
-| `kill -9` clears a zombie | Signals | **R3.** Can `kill -9` remove a `<defunct>` process? |
-| `enable` starts the service | systemctl | **R4.** Is a service running right after `systemctl enable`? |
-| `Restart=on-failure` undoes `systemctl stop` | systemctl | **R5.** Does systemd restart a unit you stopped? |
+**If you thought** `kill` means "force": reread "Signals". **R1.** Does `kill PID` send signal 9?
+
+:::answer
+No. Plain `kill` sends 15, TERM.
+:::
+
+**If you thought** status 137 means "exited with 137" or "not found": reread "Exit statuses". **R2.** Decode 137.
+
+:::answer
+128 + 9 = 137: killed by SIGKILL.
+:::
+
+**If you thought** `kill -9` clears a zombie: reread "Signals". **R3.** Can `kill -9` remove a `<defunct>` process?
+
+:::answer
+No: it already exited. Fix or end its parent.
+:::
+
+**If you thought** `enable` starts the service: reread "systemctl". **R4.** Is a service running right after `systemctl enable`?
+
+:::answer
+No: `enable` only creates the boot link.
+:::
+
+**If you thought** `Restart=on-failure` undoes `systemctl stop`: reread "systemctl". **R5.** Does systemd restart a unit you stopped?
+
+:::answer
+No: a unit stopped with `systemctl stop` is never restarted.
+:::
 
 :::key-takeaways
 - TERM (15) asks, KILL (9) forces; ignored signals are inherited. [105]

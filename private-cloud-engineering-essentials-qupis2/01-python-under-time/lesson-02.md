@@ -47,6 +47,10 @@ Return `None` for a bad line; the loop counts them.
 
 **P1.** A line has a path containing a space: `... GET /api/my vms 200 12.5`. How many pieces does `split()` give, and is the line kept?
 
+:::answer
+8 pieces, so the line is skipped as malformed.
+:::
+
 ## Percentile by index: nearest rank
 
 **Rule:** sort the values; p95 is the value at place `ceil(95 * n / 100)`, counting places from 1.
@@ -82,6 +86,10 @@ Edge: with one value, `[7]`, every percentile is 7.
 
 **P2.** What is the nearest-rank p50 of `[5, 1, 3]`?
 
+:::answer
+3. Sorted `[1, 3, 5]`; place `ceil(1.5) = 2`.
+:::
+
 ## A rate per group: count both, divide last
 
 **Rule:** keep a `[requests, errors]` pair per minute; divide only at the end, inside each minute.
@@ -105,6 +113,10 @@ Edge: a minute exists only once a request arrives, so `total` is never 0. Read `
 
 **P3.** Minute 10:20 has statuses 200, 404, 500, 502. What is its error rate?
 
+:::answer
+0.5: 500 and 502 count; 404 does not.
+:::
+
 ## Run it
 
 1. With the three `log_stats_*.py` files in one folder, edit the starter; run `python log_stats_test.py`.
@@ -119,36 +131,43 @@ Edge: a minute exists only once a request arrives, so `total` is never 0. Read `
 | `-(-a // b)` | integer round-up | `-(-7 // 2)` → `4` |
 | nearest rank | `ordered[ceil(p*n/100) - 1]` | p95 of `[10, 20, 30, 40]` → `40` |
 
-## Answers
-
-**P1.** 8 pieces, so the line is skipped as malformed.
-
-**P2.** 3. Sorted `[1, 3, 5]`; place `ceil(1.5) = 2`.
-
-**P3.** 0.5: 500 and 502 count; 404 does not.
-
-**R1.** `False`, so the line is rejected.
-
-**R2.** 0 pieces, not 7.
-
-**R3.** Place 4, value 40.
-
-**R4.** 0.5; the global 1 / 10 hides it.
-
-**R5.** One line at a time.
-
-**R6.** 3: `-9 // 4` is -3, flipped to 3, the ceiling of 2.25.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| A `try` around `float()` rejects `nan` | Parsing | **R1.** What is `0 <= float("nan") < math.inf`? |
-| A blank line splits into 7 empty fields | Parsing | **R2.** How many pieces does `"".split()` give? |
-| p95 is `ordered[int(0.95 * n)]` | Percentile | **R3.** Nearest-rank p95 of `[10, 20, 30, 40]`? |
-| The minus signs in `-(-a // b)` cancel | Percentile, prerequisite | **R6.** `-(-9 // 4)`? |
-| A global ratio gives the rate per minute | Rate per group | **R4.** Minute A: 1 error in 2; minute B: 0 in 8. Rate for A? |
-| `for line in f` loads the whole file | Rate per group | **R5.** What does `for line in f` read per step? |
+**If you thought** a `try` around `float()` rejects `nan`: reread "Parsing". **R1.** What is `0 <= float("nan") < math.inf`?
+
+:::answer
+`False`, so the line is rejected.
+:::
+
+**If you thought** a blank line splits into 7 empty fields: reread "Parsing". **R2.** How many pieces does `"".split()` give?
+
+:::answer
+0 pieces, not 7.
+:::
+
+**If you thought** p95 is `ordered[int(0.95 * n)]`: reread "Percentile". **R3.** Nearest-rank p95 of `[10, 20, 30, 40]`?
+
+:::answer
+Place 4, value 40.
+:::
+
+**If you thought** the minus signs in `-(-a // b)` cancel: reread "Percentile", prerequisite. **R6.** `-(-9 // 4)`?
+
+:::answer
+3: `-9 // 4` is -3, flipped to 3, the ceiling of 2.25.
+:::
+
+**If you thought** a global ratio gives the rate per minute: reread "Rate per group". **R4.** Minute A: 1 error in 2; minute B: 0 in 8. Rate for A?
+
+:::answer
+0.5; the global 1 / 10 hides it.
+:::
+
+**If you thought** `for line in f` loads the whole file: reread "Rate per group". **R5.** What does `for line in f` read per step?
+
+:::answer
+One line at a time.
+:::
 
 :::key-takeaways
 - Split, check 7 pieces, convert in one `try`, then range-check. [35] [37]

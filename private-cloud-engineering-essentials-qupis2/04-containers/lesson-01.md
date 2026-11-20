@@ -36,6 +36,10 @@ The flags write those cgroup files [62] [78].
 
 **P1.** With `--pids-limit 5` a shell starts 8 background `sleep`s. Namespace or cgroup, and what fails?
 
+:::answer
+A cgroup limit: past `pids.max`, `fork()` fails; the test run printed `Cannot fork`.
+:::
+
 ## Memory limit: exit 137 means OOM-killed
 
 **Rule:** at `memory.max` the kernel's OOM (out of memory) killer sends SIGKILL; a process killed by signal N exits 128+N, and SIGKILL is 9, so 137 [62] [125] [105].
@@ -59,6 +63,10 @@ Edge case: `memory.high` only throttles; it never OOM-kills [62].
 
 **P2.** A container exits 137 with `OOMKilled=false`. Was it the memory limit?
 
+:::answer
+No. 137 is any SIGKILL, for example `docker stop` after the grace period.
+:::
+
 ## Layers and cache order
 
 **Rule:** an image is a stack of read-only layers, one per `FROM`, `COPY` or `RUN` [68]; once one layer changes, every later layer is rebuilt [74].
@@ -81,6 +89,10 @@ Edge case: deleting a file in a later layer does not shrink the image [68]. A 50
 
 **P3.** Why does `COPY . .` before `RUN pip install` reinstall everything on every code edit?
 
+:::answer
+Any source edit changes the `COPY . .` layer, so the install after it is rebuilt.
+:::
+
 ## Exec form vs shell form: who is PID 1
 
 **Rule:** `docker stop` sends SIGTERM to PID 1, then SIGKILL after a grace period [79]; in shell form PID 1 is `/bin/sh -c`, which does not pass the signal on [71].
@@ -100,6 +112,10 @@ Course test run, `docker stop -t 10`:
 Edge case: shell form also ignores `docker run` arguments [71].
 
 **P4.** A container always takes the full grace period to stop and exits 137. What do you check first in its Dockerfile?
+
+:::answer
+Shell-form `ENTRYPOINT`: `/bin/sh` is PID 1 and never forwards SIGTERM.
+:::
 
 ## Exercise (25 min)
 
@@ -123,29 +139,25 @@ From `resources/ch04`:
 | layer cache | change busts all later layers | edit source → only last `COPY` |
 | exec form | app is PID 1, gets SIGTERM | stop 0.42 s, exit 0 |
 
-## Answers
-
-**P1.** A cgroup limit: past `pids.max`, `fork()` fails; the test run printed `Cannot fork`.
-
-**P2.** No. 137 is any SIGKILL, for example `docker stop` after the grace period.
-
-**P3.** Any source edit changes the `COPY . .` layer, so the install after it is rebuilt.
-
-**P4.** Shell-form `ENTRYPOINT`: `/bin/sh` is PID 1 and never forwards SIGTERM.
-
-**R1.** cgroup.
-
-**R2.** No; the bytes stay in the earlier layer.
-
-**R3.** 1, with a traceback.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| Namespaces limit memory | Namespaces vs cgroups | **R1.** Which one holds `memory.max`? |
-| `rm` in a later layer shrinks the image | Layers | **R2.** Does it? |
-| 137 means an app crash | Exit 137 | **R3.** What does an uncaught exception exit with? |
+**If you thought** namespaces limit memory: reread "Namespaces vs cgroups". **R1.** Which one holds `memory.max`?
+
+:::answer
+cgroup.
+:::
+
+**If you thought** `rm` in a later layer shrinks the image: reread "Layers". **R2.** Does it?
+
+:::answer
+No; the bytes stay in the earlier layer.
+:::
+
+**If you thought** 137 means an app crash: reread "Exit 137". **R3.** What does an uncaught exception exit with?
+
+:::answer
+1, with a traceback.
+:::
 
 :::key-takeaways
 - A container is a host process: namespaces set what it sees, cgroups what it uses. [65] [102]

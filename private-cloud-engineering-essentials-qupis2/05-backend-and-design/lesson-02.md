@@ -25,6 +25,10 @@ Step 4: insert the BUILDING row and reserve quota; after commit, enqueue the VM 
 
 **P1.** You start drawing boxes at once. Which step did you skip, and what can you not justify?
 
+:::answer
+Step 1: without numbers you cannot justify one database or an overcommit ratio.
+:::
+
 ## Capacity arithmetic: the smaller limit wins
 
 **Rule:** VMs per host = the smaller of "fit by CPU" and "fit by RAM".
@@ -52,6 +56,10 @@ Edge case: CPU overcommit moves the limit to RAM. At 0.07 creates a second, the 
 | RAM | 1.0 | the OOM killer kills a process [120] |
 
 **P2.** Same hosts; VMs of 2 vCPUs and 16 GiB, no overcommit. How many per host, and what limits it?
+
+:::answer
+15: CPU fits 32 / 2 = 16, RAM fits 248 / 16 = 15. RAM is the limit.
+:::
 
 ## Placement: filter, then weigh, then claim
 
@@ -82,6 +90,10 @@ UPDATE hosts SET used = used + 1
 
 **P3.** With `used = {"kvm-1": 7, "kvm-2": 3}` and 8 slots, which host does pack choose? And spread?
 
+:::answer
+Pack picks kvm-1 (7 used, still fits); spread picks kvm-2.
+:::
+
 ## Failures: desired vs actual state
 
 **Rule:** the database holds desired state, each host reports actual state, and a reconciler loop moves actual towards desired, like a thermostat [160].
@@ -106,6 +118,10 @@ Edge case: a slow host can look empty. Act only on a difference seen twice.
 
 **P4.** On one pass, kvm-9 reports no domains, but the database lists 12 ACTIVE VMs there. What does the reconciler do?
 
+:::answer
+Nothing yet: the host may have answered slowly. Seen again, it marks them ERROR and alerts.
+:::
+
 ## Exercise (20 minutes)
 
 Close this page. With a timer, say the five steps aloud while sketching; then compare with `vm-provisioning.svg`.
@@ -118,32 +134,31 @@ Close this page. With a timer, say the five steps aloud while sketching; then co
 | placement | filter, weigh | spread `{2, 6}` → the 2 |
 | reconcile | desired vs actual | ACTIVE, no domain → ERROR |
 
-## Answers
-
-**P1.** Step 1: without numbers you cannot justify one database or an overcommit ratio.
-
-**P2.** 15: CPU fits 32 / 2 = 16, RAM fits 248 / 16 = 15. RAM is the limit.
-
-**P3.** Pack picks kvm-1 (7 used, still fits); spread picks kvm-2.
-
-**P4.** Nothing yet: the host may have answered slowly. Seen again, it marks them ERROR and alerts.
-
-**R1.** 31: CPU allows 32, RAM 31.
-
-**R2.** 0 rows: B lost and tries the next host.
-
-**R3.** The database: desired state.
-
-**R4.** Skip the disk, define and start the domain.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| Capacity is one resource's limit | Capacity | **R1.** 4 vCPU/8 GiB, CPU ratio 4.0? |
-| Reading "has room" is enough | Placement | **R2.** B's `UPDATE` returns? |
-| Host or queue is the truth | Failures | **R3.** Which side is desired? |
-| A rerun redoes or skips everything | Failures | **R4.** Disk exists, no domain? |
+**If you thought** capacity is one resource's limit: reread "Capacity". **R1.** 4 vCPU/8 GiB, CPU ratio 4.0?
+
+:::answer
+31: CPU allows 32, RAM 31.
+:::
+
+**If you thought** reading "has room" is enough: reread "Placement". **R2.** B's `UPDATE` returns?
+
+:::answer
+0 rows: B lost and tries the next host.
+:::
+
+**If you thought** host or queue is the truth: reread "Failures". **R3.** Which side is desired?
+
+:::answer
+The database: desired state.
+:::
+
+**If you thought** a rerun redoes or skips everything: reread "Failures". **R4.** Disk exists, no domain?
+
+:::answer
+Skip the disk, define and start the domain.
+:::
 
 :::key-takeaways
 - Five steps, numbers first; per host, min(CPU fit, RAM fit); RAM stays at 1.0. [120] [155]

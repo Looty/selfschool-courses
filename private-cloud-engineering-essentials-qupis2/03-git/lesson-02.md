@@ -34,6 +34,10 @@ Edge case: `git reset f.txt` (a path) moves nothing and only unstages that file 
 
 **P1.** At B with a clean tree you run `git reset HEAD~1`, no flag. What does `f.txt` contain on disk?
 
+:::answer
+v2. Mixed resets the index, not the disk; the change shows unstaged.
+:::
+
 ## reflog: find a commit that vanished
 
 **Rule:** the reflog is a local diary of every place HEAD and each branch pointed, so a commit dropped by reset is still listed [154].
@@ -52,6 +56,10 @@ HEAD is now at 6934894 B
 Edge cases: `HEAD@{1}` means "one move ago" [154]. Uncommitted edits are never logged: `reset --hard` wiped an unsaved `v3`, and recovery brought back only `v2` [153]. Entries expire after 30 to 90 days [154].
 
 **P2.** Right after `git reset --hard HEAD~1` you commit C, then run `git reflog`. Is B still `HEAD@{1}`?
+
+:::answer
+No. C is `HEAD@{0}`, the reset `HEAD@{1}`, B `HEAD@{2}`.
+:::
 
 ## revert vs reset: add an undo, or rewind
 
@@ -74,6 +82,10 @@ Edge case: revert needs a clean working tree [154]; with an edited `f.txt` it re
 
 **P3.** B is on `origin/main` and a colleague pulled it. Which undo do you use?
 
+:::answer
+`git revert`: it adds a commit instead of removing B.
+:::
+
 ## bisect: binary search for the first bad commit
 
 **Rule:** from one good and one bad commit, bisect tests the middle and halves the range until one commit is left [153]. `git bisect run` reads the test's exit status: 0 good, 1 to 127 bad except 125, 125 skip [153] [154].
@@ -92,6 +104,10 @@ $ git bisect reset                 # back to where you started
 8 commits, 3 tests. Edge case: a test that always exits 125 skips everything: `We cannot bisect more!`.
 
 **P4.** About how many tests does bisect need for 1,000 commits?
+
+:::answer
+About 10: each test halves the range; 2^10 = 1,024.
+:::
 
 ## The lab (40 min)
 
@@ -127,32 +143,31 @@ Git and Bash, from `resources/ch03`:
 | `stash push -u` / `stash branch n` | shelve edits incl. untracked / restore on a new branch [154] | tasks 6A, 6B |
 | rebase conflict | fix the file, `git add`, `git rebase --continue` [154] | task 5 |
 
-## Answers
-
-**P1.** v2. Mixed resets the index, not the disk; the change shows unstaged.
-
-**P2.** No. C is `HEAD@{0}`, the reset `HEAD@{1}`, B `HEAD@{2}`.
-
-**P3.** `git revert`: it adds a commit instead of removing B.
-
-**P4.** About 10: each test halves the range; 2^10 = 1,024.
-
-**R1.** `--mixed`.
-
-**R2.** No; only committed states are logged.
-
-**R3.** Yes; nothing is rewritten.
-
-**R4.** Skip that commit.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| No flag means `--hard` | reset | **R1.** Which mode is the default? |
-| The reflog saves uncommitted edits | reflog | **R2.** Can it restore a never-committed edit? |
-| Revert deletes the commit | revert vs reset | **R3.** Is B still in `git log` after `git revert B`? |
-| Any non-zero exit means "bad" | bisect | **R4.** What does exit 125 mean? |
+**If you thought** no flag means `--hard`: reread "reset". **R1.** Which mode is the default?
+
+:::answer
+`--mixed`.
+:::
+
+**If you thought** the reflog saves uncommitted edits: reread "reflog". **R2.** Can it restore a never-committed edit?
+
+:::answer
+No; only committed states are logged.
+:::
+
+**If you thought** revert deletes the commit: reread "revert vs reset". **R3.** Is B still in `git log` after `git revert B`?
+
+:::answer
+Yes; nothing is rewritten.
+:::
+
+**If you thought** any non-zero exit means "bad": reread "bisect". **R4.** What does exit 125 mean?
+
+:::answer
+Skip that commit.
+:::
 
 :::key-takeaways
 - `reset` moves the branch; `--mixed` also resets the index, `--hard` also the disk. [153]

@@ -30,6 +30,10 @@ Edge: plain `ss` without `-l` shows only established connections, so a healthy l
 
 **P1.** `ss -ltnp` shows `127.0.0.1:5432`. A colleague on another VM cannot connect. Is the fix in the network or in the program's config?
 
+:::answer
+The program's config: it listens on loopback only. Bind to `0.0.0.0` and restart.
+:::
+
 ## Connection refused versus timeout
 
 **Rule:** "refused" is a fast, polite "nobody lives at that port"; a timeout is silence, because nothing answered at all.
@@ -60,6 +64,10 @@ The sources do not cover firewalls or timeouts. A firewall that drops packets or
 :::
 
 **P2.** A request from your laptop to `10.0.3.7:8080` hangs for a minute; the same request on the box answers. Refused or timeout, and which layer do you suspect?
+
+:::answer
+Timeout: nothing answered. Suspect a firewall or route between laptop and box, not the program.
+:::
 
 ## SSH keys and their permissions
 
@@ -94,6 +102,10 @@ Load key "./id_test": bad permissions
 
 **P3.** `ssh -i ~/.ssh/deploy_key ops@vm` fails, and `ls -l` shows `-rw-r----- deploy_key`. What is wrong and what is the one-command fix?
 
+:::answer
+The group can read the key, so ssh ignores it. `chmod 600 ~/.ssh/deploy_key`.
+:::
+
 ## "I can't reach the API": the walk-through
 
 Stop at the first "no":
@@ -120,30 +132,31 @@ Stop at the first "no":
 | private key mode | only you may read it | `640` → ignored |
 | ssh exit 255 | ssh's own failure | remote command never ran |
 
-## Answers
-
-**P1.** The program's config: it listens on loopback only. Bind to `0.0.0.0` and restart.
-
-**P2.** Timeout: nothing answered. Suspect a firewall or route between laptop and box, not the program.
-
-**P3.** The group can read the key, so ssh ignores it. `chmod 600 ~/.ssh/deploy_key`.
-
-**R1.** Established connections only; add `-l`.
-
-**R2.** The host answered: no listener there.
-
-**R3.** No: 255 is ssh's own error.
-
-**R4.** No: `640` lets the group read it; use `600`.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| plain `ss` shows listeners | ss | **R1.** What does `ss` without `-l` list? |
-| refused means a firewall | Refused vs timeout | **R2.** What does an instant "refused" prove? |
-| ssh exit 255 is the remote command's status | SSH keys | **R3.** Did the remote command fail? |
-| group-readable keys are fine | SSH keys | **R4.** Is `640` OK for a private key? |
+**If you thought** plain `ss` shows listeners: reread "ss". **R1.** What does `ss` without `-l` list?
+
+:::answer
+Established connections only; add `-l`.
+:::
+
+**If you thought** refused means a firewall: reread "Refused vs timeout". **R2.** What does an instant "refused" prove?
+
+:::answer
+The host answered: no listener there.
+:::
+
+**If you thought** ssh exit 255 is the remote command's status: reread "SSH keys". **R3.** Did the remote command fail?
+
+:::answer
+No: 255 is ssh's own error.
+:::
+
+**If you thought** group-readable keys are fine: reread "SSH keys". **R4.** Is `640` OK for a private key?
+
+:::answer
+No: `640` lets the group read it; use `600`.
+:::
 
 :::key-takeaways
 - `ss -ltnp`; `127.0.0.1` means same machine only. [112]

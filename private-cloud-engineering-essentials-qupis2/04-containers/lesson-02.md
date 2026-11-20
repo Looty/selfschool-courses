@@ -26,6 +26,10 @@ With no host address, `-p` listens on every host address; `-p 127.0.0.1:18080:80
 
 **P1.** An app listens on `127.0.0.1:8080` in its container, published with `-p 9000:8080`. What does `curl localhost:9000` on the host get?
 
+:::answer
+No HTTP answer: forwarded traffic arrives on the container's interface, where nothing listens.
+:::
+
 ## Container DNS: names work on a user network
 
 **Rule:** on a user-defined network, containers reach each other by name through Docker's DNS server at `127.0.0.11`; on the default `bridge` network they can use only IPs [75] [76]. Compose makes one such network per project, `<project>_default`, and each service is reachable by its service name [82].
@@ -48,6 +52,10 @@ Between services use the container port (`db:7000`); only the host uses the publ
 
 **P2.** In Compose, `worker` connects to `api:18080`, with api's ports set to `"18080:8080"`. Does it work?
 
+:::answer
+No. 18080 exists only on the host; inside the network use `api:8080`.
+:::
+
 ## `depends_on`: started is not ready
 
 **Rule:** short `depends_on` waits until the other container is *running*, not *ready*; to wait for ready, give it a `healthcheck` and use `condition: service_healthy` [81] [82].
@@ -68,6 +76,10 @@ The lab's `db` needs 4 s to start listening; `api` checks it once:
 Edge case: ready once is not ready forever, so still retry in code [81] [82].
 
 **P3.** db has no `healthcheck` and api uses short `depends_on`. Does api wait 4 s?
+
+:::answer
+No: it starts once db's container runs.
+:::
 
 ## The stack
 
@@ -119,30 +131,31 @@ From `resources/ch04/failing-stack`:
 | user network DNS | names via `127.0.0.11` | `web1:8000` → open |
 | `depends_on` | short: running; `service_healthy`: ready | api 503 / 200 |
 
-## Answers
-
-**P1.** No HTTP answer: forwarded traffic arrives on the container's interface, where nothing listens.
-
-**P2.** No. 18080 exists only on the host; inside the network use `api:8080`.
-
-**P3.** No: it starts once db's container runs.
-
-**R1.** The left one, 18080.
-
-**R2.** Its own loopback.
-
-**R3.** No: only user-defined networks resolve names.
-
-**R4.** A `healthcheck` on db and `condition: service_healthy`.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| The container port is on the left | `-p` | **R1.** In `-p 18080:8080`, which is the host port? |
-| `127.0.0.1` in a container is the host | `-p` | **R2.** Whose loopback is it? |
-| Names resolve on the default bridge | Container DNS | **R3.** Do two containers there reach each other by name? |
-| `depends_on` waits for ready | `depends_on` | **R4.** What two things make Compose wait? |
+**If you thought** the container port is on the left: reread "`-p`". **R1.** In `-p 18080:8080`, which is the host port?
+
+:::answer
+The left one, 18080.
+:::
+
+**If you thought** `127.0.0.1` in a container is the host: reread "`-p`". **R2.** Whose loopback is it?
+
+:::answer
+Its own loopback.
+:::
+
+**If you thought** names resolve on the default bridge: reread "Container DNS". **R3.** Do two containers there reach each other by name?
+
+:::answer
+No: only user-defined networks resolve names.
+:::
+
+**If you thought** `depends_on` waits for ready: reread "`depends_on`". **R4.** What two things make Compose wait?
+
+:::answer
+A `healthcheck` on db and `condition: service_healthy`.
+:::
 
 :::key-takeaways
 - `-p host:container` needs the app on `0.0.0.0`. [77]

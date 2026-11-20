@@ -52,6 +52,10 @@ Stage "Deploy" skipped due to when conditional
 
 **P1.** You delete the `when { branch 'main' }` line from a Multibranch job. Which branches deploy now?
 
+:::answer
+Every branch the job builds.
+:::
+
 ## `post` conditions: compare with the last run
 
 **Rule:** `always` and `cleanup` always run; `success`/`failure` look at this run; `changed`, `fixed` and `regression` compare it with the previous run [143].
@@ -66,6 +70,10 @@ Stage "Deploy" skipped due to when conditional
 Hook: **fixed** = back to green; **regression** = fell back to red. `cleanup` runs last [143].
 
 **P2.** The previous run failed and this one failed too. Does `changed` run? Does `fixed`?
+
+:::answer
+Neither: the status did not change, and `fixed` needs a success.
+:::
 
 ## KVM vs QEMU vs libvirt: who does what
 
@@ -88,6 +96,10 @@ The course's test container: flags present, device missing, no KVM. Both checks 
 Edge case: QEMU defaults to TCG, pure software emulation; KVM must be requested [89]. libvirt requests it with `<domain type='kvm'>` [93].
 
 **P3.** `/dev/kvm` is missing, yet QEMU starts the VM. Why, and how will it feel?
+
+:::answer
+It runs on TCG, QEMU's default software emulation, not KVM: it works, but slowly.
+:::
 
 ## virsh verbs: define, start, destroy, undefine
 
@@ -116,6 +128,10 @@ Edge case: the test driver has no guest OS, so `shutdown` was instant; a real gu
 
 **P4.** You run `virsh destroy web1`. Can you `virsh start web1` afterwards?
 
+:::answer
+Yes: `destroy` only cut the power; the definition stays.
+:::
+
 ## Cheat sheet
 
 | Tool | Rule | Tiny example → result |
@@ -126,32 +142,31 @@ Edge case: the test driver has no guest OS, so `shutdown` was instant; a real gu
 | `destroy` | power cut | domain stays defined |
 | `undefine` | forget config | gone from `list --all` |
 
-## Answers
-
-**P1.** Every branch the job builds.
-
-**P2.** Neither: the status did not change, and `fixed` needs a success.
-
-**P3.** It runs on TCG, QEMU's default software emulation, not KVM: it works, but slowly.
-
-**P4.** Yes: `destroy` only cut the power; the definition stays.
-
-**R1.** `regression`, plus `always`, `changed`, `failure`, `cleanup`.
-
-**R2.** QEMU: KVM only runs the CPU.
-
-**R3.** `undefine`: it removes the stored config.
-
-**R4.** Nothing: each stage must declare its own agent.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| `fixed`/`regression` swapped | `post` | **R1.** SUCCESS → FAILURE runs? |
-| KVM emulates disks | KVM vs QEMU | **R2.** Who models disks? |
-| `destroy` deletes the VM | virsh verbs | **R3.** Which verb forgets the config? |
-| `agent none` means the controller | Skeleton | **R4.** What does `agent none` allocate? |
+**If you thought** `fixed`/`regression` swapped: reread "`post`". **R1.** SUCCESS → FAILURE runs?
+
+:::answer
+`regression`, plus `always`, `changed`, `failure`, `cleanup`.
+:::
+
+**If you thought** KVM emulates disks: reread "KVM vs QEMU". **R2.** Who models disks?
+
+:::answer
+QEMU: KVM only runs the CPU.
+:::
+
+**If you thought** `destroy` deletes the VM: reread "virsh verbs". **R3.** Which verb forgets the config?
+
+:::answer
+`undefine`: it removes the stored config.
+:::
+
+**If you thought** `agent none` means the controller: reread "Skeleton". **R4.** What does `agent none` allocate?
+
+:::answer
+Nothing: each stage must declare its own agent.
+:::
 
 :::low-confidence
 Nothing ran on KVM (no `/dev/kvm` on the test machine); `virsh` used the test driver; the Jenkinsfile was only linted. The notes do not say which of `vmx` and `svm` is which vendor's flag; check your CPU vendor's documentation.
