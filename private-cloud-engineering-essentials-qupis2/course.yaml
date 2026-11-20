@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: private-cloud-engineering-essentials-qupis2
+title: "Private Cloud Engineering: Essentials"
+short_intro: "The short path: Python you can type from memory, Linux and Git under pressure, containers, a Flask job-queue API, and a VM provisioning design."
+description: |
+  A short cut of "Private Cloud Engineering with Python" for engineers who need the working core fast: about
+  seven hours with every quiz, exercise and lab, under two hours of reading.
+  Lessons are short and every one ends in something you do: a timed Python problem, a terminal lab or a
+  design sketch.
+
+  It starts with the dozen standard-library tools you really type in a bare browser editor and two timed
+  infrastructure problems. Linux gets the most room: processes, signals and systemd, files and permissions,
+  network and SSH troubleshooting, and a broken-box lab. Then Git with a recovery lab, containers with a
+  debugging lab, a Flask API with an RQ job queue, the design of a self-service VM provisioning service, and
+  a short closing lesson on Jenkins pipelines and KVM with libvirt.
+
+  Who it is for: DevOps and platform engineers with a few years of experience. Labs run with Python 3 and
+  Docker. Every factual claim cites a source from sources.md. For depth on any topic, see the full course.
+language: en
+level: Intermediate
+hue: teal
+monogram: PE
+tags: [python, linux, git, containers, flask, rq, system-design, jenkins, kvm, devops]
+budget_minutes: 420
+chapters:
+  - dir: 01-python-under-time
+    title: Python under time pressure
+  - dir: 02-linux
+    title: Linux foundations
+  - dir: 03-git
+    title: Git
+  - dir: 04-containers
+    title: Containers
+  - dir: 05-backend-and-design
+    title: A job-queue API and its design
+  - dir: 06-jenkins-and-kvm
+    title: Jenkins and KVM in brief
+exams:
+  - {id: final, file: exams/final.yaml}

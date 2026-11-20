@@ -1,0 +1,68 @@
+schemaVersion: 1
+id: q01
+title: "Check: the Python you type from memory"
+questions:
+  - id: q01-1
+    type: trace
+    text: "You are reviewing this helper. Track first and second after each call."
+    concepts: [mutable-default-argument, code-review]
+    code: |
+      def add_tag(tag, tags=[]):
+          tags.append(tag)
+          return tags
+
+      first = second = None
+      first = add_tag("a")
+      second = add_tag("b")
+    variables: [first, second]
+    steps:
+      - {label: "After first = add_tag('a')", values: {first: ["['a']", "[\"a\"]"], second: ["None", "none"]}}
+      - {label: "After second = add_tag('b')", values: {first: ["['a', 'b']", "[\"a\", \"b\"]"], second: ["['a', 'b']", "[\"a\", \"b\"]"]}}
+    explanation: "The default list is created once and shared by every call that omits the argument. Both names refer to that one list, so the second call also changes what first shows. Use tags=None and create the list inside the function."
+  - id: q01-2
+    type: spot
+    text: "Every call with words of length 1 to 3 returns lists that all contain every word. Which line is the bug?"
+    concepts: [dict-fromkeys, shared-mutable, code-review]
+    sources: [15]
+    code: |
+      def group_by_len(words):
+          groups = dict.fromkeys(range(1, 4), [])
+          for w in words:
+              groups[len(w)].append(w)
+          return groups
+    correct: [2]
+    explanation: "dict.fromkeys uses one single list object as the value of every key, so all three keys point at the same list. Build distinct lists with a dict comprehension or use defaultdict(list)."
+  - id: q01-3
+    type: fill
+    text: "Complete the ranking of IP addresses by request count, highest first, ties by address ascending."
+    concepts: [sorting-keys, counter]
+    sources: [9, 12]
+    template: |
+      top = sorted(requests.items(), key=lambda kv: ({{1}}kv[1], {{2}}))[:top_n]
+    chips:
+      - {text: "-", slot: 1, explanation: "Negating the count sorts the highest count first while the sort stays ascending."}
+      - {text: "kv[0]", slot: 2, explanation: "The address is the second key, so equal counts are ordered by address."}
+      - {text: "reverse=True", explanation: "That would also reverse the tie-break, putting higher addresses first."}
+  - id: q01-4
+    type: sort
+    text: "Sort each operation by its typical cost on a container with n items."
+    concepts: [time-complexity, deque-vs-list]
+    sources: [9, 14]
+    buckets: ["O(1) or about O(1)", "O(n)"]
+    items:
+      - {text: "my_list.pop(0)", bucket: "O(n)", explanation: "Every remaining item shifts one place."}
+      - {text: "my_deque.popleft()", bucket: "O(1) or about O(1)", explanation: "Deque ends are about O(1)."}
+      - {text: "x in my_set", bucket: "O(1) or about O(1)", explanation: "Average-case hash lookup."}
+      - {text: "x in my_list", bucket: "O(n)", explanation: "A linear scan."}
+      - {text: "my_dict.get(k)", bucket: "O(1) or about O(1)", explanation: "Average-case hash lookup."}
+      - {text: "my_list.insert(0, x)", bucket: "O(n)", explanation: "Inserting at the front moves everything."}
+  - id: q01-5
+    type: mcq
+    text: "data = [('x', 2), ('y', 1), ('z', 2)]. What does sorted(data, key=lambda p: p[1], reverse=True) return?"
+    concepts: [sort-stability, reverse]
+    sources: [12]
+    options:
+      - {text: "[('x', 2), ('z', 2), ('y', 1)]", correct: true, explanation: "reverse=True keeps the sort stable, so the equal keys x and z stay in their original order."}
+      - {text: "[('z', 2), ('x', 2), ('y', 1)]", correct: false, explanation: "That would be a plain reversal of the sorted list; sorted with reverse=True preserves the order of equal items."}
+      - {text: "[('y', 1), ('x', 2), ('z', 2)]", correct: false, explanation: "That is ascending order."}
+      - {text: "It raises TypeError because the tuples tie", correct: false, explanation: "Only the key (the number) is compared, so ties are fine."}

@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: final
+title: Final review
+duration_minutes: 25
+max_attempts: 0
+passing_percentage: 70
+shuffle: true
+limit_questions: 20
+domains:
+  - id: python
+    title: Python under time pressure
+    weight: 25
+    chapters: [01-python-under-time]
+  - id: linux
+    title: Linux foundations
+    weight: 30
+    chapters: [02-linux]
+  - id: git
+    title: Git
+    weight: 15
+    chapters: [03-git]
+  - id: containers
+    title: Containers
+    weight: 15
+    chapters: [04-containers]
+  - id: backend-and-design
+    title: A job-queue API and its design
+    weight: 10
+    chapters: [05-backend-and-design]
+  - id: jenkins-and-kvm
+    title: Jenkins and KVM
+    weight: 5
+    chapters: [06-jenkins-and-kvm]

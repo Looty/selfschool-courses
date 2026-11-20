@@ -1,0 +1,84 @@
+schemaVersion: 1
+id: q12
+title: "Check: a Flask API with an RQ job queue"
+questions:
+  - id: q12-1
+    type: sort
+    text: "Sort each method by the properties RFC 9110 gives it."
+    concepts: [safe-methods, idempotent-methods]
+    sources: [52]
+    buckets: ["Safe and idempotent", "Idempotent, not safe", "Neither"]
+    items:
+      - {text: "GET", bucket: "Safe and idempotent", explanation: "GET asks only to read, so it is safe, and every safe method is idempotent."}
+      - {text: "HEAD", bucket: "Safe and idempotent", explanation: "HEAD is GET without the body; it changes nothing."}
+      - {text: "OPTIONS", bucket: "Safe and idempotent", explanation: "OPTIONS asks what the server supports; it is read-only."}
+      - {text: "PUT", bucket: "Idempotent, not safe", explanation: "PUT changes state, but sending the same PUT twice leaves the same result."}
+      - {text: "DELETE", bucket: "Idempotent, not safe", explanation: "Deleting twice has the same intended effect as deleting once, even if the second response differs."}
+      - {text: "POST", bucket: "Neither", explanation: "Each POST may create something new, so repeating it can duplicate work."}
+  - id: q12-2
+    type: match
+    text: "Match each situation in the VM API to the status code it should return."
+    concepts: [http-status-codes]
+    sources: [52]
+    pairs:
+      - {left: "POST /vms stored the request and queued the build", right: "202 Accepted", explanation: "The request is accepted but processing has not finished."}
+      - {left: "DELETE /vms/7 succeeded and there is nothing to return", right: "204 No Content", explanation: "Success with no body."}
+      - {left: "A VM with that name already exists", right: "409 Conflict", explanation: "The request clashes with the current state of the resource."}
+      - {left: "The request carries no token at all", right: "401 Unauthorized", explanation: "401 means valid authentication credentials are missing."}
+      - {left: "The token is valid but the user may not delete this VM", right: "403 Forbidden", explanation: "The server understood who it is and refuses."}
+    distractors:
+      - "201 Created"
+      - "504 Gateway Timeout"
+  - id: q12-3
+    type: spot
+    text: "With this app, `GET /nope` returns a JSON error body but status 200. Which line causes that?"
+    concepts: [flask-error-handlers]
+    sources: [46]
+    code: |
+      from flask import Flask, jsonify
+      from werkzeug.exceptions import HTTPException
+
+      def create_app():
+          app = Flask(__name__)
+
+          @app.errorhandler(HTTPException)
+          def json_error(error):
+              return jsonify(error=error.description)
+
+          @app.delete("/vms/<int:vm_id>")
+          def delete_vm(vm_id):
+              app.config.setdefault("VMS", {}).pop(vm_id, None)
+              return "", 204
+
+          return app
+    correct: [9]
+    explanation: "Flask does not set the response status to the handler's code. The handler must return it, for example `return jsonify(error=error.description), error.code`. In the course's test run this app answered GET /nope with 200."
+  - id: q12-4
+    type: trace
+    text: "A job is enqueued with `retry=Retry(max=2, interval=[2, 4])` on a worker started with `--with-scheduler`. Its build always raises, and each failed attempt adds 1 to the VM's `attempts` field; the third failure also sets the VM to `error`. Fill in the RQ job status, the VM status and `attempts` at each point."
+    concepts: [rq-retry, rq-job-status]
+    sources: [50]
+    code: |
+      q.enqueue(provision, vm_id, retry=Retry(max=2, interval=[2, 4]))
+      # provision(): status -> building, build raises, attempts += 1,
+      #              on the 3rd failure status -> error, then re-raise
+    variables: [job, vm, attempts]
+    steps:
+      - {label: "Just enqueued", values: {job: "queued", vm: "requested", attempts: 0}, given: [job, vm, attempts]}
+      - {label: "First attempt running", values: {job: "started", vm: "building", attempts: 0}}
+      - {label: "After the 1st failure", values: {job: "scheduled", vm: "building", attempts: 1}}
+      - {label: "Second attempt running", values: {job: "started", vm: "building", attempts: 1}}
+      - {label: "After the 2nd failure", values: {job: "scheduled", vm: "building", attempts: 2}}
+      - {label: "Third attempt running", values: {job: "started", vm: "building", attempts: 2}}
+      - {label: "After the 3rd failure", values: {job: "failed", vm: "error", attempts: 3}}
+    explanation: "Retry(max=2) allows two retries, so three attempts. Between attempts the job waits as scheduled for 2 s and then 4 s. After the last failure it goes to FailedJobRegistry with status failed. The course's test run showed exactly this sequence."
+  - id: q12-5
+    type: mcq
+    text: "A provisioning job enqueued with default options takes about four minutes. What happens?"
+    concepts: [rq-timeouts]
+    sources: [50]
+    options:
+      - {text: "After 180 seconds the worker kills the work horse and marks the job failed", correct: true, explanation: "The default job_timeout is 180 seconds; pass job_timeout to allow longer."}
+      - {text: "It runs to completion; RQ has no timeout unless you set one", correct: false, explanation: "There is a default: jobs should finish within 180 seconds."}
+      - {text: "It is discarded after 500 seconds in the queue", correct: false, explanation: "500 seconds is the default result_ttl for successful results; the queue ttl defaults to None."}
+      - {text: "The worker starts a second copy after 180 seconds", correct: false, explanation: "A timeout fails the job; it is retried only if retry= was given."}

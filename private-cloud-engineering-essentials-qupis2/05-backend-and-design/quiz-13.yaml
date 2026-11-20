@@ -1,0 +1,68 @@
+schemaVersion: 1
+id: q13
+title: "Check: designing the VM provisioning service"
+questions:
+  - id: q13-1
+    type: hotspot
+    text: "Click the component that is the single source of truth for which VMs should exist and what state they are in."
+    concepts: [source-of-truth, provisioning-architecture]
+    sources: [158]
+    image: resources/ch05/vm-provisioning.svg
+    alt: "Architecture of the VM provisioning service: client, API service, auth and quotas, job queue, worker, scheduler, IPAM, hypervisors, database, reconciler and image store, joined by numbered arrows."
+    regions:
+      - {name: "Database", correct: true, shape: rect, x: 43, y: 60, w: 14, h: 13, explanation: "The relational database holds desired state: every VM row, its state, host, IP and quota usage. Everything else acts on it or is compared with it."}
+      - {name: "Job queue", shape: rect, x: 43, y: 35, w: 14, h: 13, explanation: "The queue holds work waiting for a worker. Jobs can be lost or expire; it is not the record of what should exist."}
+      - {name: "Hypervisors", shape: rect, x: 85, y: 34, w: 14.6, h: 14, explanation: "The hypervisors hold the actual state. When they disagree with the database, the reconciler decides what to repair; they are not the record of intent."}
+      - {name: "Reconciler", shape: rect, x: 64, y: 60, w: 14, h: 13, explanation: "The reconciler compares desired and actual state; it stores neither."}
+  - id: q13-2
+    type: fill
+    text: "Put the steps of one create request in order."
+    concepts: [provisioning-request-flow]
+    sources: [52, 50]
+    template: |
+      {{1}}
+      {{2}}
+      {{3}}
+      {{4}}
+      {{5}}
+      {{6}}
+    chips:
+      - {text: "Check quota and insert the VM row as BUILDING, in one transaction", slot: 1, explanation: "Desired state is recorded first, so nothing later can lose the request."}
+      - {text: "Enqueue the provision job and return 202 with a status URL", slot: 2, explanation: "Enqueue after the commit, then answer at once."}
+      - {text: "A worker filters and weighs hosts and claims capacity on one", slot: 3, explanation: "Placement happens in the worker, before any host work."}
+      - {text: "Reserve an IP address for the VM", slot: 4, explanation: "The address must be known before the guest's first boot configuration is written."}
+      - {text: "Create the disk, define and start the domain through libvirt", slot: 5, explanation: "The slow host-side work."}
+      - {text: "Mark the VM ACTIVE with its host and IP", slot: 6, explanation: "The status resource now shows the result."}
+      - {text: "Return 201 Created with the VM's IP address", explanation: "The VM does not exist yet when the API answers, so 201 and an IP are not available."}
+  - id: q13-3
+    type: mcq
+    text: "Hosts have 32 cores and 248 GiB of RAM available for VMs. Every VM is 4 vCPUs and 8 GiB. The CPU allocation ratio is 4.0 and the RAM ratio is 1.0. How many VMs fit on one host?"
+    concepts: [capacity-estimation, overcommit]
+    sources: [155, 156]
+    options:
+      - {text: "31", correct: true, explanation: "CPU allows 32 × 4.0 / 4 = 32 VMs, RAM allows 248 / 8 = 31. The smaller wins, so RAM is now the limit."}
+      - {text: "8", correct: false, explanation: "That is the figure with no CPU overcommit (32 / 4). The ratio of 4.0 raises the CPU limit."}
+      - {text: "32", correct: false, explanation: "That is the CPU limit alone; it ignores that RAM runs out first."}
+      - {text: "124", correct: false, explanation: "That applies the CPU ratio to RAM as well. The RAM ratio is 1.0, so RAM is not overcommitted."}
+  - id: q13-4
+    type: match
+    text: "The reconciler compares the database with a host. Match each difference to the action this design takes."
+    concepts: [reconciliation-loop]
+    sources: [160]
+    pairs:
+      - {left: "Database says ACTIVE; the host has no such domain", right: "Mark the VM ERROR and alert; do not recreate it silently", explanation: "The user's data is gone; a silent rebuild would hide a real incident."}
+      - {left: "A domain runs on the host; the database has no row for it", right: "Treat it as an orphan: shut it down after a grace period, delete it later", explanation: "Two stages give a human time to notice a mistake before data is destroyed."}
+      - {left: "Database says BUILDING with no progress for 15 minutes", right: "Re-enqueue the idempotent provision job", explanation: "The job was lost or its worker died; the rerun skips finished steps."}
+    distractors:
+      - "Delete it immediately on the first pass"
+      - "Ignore it; the queue will retry it"
+  - id: q13-5
+    type: mcq
+    text: "Central workers reach every hypervisor with libvirt over SSH (`qemu+ssh://root@host/system`). What is the main cost of this choice compared with an agent on each host?"
+    concepts: [libvirt-remote, hypervisor-execution]
+    sources: [92, 158]
+    options:
+      - {text: "The workers' SSH key gives root-equivalent control of every host, so it must be guarded like a production secret", correct: true, explanation: "A read-write system connection to libvirt is equivalent to a root shell, and this key opens one to all hosts."}
+      - {text: "libvirt cannot manage a remote host, so this does not work", correct: false, explanation: "Remote URIs with an ssh transport are a standard libvirt feature."}
+      - {text: "Every host needs extra software installed and upgraded", correct: false, explanation: "That is the cost of the agent option, not of SSH from central workers."}
+      - {text: "libvirt then chooses the host itself, so the scheduler loses control", correct: false, explanation: "libvirt works on one node and leaves policies such as load balancing to the tools above it."}

@@ -1,0 +1,10 @@
+FROM python:latest
+ADD . /app
+WORKDIR /app
+RUN apt-get update
+RUN apt-get install -y curl build-essential
+RUN pip install -r requirements.txt
+ENV API_TOKEN=s3cr3t-token-123
+RUN rm -rf /root/.cache
+EXPOSE 8000
+ENTRYPOINT python app/service.py; echo "service exited"

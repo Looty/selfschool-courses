@@ -1,0 +1,63 @@
+schemaVersion: 1
+id: q06
+title: "Check: network and SSH troubleshooting"
+questions:
+  - id: q06-1
+    type: sort
+    text: "Sort each observation by its most likely cause."
+    concepts: [network-troubleshooting, ssh-troubleshooting]
+    sources: [112, 117, 123]
+    buckets: ["Service not running", "Bound to loopback only", "Host key changed", "Public key not accepted"]
+    items:
+      - {text: "ss -ltn has no line for port 8080 and systemctl is-active prints inactive", bucket: "Service not running", explanation: "No listener and no active unit: start with the journal to see why it stopped."}
+      - {text: "journalctl -u vmapi ends with: Main process exited, code=killed, status=9/KILL", bucket: "Service not running", explanation: "The process was killed; without Restart= it stays down."}
+      - {text: "ss -ltn shows 127.0.0.1:8080", bucket: "Bound to loopback only", explanation: "Only connections to loopback on the same machine reach this socket."}
+      - {text: "A request on the box works; the same request from a neighbour gets Connection refused", bucket: "Bound to loopback only", explanation: "The service runs and listens, just not on the address the neighbour uses."}
+      - {text: "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!", bucket: "Host key changed", explanation: "The key differs from the one in known_hosts: a rebuilt host, or a spoofed one."}
+      - {text: "Host key verification failed. (exit status 255)", bucket: "Host key changed", explanation: "With strict checking ssh refuses to continue to a host whose key changed."}
+      - {text: "Client: Permission denied (publickey).", bucket: "Public key not accepted", explanation: "The server accepted none of the keys offered; ssh -v shows which ones were tried."}
+      - {text: "Server log: Authentication refused: bad ownership or modes for file authorized_keys", bucket: "Public key not accepted", explanation: "sshd ignores an authorized_keys file others can write to; set it to 600."}
+  - id: q06-2
+    type: fill
+    text: "Reach the web UI that listens on 127.0.0.1:8080 of vm-07, which only the bastion can reach, as http://127.0.0.1:9000 on your laptop."
+    concepts: [ssh-port-forwarding, ssh-jump-host]
+    sources: [123]
+    template: |
+      ssh -f -N -L {{1}}:{{2}}:{{3}} -J {{4}} ops@vm-07
+    chips:
+      - {text: "9000", slot: 1, explanation: "The local port ssh listens on."}
+      - {text: "127.0.0.1", slot: 2, explanation: "Resolved on the far end, so it is the VM's own loopback."}
+      - {text: "8080", slot: 3, explanation: "The port on the VM side."}
+      - {text: "ops@bastion", slot: 4, explanation: "-J names the jump host to connect through first."}
+      - {text: "-A", explanation: "Agent forwarding is not needed for a jump host and lets root on the remote side use your keys."}
+  - id: q06-3
+    type: spot
+    text: "`ssh vm-01` logs in as root instead of ops. Click the line that causes it."
+    concepts: [ssh-config]
+    sources: [123]
+    code: |
+      Host *
+          User root
+          ServerAliveInterval 30
+
+      Host vm-*
+          User ops
+          ProxyJump bastion
+    correct: [2]
+    explanation: "ssh uses the first value it finds for each option. Host * matches vm-01 and comes first, so User root wins and the later User ops is ignored. Put specific Host blocks first and Host * last."
+  - id: q06-4
+    type: mcq
+    text: "A deploy script runs `ssh ops@hv12 systemctl restart vmapi` and gets exit status 255. What does that tell you?"
+    concepts: [ssh-exit-status]
+    sources: [123]
+    options:
+      - {text: "ssh itself failed (name resolution, connection, host key or authentication); the remote command may never have run", correct: true, explanation: "ssh returns the remote command's status, or 255 when ssh has an error of its own."}
+      - {text: "systemctl restart failed on hv12", correct: false, explanation: "Then ssh would return systemctl's own status, such as 1 or 5, not 255."}
+      - {text: "vmapi was killed by signal 127", correct: false, explanation: "Signal statuses are 128+N and there is no signal 127 in the standard set."}
+      - {text: "The command ran but its output was too long", correct: false, explanation: "Output size does not affect the exit status."}
+  - id: q06-5
+    type: short
+    text: "Give the `ss` options that list listening TCP sockets with numeric ports and the owning process."
+    concepts: [ss]
+    sources: [112]
+    answers: ["-ltnp", "-tlnp", "-lntp", "-tnlp", "-ntlp", "-nltp", "-plnt", "-ltpn", "ss -ltnp", "ss -tlnp", "ss -lntp"]
