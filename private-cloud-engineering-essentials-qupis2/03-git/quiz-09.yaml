@@ -1,0 +1,68 @@
+schemaVersion: 1
+id: q09
+title: "Check: undo, recover and bisect"
+questions:
+  - id: q09-1
+    type: trace
+    text: "A repo has commits one and two; f.txt contains 'two' in the commit, the index and the working directory. Each command below is run separately from that same starting point. Which commit does the branch point to, and what does f.txt contain in the index and in the working directory?"
+    concepts: [git-reset-modes, three-trees]
+    sources: [153]
+    code: |
+      git reset --soft  HEAD~1
+      git reset --mixed HEAD~1
+      git reset --hard  HEAD~1
+    variables: [branch, index, workdir]
+    steps:
+      - {label: "Start", values: {branch: "two", index: "two", workdir: "two"}, given: [branch, index, workdir]}
+      - {label: "reset --soft HEAD~1", values: {branch: "one", index: "two", workdir: "two"}}
+      - {label: "reset --mixed HEAD~1", values: {branch: "one", index: "one", workdir: "two"}}
+      - {label: "reset --hard HEAD~1", values: {branch: "one", index: "one", workdir: "one"}}
+    explanation: "Every mode moves the branch. --soft stops there, so the change shows as staged. --mixed (the default) also makes the index match the commit, so the change is unstaged but still in the file. --hard also overwrites the working directory, and the uncommitted 'two' is gone from the tree."
+  - id: q09-2
+    type: fill
+    text: "The commit at the tip of docs belongs on feature/report. The tree is clean and docs was never pushed. Complete the fix."
+    concepts: [git-cherry-pick, git-reset-modes]
+    sources: [153, 154]
+    template: |
+      git switch {{1}}
+      git {{2}} docs
+      git switch docs
+      git reset {{3}} HEAD~1
+    chips:
+      - {text: "feature/report", slot: 1, explanation: "Switch to the branch that should receive the commit."}
+      - {text: "cherry-pick", slot: 2, explanation: "Copies the change at the tip of docs as a new commit on feature/report."}
+      - {text: "--hard", slot: 3, explanation: "Moves docs back one commit and drops the change from its index and working tree too."}
+      - {text: "revert", explanation: "Would add an inverse commit instead of copying the change."}
+      - {text: "--soft", explanation: "Would move docs back but leave the JSON change staged on docs."}
+  - id: q09-3
+    type: spot
+    text: "This test script is used with `git bisect run sh check.sh`. Which line stops bisect from finding the bad commit?"
+    concepts: [git-bisect]
+    sources: [154]
+    code: |
+      #!/bin/sh
+      cd "$(dirname "$0")" || exit 1
+      . ./lib/size.sh
+      got=$(to_mib 2G)
+      if [ "$got" != 2048 ]; then
+          exit 125
+      fi
+      echo ok
+    correct: [6]
+    explanation: "Exit code 125 tells bisect the commit cannot be tested, so every bad commit is skipped. In the course's test run this ended with 'We cannot bisect more!'. A failing check must exit with 1 to 127, other than 125, for example exit 1."
+  - id: q09-4
+    type: mcq
+    text: "You rebased your branch topic, which you had pushed earlier, and ran `git push --force-with-lease origin topic`. It printed `! [rejected] topic -> topic (stale info)`. What does that mean?"
+    concepts: [force-with-lease, git-push]
+    sources: [154]
+    options:
+      - {text: "Someone updated origin/topic since your last fetch, so the push would have overwritten their commits", correct: true, explanation: "The lease checks that the remote ref still matches your remote-tracking branch. It no longer did, so Git refused."}
+      - {text: "Your local branch is behind origin/topic, so you need a plain git push", correct: false, explanation: "A plain push of rewritten commits is also refused as a non-fast-forward; and the issue is new remote commits, not a missing pull."}
+      - {text: "The remote does not allow force pushes at all", correct: false, explanation: "That would be a different rejection; 'stale info' is the lease check failing."}
+      - {text: "You should retry with --force, which is equivalent but skips the check", correct: false, explanation: "--force disables every safety check and would delete the colleague's commits from the remote."}
+  - id: q09-5
+    type: short
+    text: "A hard reset dropped the newest commit from branch experiment. Which command lists every position experiment has pointed to, so you can find the lost commit?"
+    concepts: [git-reflog]
+    sources: [154]
+    answers: ["git reflog experiment", "git reflog show experiment", "reflog experiment", "git log -g experiment"]

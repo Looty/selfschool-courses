@@ -1,0 +1,39 @@
+# The failing stack: three small services with five planted faults.
+# Start:  docker compose up -d --build
+# Probe:  docker compose --profile debug run --rm probe
+# Stop:   docker compose down
+name: pce-ch07-stack
+
+services:
+  db:
+    build: ./db
+    image: pce-ch07-db:1
+    environment:
+      LOAD_SECONDS: "4"
+
+  api:
+    build: ./app
+    image: pce-ch07-app:1
+    command: ["python", "/app/api.py"]
+    ports:
+      - "18080:8080"
+    environment:
+      DB_HOST: db
+    depends_on:
+      - db
+
+  worker:
+    build: ./app
+    image: pce-ch07-app:1
+    command: ["python", "/app/worker.py"]
+    environment:
+      BATCH_MB: "256"
+    mem_limit: 64m
+    depends_on:
+      - db
+
+  probe:
+    build: ./app
+    image: pce-ch07-app:1
+    command: ["python", "/app/probe.py"]
+    profiles: ["debug"]

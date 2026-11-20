@@ -1,0 +1,49 @@
+<!--
+  domain.xml: a small KVM guest for lesson l14.
+  Disk: a qcow2 overlay on a shared base image, on the virtio bus.
+  Seed: a cloud-init NoCloud ISO (volume id cidata) attached as a read-only CD-ROM.
+  Network: libvirt's NAT network "default". Console: serial on a pty, for virsh console.
+  The fixed UUID makes every define of this file refer to the same machine; without it
+  libvirt generates a new UUID each time.
+  Define it with: virsh -c qemu:///system define domain.xml
+-->
+<domain type='kvm'>
+  <name>vm-demo-01</name>
+  <uuid>ed2c7efa-1a82-4ad5-a8d2-08cb2328a830</uuid>
+  <memory unit='KiB'>2097152</memory>
+  <currentMemory unit='KiB'>2097152</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='x86_64'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='host-model'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='none'/>
+      <source file='/var/lib/libvirt/images/vm-demo-01.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/var/lib/libvirt/images/vm-demo-01-seed.iso'/>
+      <target dev='sda' bus='sata'/>
+      <readonly/>
+    </disk>
+    <interface type='network'>
+      <source network='default'/>
+      <model type='virtio'/>
+    </interface>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <graphics type='vnc' autoport='yes'>
+      <listen type='address' address='127.0.0.1'/>
+    </graphics>
+    <memballoon model='virtio'/>
+  </devices>
+</domain>

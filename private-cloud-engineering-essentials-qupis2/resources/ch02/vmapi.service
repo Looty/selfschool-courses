@@ -1,0 +1,30 @@
+# /etc/systemd/system/vmapi.service
+# The vmapi inventory API (resources/ch02/broken-box/vmapi.py) as a systemd service.
+# Install:  cp vmapi.service /etc/systemd/system/
+#           systemctl daemon-reload
+#           systemctl enable --now vmapi.service
+
+[Unit]
+Description=vmapi VM inventory HTTP API
+# vmapi keeps its job queue in Redis: start Redis too, and start vmapi after it.
+# Wants= is the weak form: vmapi still starts if Redis is missing or fails.
+Wants=redis-server.service
+After=redis-server.service
+
+[Service]
+# exec: "started" only once python3 has really been executed, so a wrong path
+# or a bad User= shows up as a failed start instead of a silent crash.
+Type=exec
+User=vmapi
+Group=vmapi
+ExecStart=/usr/bin/python3 /opt/vmapi/vmapi.py
+# Restart after a crash or a non-zero exit, two seconds later.
+# "systemctl stop vmapi" is never undone by Restart=.
+Restart=on-failure
+RestartSec=2s
+# On stop systemd sends SIGTERM; after 10 seconds it sends SIGKILL.
+TimeoutStopSec=10s
+
+[Install]
+# "systemctl enable" links this unit into multi-user.target.wants/.
+WantedBy=multi-user.target

@@ -1,0 +1,80 @@
+schemaVersion: 1
+id: q10
+title: "Check: namespaces, cgroups, images and Dockerfiles"
+questions:
+  - id: q10-1
+    type: trace
+    text: "For each docker run command, what do cpu.max and memory.max contain inside the container? Write each file's content exactly as cat would print it (memory.max in bytes)."
+    concepts: [cgroup-v2, resource-limits]
+    sources: [62, 78]
+    code: |
+      A: docker run --cpus 0.5 --memory 128m IMAGE
+      B: docker run --cpus 1.5 --memory 64m IMAGE
+    variables: [cpu_max, memory_max]
+    steps:
+      - {label: "A", values: {cpu_max: "50000 100000", memory_max: "134217728"}}
+      - {label: "B", values: {cpu_max: "150000 100000", memory_max: "67108864"}}
+    explanation: "--cpus sets a quota per 100000-microsecond period, so 0.5 CPUs is 50000 and 1.5 CPUs is 150000. 128 MiB is 128 * 1024 * 1024 = 134217728 bytes and 64 MiB is 67108864."
+  - id: q10-2
+    type: mcq
+    text: "A container exits with status 137. Inside a similar container, memory.events shows oom_kill 1. What happened?"
+    concepts: [oom-kill, exit-status, cgroup-v2]
+    sources: [62, 105, 125]
+    options:
+      - {text: "The process hit memory.max and the OOM killer sent it SIGKILL (128 + 9 = 137)", correct: true, explanation: "A signal-killed process reports 128 plus the signal number, SIGKILL is 9, and oom_kill counts processes killed by the OOM killer in that cgroup."}
+      - {text: "The process went over memory.high and was killed", correct: false, explanation: "memory.high only throttles and reclaims; it never invokes the OOM killer."}
+      - {text: "Python raised an uncaught MemoryError", correct: false, explanation: "An uncaught exception exits with status 1 and prints a traceback; SIGKILL leaves no traceback."}
+      - {text: "docker stop sent SIGTERM and the app exited cleanly", correct: false, explanation: "A clean exit after SIGTERM is usually 0; 143 would be death by SIGTERM itself (128 + 15)."}
+  - id: q10-3
+    type: spot
+    text: "Every edit to service.py makes this build reinstall all dependencies. Click the line that causes it."
+    concepts: [build-cache, layer-order]
+    sources: [74]
+    code: |
+      FROM python:3.13-slim-bookworm
+      WORKDIR /app
+      COPY . .
+      RUN pip install --no-cache-dir -r requirements.txt
+      ENTRYPOINT ["python", "service.py"]
+    correct: [3]
+    explanation: "COPY . . puts the source into the same layer as requirements.txt, before the install. Any changed file invalidates that layer and every layer after it, including pip install. Copy requirements.txt first, install, then copy the source."
+  - id: q10-4
+    type: spot
+    text: "This is Dockerfile.bad. Click the line that leaks a credential to anyone who can pull the image."
+    concepts: [dockerfile-secrets, arg-vs-env]
+    sources: [71]
+    code: |
+      FROM python:latest
+      ADD . /app
+      WORKDIR /app
+      RUN apt-get update
+      RUN apt-get install -y curl build-essential
+      RUN pip install -r requirements.txt
+      ENV API_TOKEN=s3cr3t-token-123
+      RUN rm -rf /root/.cache
+      EXPOSE 8000
+      ENTRYPOINT python app/service.py; echo "service exited"
+    correct: [7]
+    explanation: "ENV values persist in the image and show up in docker inspect; the test run printed API_TOKEN=s3cr3t-token-123 from the image's config. Pass secrets at run time, or use RUN --mount=type=secret during the build. ARG would not help: build arguments are visible in docker history."
+  - id: q10-5
+    type: trace
+    text: "For each image and docker run command, what command line runs, and which program is PID 1 in the container?"
+    concepts: [cmd-vs-entrypoint, pid-1]
+    sources: [71]
+    code: |
+      Image X:  ENTRYPOINT ["python", "app.py"]
+                CMD ["--port", "8000"]
+      Image Y:  ENTRYPOINT python app.py
+      Image Z:  CMD ["python", "app.py"]
+
+      1: docker run X
+      2: docker run X --port 9000
+      3: docker run Y --port 9000
+      4: docker run Z bash
+    variables: [runs, pid1]
+    steps:
+      - {label: "1", values: {runs: ["python app.py --port 8000"], pid1: ["python"]}}
+      - {label: "2", values: {runs: ["python app.py --port 9000"], pid1: ["python"]}}
+      - {label: "3", values: {runs: ["/bin/sh -c python app.py", "/bin/sh -c 'python app.py'", "sh -c python app.py"], pid1: ["sh", "/bin/sh"]}}
+      - {label: "4", values: {runs: ["bash"], pid1: ["bash"]}}
+    explanation: "Exec-form ENTRYPOINT gets CMD appended (1), and docker run arguments replace CMD (2). Shell-form ENTRYPOINT runs under /bin/sh -c and ignores both CMD and run arguments, so the shell is PID 1 and --port 9000 is lost (3). With no ENTRYPOINT, run arguments replace CMD entirely (4)."

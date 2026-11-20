@@ -1,0 +1,97 @@
+schemaVersion: 1
+id: q14
+title: "Check: Jenkins pipelines and KVM"
+questions:
+  - id: q14-1
+    type: spot
+    diff: true
+    text: "A colleague tidied the Jenkinsfile of a Multibranch job. After the merge, every feature branch deploys to production. Click the changed line that causes it."
+    concepts: [jenkins-when, jenkins-multibranch]
+    sources: [143]
+    code: |2
+       stage('Test') {
+           agent { label 'docker' }
+      -    steps { sh 'make check' }
+      +    steps { sh 'make check-all' }
+       }
+       stage('Deploy') {
+      -    when { branch 'main' }
+           agent { label 'deploy' }
+      -    steps { sh './deploy.sh' }
+      +    steps { sh './deploy.sh --wait' }
+       }
+    correct: [7]
+    explanation: "The removed when { branch 'main' } was the only thing limiting the stage to main. Without a when directive a stage runs on every branch the Multibranch job builds. The other changed lines only alter which commands run."
+  - id: q14-2
+    type: sort
+    text: "The previous run was SUCCESS and the current run ends as FAILURE. Which post condition blocks run?"
+    concepts: [jenkins-post-conditions]
+    sources: [143]
+    buckets: ["Runs", "Does not run"]
+    items:
+      - {text: "always", bucket: "Runs", explanation: "always runs whatever the status."}
+      - {text: "changed", bucket: "Runs", explanation: "The status differs from the previous run (SUCCESS to FAILURE)."}
+      - {text: "regression", bucket: "Runs", explanation: "Failure, unstable or aborted after a successful run is a regression."}
+      - {text: "failure", bucket: "Runs", explanation: "The run has the failed status."}
+      - {text: "cleanup", bucket: "Runs", explanation: "cleanup runs last after every other condition, whatever the status."}
+      - {text: "fixed", bucket: "Does not run", explanation: "fixed needs the current run to succeed after a failed or unstable one; this is the opposite."}
+      - {text: "success", bucket: "Does not run", explanation: "The run failed."}
+  - id: q14-3
+    type: fill
+    text: "Complete this Declarative Jenkinsfile so no executor is held for the whole run and the deploy stage runs only on main, checked before its agent is allocated."
+    concepts: [jenkins-declarative-structure, jenkins-when]
+    sources: [143]
+    template: |
+      pipeline {
+          agent {{1}}
+          {{2}} {
+              stage('Test') {
+                  agent { label 'docker' }
+                  {{3}} {
+                      sh 'make check'
+                  }
+              }
+              stage('Deploy') {
+                  when {
+                      {{4}}
+                      branch 'main'
+                  }
+                  agent { label 'deploy' }
+                  steps {
+                      sh './deploy.sh'
+                  }
+              }
+          }
+      }
+    chips:
+      - {text: "none", slot: 1, explanation: "agent none allocates nothing at top level, so each stage must declare its own agent."}
+      - {text: "stages", slot: 2, explanation: "stages holds the sequence of stage directives and is required."}
+      - {text: "steps", slot: 3, explanation: "Every stage needs a steps block (or nested stages, parallel or matrix)."}
+      - {text: "beforeAgent true", slot: 4, explanation: "Evaluates when before entering the agent, so a skipped stage never waits for a deploy agent."}
+      - {text: "any", explanation: "agent any would hold an executor on some node for the whole run."}
+      - {text: "node", explanation: "node is a block in Scripted syntax; Declarative uses stages and steps here."}
+  - id: q14-4
+    type: match
+    text: "Match each piece of the virtualization stack to its job."
+    concepts: [kvm-qemu-stack]
+    sources: [86, 87, 89]
+    pairs:
+      - {left: "kvm.ko with kvm-intel.ko or kvm-amd.ko", right: "Kernel modules that run guest CPUs on the hardware extensions", explanation: "KVM is the in-kernel part, mainline since Linux 2.6.20."}
+      - {left: "/dev/kvm", right: "The device user space opens to create VMs and vCPUs with ioctl calls", explanation: "KVM_CREATE_VM, then KVM_CREATE_VCPU, then KVM_RUN."}
+      - {left: "QEMU", right: "User-space process that models the machine's memory and devices", explanation: "It provides the disks and network cards and asks KVM to run the CPU."}
+      - {left: "TCG", right: "QEMU's software CPU emulation, the default accelerator", explanation: "You must request KVM explicitly to avoid it."}
+    distractors:
+      - "The daemon that stores domain XML definitions"
+  - id: q14-5
+    type: match
+    text: "Match each virsh command to what it does."
+    concepts: [virsh-verbs]
+    sources: [95]
+    pairs:
+      - {left: "define FILE", right: "Registers a persistent domain without starting it", explanation: "Start it later with virsh start."}
+      - {left: "create FILE", right: "Creates and starts a transient domain", explanation: "It vanishes when destroyed, unless the XML matches an existing persistent guest."}
+      - {left: "destroy", right: "Stops the guest at once, like pulling the power cord", explanation: "Storage and, for a persistent domain, the definition are kept."}
+      - {left: "shutdown", right: "Asks the guest OS to stop, with no guarantee", explanation: "It is asynchronous; poll domstate to see when it finished."}
+      - {left: "undefine", right: "Removes the stored configuration of a domain", explanation: "On a running domain it turns it transient instead of stopping it."}
+    distractors:
+      - "Deletes the domain's disk volumes"

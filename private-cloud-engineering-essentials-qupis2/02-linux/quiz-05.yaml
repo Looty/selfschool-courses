@@ -1,0 +1,65 @@
+schemaVersion: 1
+id: q05
+title: "Check: permissions and disks"
+questions:
+  - id: q05-1
+    type: trace
+    text: "A process runs `touch f; mkdir d` under each umask. `touch` asks for mode 0666 and `mkdir` for 0777. What modes (three octal digits) do f and d get?"
+    concepts: [umask, permission-bits]
+    sources: [122]
+    code: |
+      umask 022; touch f; mkdir d
+      umask 027; touch f; mkdir d
+      umask 077; touch f; mkdir d
+      umask 002; touch f; mkdir d
+    variables: [file, dir]
+    steps:
+      - {label: "umask 022", values: {file: "644", dir: "755"}}
+      - {label: "umask 027", values: {file: "640", dir: "750"}}
+      - {label: "umask 077", values: {file: "600", dir: "700"}}
+      - {label: "umask 002", values: {file: "664", dir: "775"}}
+    explanation: "The umask turns bits off: 0666 & ~022 = 0644 and 0777 & ~022 = 0755. With 027 the group loses write and others lose everything: 640 and 750. 077 leaves only the owner. 002 keeps group write, the usual setting for shared team directories."
+  - id: q05-2
+    type: sort
+    text: "User bob is in the file's group. For each action, whose mode decides whether he may do it?"
+    concepts: [directory-permissions, permission-bits]
+    sources: [122]
+    buckets: ["The directory's mode", "The file's own mode"]
+    items:
+      - {text: "Delete a file he does not own", bucket: "The directory's mode", explanation: "Removing a name needs write permission on the directory, not on the file."}
+      - {text: "Create a new file", bucket: "The directory's mode", explanation: "A new entry is added to the directory, so the directory needs w (and x)."}
+      - {text: "Reach dir/sub/file by its path", bucket: "The directory's mode", explanation: "Every directory on the path needs search (x) permission."}
+      - {text: "Append a line to the file", bucket: "The file's own mode", explanation: "Writing content needs w on the file itself."}
+      - {text: "Read the file's content", bucket: "The file's own mode", explanation: "Reading needs r on the file (and x on the directories above it)."}
+      - {text: "Run the file as a program", bucket: "The file's own mode", explanation: "Execution needs x on the file; even root needs at least one x bit set."}
+  - id: q05-3
+    type: fill
+    text: "Pick the mode for each path."
+    concepts: [permission-bits, special-bits]
+    sources: [122]
+    template: |
+      chmod {{1}} ~/.ssh/id_ed25519      # private key: owner read and write only
+      chmod {{2}} /srv/team             # team dir: group writes, new files get the dir's group
+      chmod {{3}} /srv/shared           # anyone writes, only owners delete their files
+    chips:
+      - {text: "600", slot: 1, explanation: "rw------- : nobody but the owner can read the key."}
+      - {text: "2775", slot: 2, explanation: "The leading 2 is setgid; on a directory new files inherit its group."}
+      - {text: "1777", slot: 3, explanation: "The leading 1 is the sticky bit, as on /tmp: only the owner of a file (or of the directory) may delete it."}
+      - {text: "777", explanation: "World-writable with no sticky bit: any user can delete anyone's file."}
+      - {text: "4755", explanation: "The leading 4 is setuid, which matters for programs, not for these paths."}
+  - id: q05-4
+    type: mcq
+    text: "A 2 GB log was deleted with rm, but `df -h` still shows the same usage and `du` no longer counts the file. What is the most likely cause?"
+    concepts: [inodes, deleted-open-files]
+    sources: [115, 122]
+    options:
+      - {text: "A running process still holds the file open, so its data is not freed yet", correct: true, explanation: "unlink removes the name; the data stays until the last open descriptor is closed. lsof +L1 lists such files."}
+      - {text: "df caches its numbers for a few minutes", correct: false, explanation: "df reads the current filesystem statistics; there is no such cache."}
+      - {text: "The file had a symlink pointing to it, which keeps the data alive", correct: false, explanation: "A symlink stores only a path and does not count as a link to the inode."}
+      - {text: "The filesystem ran out of inodes", correct: false, explanation: "Running out of inodes stops new files from being created; it does not keep deleted data on disk."}
+  - id: q05-5
+    type: short
+    text: "`touch` fails with \"No space left on device\" but `df -h` shows the filesystem 2% used. Which command (with its option) do you run next?"
+    concepts: [inodes, df]
+    sources: [114]
+    answers: ["df -i", "df --inodes", "df -i /var/spool/vmjobs", "df -hi", "df -ih"]

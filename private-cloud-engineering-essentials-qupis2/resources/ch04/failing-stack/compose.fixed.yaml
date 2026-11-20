@@ -1,0 +1,56 @@
+# The same stack with the five faults fixed.
+# Start:  docker compose -f compose.fixed.yaml up -d --build
+# Stop:   docker compose -f compose.fixed.yaml down
+name: pce-ch07-stack
+
+services:
+  db:
+    build: ./db
+    image: pce-ch07-db:1
+    # Fix 5: exec form, so python is PID 1 and gets SIGTERM from docker stop.
+    entrypoint: ["python", "/app/db.py"]
+    environment:
+      LOAD_SECONDS: "4"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 7000), 2).close()"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+
+  api:
+    build: ./app
+    image: pce-ch07-app:1
+    command: ["python", "/app/api.py"]
+    ports:
+      - "127.0.0.1:18080:8080"
+    environment:
+      DB_HOST: db
+      # Fix 4: listen on all container interfaces, not the container's own loopback.
+      BIND_ADDR: "0.0.0.0"
+    depends_on:
+      # Fix 3: wait until the db health check passes, not just until it is running.
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: ./app
+    image: pce-ch07-app:1
+    command: ["python", "/app/worker.py"]
+    environment:
+      # Fix 1: the worker has no default for DB_HOST.
+      DB_HOST: db
+      # Fix 2: a batch that fits, and a limit with headroom for the interpreter.
+      BATCH_MB: "32"
+    mem_limit: 128m
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure:3
+
+  probe:
+    build: ./app
+    image: pce-ch07-app:1
+    command: ["python", "/app/probe.py"]
+    profiles: ["debug"]
