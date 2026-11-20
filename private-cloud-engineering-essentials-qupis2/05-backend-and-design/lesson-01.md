@@ -27,6 +27,10 @@ POST   /vms {"name": "db"}  x2 -> TWO new VMs              neither
 
 **P1.** The reply to `DELETE /vms/7` is lost. May the client resend it? And `POST /vms`?
 
+:::answer
+DELETE yes: idempotent. POST no: it may make a second VM, unless it carries an `Idempotency-Key`.
+:::
+
 ## Status codes: one per outcome
 
 **Rule:** a 2xx code says how far the work got; a 4xx code says what the client got wrong [52].
@@ -47,6 +51,10 @@ DELETE /vms/1                 -> 204 No Content   done, empty body
 | 409 Conflict | clashes with current state | duplicate name |
 
 **P2.** `POST /vms` saves the request, queues the build and replies at once. 201 or 202?
+
+:::answer
+202: the VM does not exist yet.
+:::
 
 ## The 202 route: enqueue, then a worker builds
 
@@ -89,6 +97,10 @@ Edge cases [50]: intervals need `--with-scheduler`; `job_timeout` defaults to 18
 
 **P3.** A job has `retry=Retry(max=4)` and always fails. How many runs?
 
+:::answer
+5: one run plus four retries.
+:::
+
 ## Idempotent jobs and a Redis lock
 
 **Rule:** write the job as "make this VM built", not "build a VM": read the status first. Retries, requeues and `kill -9` can all run it twice [50].
@@ -116,6 +128,10 @@ Contrast: a plain `DEL` from late A would delete B's lock; compare-and-delete le
 
 **P4.** A worker is killed with `kill -9` mid-build; status stays `building`. The job runs again. What does it do?
 
+:::answer
+It builds again: `building` means an earlier run died.
+:::
+
 ## Lab: run the stack (30 minutes)
 
 1. `cd resources/ch05/vmapi`, make a venv, `pip install -r requirements.txt`.
@@ -138,32 +154,31 @@ Step 5 is from one run. RQ's docs say an abandoned job goes to `FailedJobRegistr
 | `Retry(max=n)` | n+1 runs | `max=2` → 3 |
 | `SET NX EX` | set if absent | second SET → nil |
 
-## Answers
-
-**P1.** DELETE yes: idempotent. POST no: it may make a second VM, unless it carries an `Idempotency-Key`.
-
-**P2.** 202: the VM does not exist yet.
-
-**P3.** 5: one run plus four retries.
-
-**P4.** It builds again: `building` means an earlier run died.
-
-**R1.** 409: the JSON is fine; the name clashes.
-
-**R2.** Killed at 180 s, marked failed.
-
-**R3.** It deletes B's lock.
-
-**R4.** No: it changes state.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| Idempotent means read-only | Safe vs idempotent | **R4.** Is `PUT` safe? |
-| Queued create is 201; duplicate is 400 | Status codes | **R1.** Valid JSON, taken name? |
-| `max=2` is 2 runs; no timeout | The 202 route | **R2.** A 4-minute job? |
-| `building` means someone is working; `DEL` releases | Idempotent jobs | **R3.** Why not `DEL`? |
+**If you thought** idempotent means read-only: reread "Safe vs idempotent". **R4.** Is `PUT` safe?
+
+:::answer
+No: it changes state.
+:::
+
+**If you thought** queued create is 201; duplicate is 400: reread "Status codes". **R1.** Valid JSON, taken name?
+
+:::answer
+409: the JSON is fine; the name clashes.
+:::
+
+**If you thought** `max=2` is 2 runs; no timeout: reread "The 202 route". **R2.** A 4-minute job?
+
+:::answer
+Killed at 180 s, marked failed.
+:::
+
+**If you thought** `building` means someone is working; `DEL` releases: reread "Idempotent jobs". **R3.** Why not `DEL`?
+
+:::answer
+It deletes B's lock.
+:::
 
 :::key-takeaways
 - Idempotent: GET, HEAD, OPTIONS, PUT, DELETE; only the first three are safe. 202 means accepted for later. [52]

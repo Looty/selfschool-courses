@@ -37,6 +37,10 @@ Which digit applies? Exactly one: owner if you own the file, else group if you a
 
 **P1.** File `app.conf` is `0640`, owner `alice`, group `ops`. Can `bob`, who is in `ops`, edit it?
 
+:::answer
+No. `bob` is not the owner, so the group digit 4 (`r--`) applies: read only.
+:::
+
 ## Permission bits on a directory
 
 **Rule:** a directory is a list of names; `r` reads the list, `w` changes it (create, delete, rename), `x` lets you pass through. [122]
@@ -57,6 +61,10 @@ The sources state the `x` and delete rules; the `r` and create columns are what 
 :::
 
 **P2.** `/srv/exports` is `750 root:export`. A job running as user `export` (group `export`) creates `/srv/exports/out.txt`. What happens? Smallest fix?
+
+:::answer
+Permission denied: group digit 5 (`r-x`) has no `w`, and creating a name changes the directory. Fix: `chmod 770`, not `777`.
+:::
 
 ## df, du and the deleted-but-open file
 
@@ -101,6 +109,10 @@ touch: cannot touch '...': No space left on device
 
 **P3.** `df -h` says `/var` is 100% full, `du -sh /var` says 3 GB of a 20 GB disk. What do you run next?
 
+:::answer
+`lsof +L1`: a deleted but open file uses blocks `df` counts and `du` cannot see.
+:::
+
 ## "The disk is full": the walk-through
 
 1. `df -h`: which filesystem is full? [114]
@@ -119,33 +131,37 @@ touch: cannot touch '...': No space left on device
 | `df -h` / `df -i` | free blocks / inodes | 2% vs 100% |
 | `du`, `lsof +L1` | sum by name; open, nameless | deleted log → 0, `(deleted)` |
 
-## Answers
-
-**P1.** No. `bob` is not the owner, so the group digit 4 (`r--`) applies: read only.
-
-**P2.** Permission denied: group digit 5 (`r-x`) has no `w`, and creating a name changes the directory. Fix: `chmod 770`, not `777`.
-
-**P3.** `lsof +L1`: a deleted but open file uses blocks `df` counts and `du` cannot see.
-
-**R1.** `r-x`.
-
-**R2.** Write on the directory.
-
-**R3.** `df -i`.
-
-**R4.** No: removing the name frees nothing while a process holds the file.
-
-**R5.** No: a non-owner group member gets only the group digit.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| 5 means `rw-` | Bits as numbers | **R1.** What is digit 5? |
-| deleting needs `w` on the file | Directory bits | **R2.** What does deleting a file need? |
-| "No space left" always means no blocks | df, du | **R3.** `df -h` says 2%; what next? |
-| `rm` frees space at once | df, du | **R4.** Does `rm` on an open 2 GB log free 2 GB? |
-| a user gets every digit that matches | Bits as numbers | **R5.** Do the "other" bits add to a group member's rights? |
+**If you thought** 5 means `rw-`: reread "Bits as numbers". **R1.** What is digit 5?
+
+:::answer
+`r-x`.
+:::
+
+**If you thought** deleting needs `w` on the file: reread "Directory bits". **R2.** What does deleting a file need?
+
+:::answer
+Write on the directory.
+:::
+
+**If you thought** "No space left" always means no blocks: reread "df, du". **R3.** `df -h` says 2%; what next?
+
+:::answer
+`df -i`.
+:::
+
+**If you thought** `rm` frees space at once: reread "df, du". **R4.** Does `rm` on an open 2 GB log free 2 GB?
+
+:::answer
+No: removing the name frees nothing while a process holds the file.
+:::
+
+**If you thought** a user gets every digit that matches: reread "Bits as numbers". **R5.** Do the "other" bits add to a group member's rights?
+
+:::answer
+No: a non-owner group member gets only the group digit.
+:::
 
 :::key-takeaways
 - 4 read, 2 write, 1 execute; one digit applies: owner, else group, else other. [122]

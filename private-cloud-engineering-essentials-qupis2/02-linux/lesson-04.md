@@ -39,6 +39,10 @@ Exempt: `if`/`while` conditions, all of `&&`/`||` but the last, all of a pipe bu
 
 **P1.** Under `set -e`, does `grep -q x missing.txt && echo found` stop the script?
 
+:::answer
+No: `grep` is not the last command of the `&&` list, so `-e` ignores it.
+:::
+
 ## set -u: an unset variable is an error
 
 **Rule:** with `-u`, using a never-set variable stops the script instead of becoming empty. [124]
@@ -56,6 +60,10 @@ $ bash -c 'set -u; REGION=""; echo "[$REGION]"'  # 4. edge: empty is not unset
 ```
 
 **P2.** Under `set -u`, what does `echo "${PORT:-8080}"` print when `PORT` was never set?
+
+:::answer
+`8080`: `:-` supplies the default; `-u` stays quiet.
+:::
 
 ## set -o pipefail: a pipe fails if any part fails
 
@@ -82,6 +90,10 @@ $ bash -c 'set -o pipefail; true | true; echo $?'                  # 4. all fine
 Memory hook: **e** = error stops, **u** = unset stops, **pipefail** = the pipe tells the truth.
 
 **P3.** With `pipefail`, what is the status of `grep x /nonexistent | sort`? (grep returns 2 when it cannot open a file.)
+
+:::answer
+2: `grep` is the rightmost failure, though `sort` succeeded.
+:::
 
 ## Setup
 
@@ -127,30 +139,31 @@ Rules: fix the cause, not the running copy; no `chmod 777`; keep the 20 queued j
 | `set -u` | unset variable is an error; `${V:-d}` allows it | `${REGION:-eu}` → `eu` |
 | `pipefail` | rightmost failure wins | `(exit 3) \| (exit 5) \| true` → 5 |
 
-## Answers
-
-**P1.** No: `grep` is not the last command of the `&&` list, so `-e` ignores it.
-
-**P2.** `8080`: `:-` supplies the default; `-u` stays quiet.
-
-**P3.** 2: `grep` is the rightmost failure, though `sort` succeeded.
-
-**R1.** No: it is tested by `if`.
-
-**R2.** No: empty is still set.
-
-**R3.** 0: the last command decides.
-
-**R4.** 4: the rightmost failure; the last command's 0 does not hide it.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| `-e` stops on every failure | set -e | **R1.** Does `if grep -q x f; then` stop on a miss? |
-| `-u` stops on empty values | set -u | **R2.** Does `X=""; echo $X` stop under `-u`? |
-| a pipe fails if any part fails, by default | pipefail | **R3.** `false \| true` without pipefail? |
-| pipefail returns the first failure, or the last command's | pipefail | **R4.** `true \| (exit 4) \| (exit 0)` with pipefail? |
+**If you thought** `-e` stops on every failure: reread "set -e". **R1.** Does `if grep -q x f; then` stop on a miss?
+
+:::answer
+No: it is tested by `if`.
+:::
+
+**If you thought** `-u` stops on empty values: reread "set -u". **R2.** Does `X=""; echo $X` stop under `-u`?
+
+:::answer
+No: empty is still set.
+:::
+
+**If you thought** a pipe fails if any part fails, by default: reread "pipefail". **R3.** `false | true` without pipefail?
+
+:::answer
+0: the last command decides.
+:::
+
+**If you thought** pipefail returns the first failure, or the last command's: reread "pipefail". **R4.** `true | (exit 4) | (exit 0)` with pipefail?
+
+:::answer
+4: the rightmost failure; the last command's 0 does not hide it.
+:::
 
 :::key-takeaways
 - `set -euo pipefail`: stop on failures, unset variables, failing pipes. [124]

@@ -38,6 +38,10 @@ for start, end in sorted(reservations):    # sorted() copies; input untouched [1
 
 **P1.** What does merging `[(3, 4), (1, 2), (2, 3)]` give?
 
+:::answer
+`[(1, 4)]`: sorted, each touches the last.
+:::
+
 ## Peak overlap: a sweep over events
 
 **Rule:** turn each interval into two events, `(start, +1)` and `(end, -1)`, sort them, and keep a running count; the peak is the largest running count.
@@ -60,6 +64,10 @@ Prerequisite: tuples compare left to right, so at the same time `(5, -1)` sorts 
 | peak sorted by `(t, -delta)` | start before end | 2: wrong for half-open |
 
 **P2.** What is the peak for `[(1, 3), (2, 4), (3, 5)]`?
+
+:::answer
+2. At time 3 the end of `(1, 3)` goes before the start of `(3, 5)`.
+:::
 
 ## Placing VMs: greedy, largest first
 
@@ -93,6 +101,10 @@ These are heuristics, not guarantees. Real schedulers filter hosts, then weigh t
 
 **P3.** Hosts hv1 (6 CPUs), hv2 (4 CPUs). VMs x (3), y (3), z (4) arrive in that order. First-fit, largest first: which VM is unplaced? In arrival order?
 
+:::answer
+Largest-first: y. z takes hv1 (2 left), x takes hv2 (1 left), y fits nowhere. Arrival order places all three: x and y on hv1, z on hv2.
+:::
+
 ## Run it
 
 1. With the six files in one folder, edit each starter; run `python merge_reservations_test.py` and `python place_vms_test.py`.
@@ -106,36 +118,43 @@ These are heuristics, not guarantees. Real schedulers filter hosts, then weigh t
 | sweep | `(t, +1)`, `(t, -1)`, sort, running max | `[(1, 5), (2, 6)]` → 2 |
 | first-fit / best-fit | first host / tightest host | 8 and 5 free, VM 4 → hv1 / hv2 |
 
-## Answers
-
-**P1.** `[(1, 4)]`: sorted, each touches the last.
-
-**P2.** 2. At time 3 the end of `(1, 3)` goes before the start of `(3, 5)`.
-
-**P3.** Largest-first: y. z takes hv1 (2 left), x takes hv2 (1 left), y fits nowhere. Arrival order places all three: x and y on hv1, z on hv2.
-
-**R1.** `(1, 10)`.
-
-**R2.** 1.
-
-**R3.** Yes: both CPU and RAM must fit, so it is unplaced.
-
-**R4.** One 6-CPU VM.
-
-**R5.** No; `sorted()` returns a new list.
-
-**R6.** hv2: 1 left beats 4.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| Assigning `end` is enough when merging | Merging | **R1.** Merge `[(1, 10), (2, 3)]`? |
-| Touching intervals run at the same time | Peak | **R2.** Peak of `[(1, 5), (5, 8)]`? |
-| Only CPU needs to fit | Placing | **R3.** 2 CPUs, 16 GB on a host with 8 CPUs, 4 GB: unplaced? |
-| Best-fit means the most room | Placing | **R6.** 8 and 5 free, VM 4: best-fit host? |
-| Arrival order never matters | Placing | **R4.** 10 + 10 CPUs, requests 4, 4, 6, 6, first-fit: what is left out? |
-| `sorted(reservations)` changes the caller's list | Merging | **R5.** Does `sorted(xs)` change `xs`? |
+**If you thought** assigning `end` is enough when merging: reread "Merging". **R1.** Merge `[(1, 10), (2, 3)]`?
+
+:::answer
+`(1, 10)`.
+:::
+
+**If you thought** touching intervals run at the same time: reread "Peak". **R2.** Peak of `[(1, 5), (5, 8)]`?
+
+:::answer
+1.
+:::
+
+**If you thought** only CPU needs to fit: reread "Placing". **R3.** 2 CPUs, 16 GB on a host with 8 CPUs, 4 GB: unplaced?
+
+:::answer
+Yes: both CPU and RAM must fit, so it is unplaced.
+:::
+
+**If you thought** best-fit means the most room: reread "Placing". **R6.** 8 and 5 free, VM 4: best-fit host?
+
+:::answer
+hv2: 1 left beats 4.
+:::
+
+**If you thought** arrival order never matters: reread "Placing". **R4.** 10 + 10 CPUs, requests 4, 4, 6, 6, first-fit: what is left out?
+
+:::answer
+One 6-CPU VM.
+:::
+
+**If you thought** `sorted(reservations)` changes the caller's list: reread "Merging". **R5.** Does `sorted(xs)` change `xs`?
+
+:::answer
+No; `sorted()` returns a new list.
+:::
 
 :::key-takeaways
 - Merge: sort, join when `start <= last_end`, keep `max(end)`. [12]

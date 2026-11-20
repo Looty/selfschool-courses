@@ -32,6 +32,10 @@ Trap: `most_common` keeps ties first-seen, not alphabetical [9].
 
 **P1.** What is `Counter("abcab").most_common(1)`?
 
+:::answer
+`[('a', 2)]`: `a` and `b` tie at 2; `a` was seen first.
+:::
+
 ## Grouping: labelled buckets
 
 **Rule:** a dict of lists is a row of labelled buckets: compute the label, drop the item in that bucket; a new label creates its bucket [9].
@@ -61,6 +65,10 @@ buckets["xyz"]                              # [], and now "xyz" is a key
 
 **P2.** Bucket `["ab", "c", "de", "f"]` by `len(word)`. What is the dict?
 
+:::answer
+`{2: ['ab', 'de'], 1: ['c', 'f']}`: label 2 appeared first.
+:::
+
 ## Sorting with a tuple key: dictionary order
 
 **Rule:** the key turns each item into a tuple, and tuples compare left to right like words in a dictionary: the second field matters only when the first ties [12].
@@ -84,6 +92,10 @@ In rung two `c` stays before `b`: sorts are stable, so equal keys keep input ord
 | `(count, name)`, `reverse=True` | a, c, b | reverse alphabetical |
 
 **P3.** What is `sorted([("x", 1), ("y", 3), ("z", 1)], key=lambda p: (-p[1], p[0]))`?
+
+:::answer
+`[('y', 3), ('x', 1), ('z', 1)]`: highest count, then `x` before `z`.
+:::
 
 ## Top k with heapq: keep the best few
 
@@ -109,6 +121,10 @@ heapq.heappop([])            # IndexError
 
 **P4.** What is `heapq.nsmallest(2, [7, 3, 9, 3])`?
 
+:::answer
+`[3, 3]`: duplicates are kept.
+:::
+
 ## Reviewing code
 
 - **Mutable default:** `def f(x, acc=[])` shares one list across calls; use `acc=None`.
@@ -128,41 +144,49 @@ heapq.heappop([])            # IndexError
 | `sorted(xs, key=...)` | tuple keys left to right | `(-count, name)` → high first, then A to Z |
 | `heapq.nsmallest(k, xs)` | `sorted(xs)[:k]` | `nsmallest(2, [7, 3, 9])` → `[3, 7]` |
 
-## Answers
-
-**P1.** `[('a', 2)]`: `a` and `b` tie at 2; `a` was seen first.
-
-**P2.** `{2: ['ab', 'de'], 1: ['c', 'f']}`: label 2 appeared first.
-
-**P3.** `[('y', 3), ('x', 1), ('z', 1)]`: highest count, then `x` before `z`.
-
-**P4.** `[3, 3]`: duplicates are kept.
-
-**R1.** An empty `Counter()`; any key reads as 0.
-
-**R2.** `None`, and no key is added.
-
-**R3.** `[('b', 2), ('a', 2)]`: the keys tie, so input order stays.
-
-**R4.** `None`; `.sort()` works in place.
-
-**R5.** `['a', 'b']`: the default list is created once.
-
-**R6.** One, shared by both keys.
-
-**R7.** `("b", 2)`: the name is flipped too.
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| A missing key or empty input raises | Counting | **R1.** What is `Counter([])`? |
-| `get` creates the bucket | Grouping | **R2.** `defaultdict(list).get("k")`? |
-| `fromkeys` gives each key its own list | Grouping | **R6.** `dict.fromkeys("xy", [])` holds how many lists? |
-| Ties come out alphabetical | Sorting | **R3.** `sorted([("b", 2), ("a", 2)], key=lambda p: p[1])`? |
-| `reverse=True` flips only the first field | Sorting | **R7.** Key `(count, name)`, `reverse=True`: `("a", 2)` or `("b", 2)` first? |
-| `.sort()` returns the list | Sorting | **R4.** What does `pairs.sort()` return? |
-| A default `[]` is fresh per call | Reviewing | **R5.** `def f(x, acc=[])` appends `x` and returns `acc`. `f("a")`, then `f("b")`? |
+**If you thought** a missing key or empty input raises: reread "Counting". **R1.** What is `Counter([])`?
+
+:::answer
+An empty `Counter()`; any key reads as 0.
+:::
+
+**If you thought** `get` creates the bucket: reread "Grouping". **R2.** `defaultdict(list).get("k")`?
+
+:::answer
+`None`, and no key is added.
+:::
+
+**If you thought** `fromkeys` gives each key its own list: reread "Grouping". **R6.** `dict.fromkeys("xy", [])` holds how many lists?
+
+:::answer
+One, shared by both keys.
+:::
+
+**If you thought** ties come out alphabetical: reread "Sorting". **R3.** `sorted([("b", 2), ("a", 2)], key=lambda p: p[1])`?
+
+:::answer
+`[('b', 2), ('a', 2)]`: the keys tie, so input order stays.
+:::
+
+**If you thought** `reverse=True` flips only the first field: reread "Sorting". **R7.** Key `(count, name)`, `reverse=True`: `("a", 2)` or `("b", 2)` first?
+
+:::answer
+`("b", 2)`: the name is flipped too.
+:::
+
+**If you thought** `.sort()` returns the list: reread "Sorting". **R4.** What does `pairs.sort()` return?
+
+:::answer
+`None`; `.sort()` works in place.
+:::
+
+**If you thought** a default `[]` is fresh per call: reread "Reviewing". **R5.** `def f(x, acc=[])` appends `x` and returns `acc`. `f("a")`, then `f("b")`?
+
+:::answer
+`['a', 'b']`: the default list is created once.
+:::
 
 :::key-takeaways
 - Count with `Counter`; group with `defaultdict(list)`. [9]

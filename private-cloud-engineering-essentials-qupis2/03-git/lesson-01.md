@@ -30,6 +30,10 @@ Edge case: two files, **one** blob; the repository held 3 objects. The file name
 
 **P1.** You rename `b.txt` to `c.txt` and commit. Does Git store a new blob?
 
+:::answer
+No. Same contents, same blob hash; Git writes only a new tree and commit (the rename added two objects in the test repo).
+:::
+
 ## A branch is a pointer, HEAD names the branch
 
 **Rule:** a branch is a tiny file holding one commit hash; `HEAD` holds the name of your current branch, and a commit moves only that branch [153].
@@ -49,6 +53,10 @@ $ git branch feature              # one more 41-byte file; nothing copied
 | `git switch main`, `git commit -m C` | C | B | main |
 
 **P2.** A repository is 2 GB. Roughly how much does `git branch hotfix` write?
+
+:::answer
+About 41 bytes: one file with a 40-character hash and a newline.
+:::
 
 ## Merge: fast-forward or three-way
 
@@ -72,6 +80,10 @@ $ git log --oneline --graph
 `ort` is the default strategy; `--no-ff` forces a merge commit [154]. Edge case: if both sides changed the same lines, Git stops with a conflict [153].
 
 **P3.** `main` is at A; `feature` has A, B, C. On `main` you run `git merge feature`. How many new commits appear?
+
+:::answer
+None: `main` has nothing of its own, so it fast-forwards to C.
+:::
 
 ## Merge or rebase: same files, different history
 
@@ -105,6 +117,10 @@ Only history differs [153]. Rebase local work before pushing, never commits othe
 
 **P4.** You rebase `feature`, which a colleague already pulled. Why does B show up twice after their next pull?
 
+:::answer
+They still have old B; you have B' with a new hash. Two commits, same message; merging brings in both.
+:::
+
 ## Cheat sheet
 
 | Tool | Rule | Tiny example → result |
@@ -115,35 +131,37 @@ Only history differs [153]. Rebase local work before pushing, never commits othe
 | `git merge` | fast-forward if one side moved | else a 2-parent commit |
 | `git rebase main` | replay commits on main | B → B' with a new hash |
 
-## Answers
-
-**P1.** No. Same contents, same blob hash; Git writes only a new tree and commit (the rename added two objects in the test repo).
-
-**P2.** About 41 bytes: one file with a 40-character hash and a newline.
-
-**P3.** None: `main` has nothing of its own, so it fast-forwards to C.
-
-**P4.** They still have old B; you have B' with a new hash. Two commits, same message; merging brings in both.
-
-**R1.** A fast-forward: the pointer just moves.
-
-**R2.** The tree.
-
-**R3.** Yes: the hash covers the parent.
-
-**R4.** Merge: never rebase commits others have.
-
-**R5.** Only `feature` (and HEAD, which names it).
-
 ## If you missed a quiz question
 
-| If you thought... | Reread | Re-check |
-| --- | --- | --- |
-| Every merge creates a merge commit | Merge | **R1.** `main` at A, `feature` at B. What does merging do? |
-| The blob stores the file name | Git objects | **R2.** Which object holds file names? |
-| Rebase keeps the same commits | Merge or rebase | **R3.** Does a new parent mean a new hash? |
-| Rebasing a pushed branch is harmless | Merge or rebase | **R4.** Merge or rebase a branch colleagues pulled? |
-| A commit moves every branch | Branch | **R5.** On `feature` you commit. Which branch moves? |
+**If you thought** every merge creates a merge commit: reread "Merge". **R1.** `main` at A, `feature` at B. What does merging do?
+
+:::answer
+A fast-forward: the pointer just moves.
+:::
+
+**If you thought** the blob stores the file name: reread "Git objects". **R2.** Which object holds file names?
+
+:::answer
+The tree.
+:::
+
+**If you thought** rebase keeps the same commits: reread "Merge or rebase". **R3.** Does a new parent mean a new hash?
+
+:::answer
+Yes: the hash covers the parent.
+:::
+
+**If you thought** rebasing a pushed branch is harmless: reread "Merge or rebase". **R4.** Merge or rebase a branch colleagues pulled?
+
+:::answer
+Merge: never rebase commits others have.
+:::
+
+**If you thought** a commit moves every branch: reread "Branch". **R5.** On `feature` you commit. Which branch moves?
+
+:::answer
+Only `feature` (and HEAD, which names it).
+:::
 
 :::key-takeaways
 - Blob = contents, tree = folder, commit = tree + parents; all named by hash. [153]
