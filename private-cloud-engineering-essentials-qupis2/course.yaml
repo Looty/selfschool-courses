@@ -4,7 +4,9 @@ title: "Private Cloud Engineering: Essentials"
 short_intro: "The short path: Python you can type from memory, Linux and Git under pressure, containers, a Flask job-queue API, and a VM provisioning design."
 description: |
   A short cut of "Private Cloud Engineering with Python" for engineers who need the working core fast: about
-  seven hours with every quiz, exercise and lab, under two hours of reading.
+  eight and a half hours with every quiz, exercise and lab, about two hours of reading. Each concept is taught
+  the same way: one plain rule, a ladder of tiny examples, a contrast with the tool it is confused with, and a
+  question you answer by reasoning, with the answers at the end of the lesson.
   Lessons are short and every one ends in something you do: a timed Python problem, a terminal lab or a
   design sketch.
 
@@ -21,7 +23,7 @@ level: Intermediate
 hue: teal
 monogram: PE
 tags: [python, linux, git, containers, flask, rq, system-design, jenkins, kvm, devops]
-budget_minutes: 420
+budget_minutes: 520
 chapters:
   - dir: 01-python-under-time
     title: Python under time pressure

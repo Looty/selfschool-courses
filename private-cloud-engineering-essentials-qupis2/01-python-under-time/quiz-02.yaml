@@ -4,34 +4,170 @@ title: "Check: log aggregation"
 questions:
   - id: q02-1
     type: mcq
-    text: "`log_stats` receives an open file of 10 GB. Which first line of the function keeps it workable?"
+    text: |
+      log_stats receives an open file of 10 GB. Which first line of the function keeps it workable?
+
+      Hint: which option never holds more than one line in memory?
     concepts: [streaming-input, generators]
     sources: [18, 20]
     options:
-      - {text: "for line in lines:", correct: true, explanation: "Iterating a file object reads one line at a time, so memory stays flat."}
-      - {text: "lines = list(lines)", correct: false, explanation: "That loads every line into memory before any work starts."}
-      - {text: "lines = lines.read().splitlines()", correct: false, explanation: "read() returns the whole file as one string; it also fails on a generator, which has no read method."}
-      - {text: "lines = sorted(lines)", correct: false, explanation: "Sorting needs the whole input in memory and nothing in the problem asks for ordered input."}
+      - text: "for line in lines:"
+        correct: true
+        explanation: "Looping over a file object reads one line at a time, so memory stays flat."
+      - text: "lines = list(lines)"
+        correct: false
+        explanation: "Misconception: list() only wraps the file. It reads every line into memory before any work starts."
+      - text: "lines = lines.read().splitlines()"
+        correct: false
+        explanation: "Misconception: read() is lazy. It returns the whole file as one string, and a generator has no read method at all."
+      - text: "lines = sorted(lines)"
+        correct: false
+        explanation: "Misconception: the lines must be in order first. Nothing needs sorted input, and sorting holds everything in memory."
   - id: q02-2
-    type: spot
-    text: "Click the line that makes `parse_line` accept a line whose latency field is the text nan."
-    concepts: [input-validation, malformed-lines]
-    sources: [37, 35]
-    code: |
-      try:
-          when = datetime.strptime(ts, TS_FORMAT)
-          ipaddress.ip_address(ip)
-          status = int(status)
-          latency = float(latency)
-      except ValueError:
-          return None
-    correct: [5]
-    explanation: "float('nan') parses without error, so the try block cannot reject it. A range check such as 0 <= latency < math.inf is needed afterwards, because every comparison with nan is false."
+    type: mcq
+    text: |
+      parse_line converts the latency with float(latency) inside try / except ValueError. A line's latency field is the text nan. Which extra check rejects it?
+
+      Hint: what does a comparison with nan return?
+    concepts: [input-validation, nan]
+    options:
+      - text: "if not 0 <= latency < math.inf: return None"
+        correct: true
+        explanation: "Every comparison with nan is false, so the chained check fails and the line is rejected. It also rejects negatives and infinity."
+      - text: "No check is needed: float('nan') raises ValueError"
+        correct: false
+        explanation: "Misconception: float() rejects nan. float('nan') parses without error, so the try lets it through."
+      - text: "if latency < 0: return None"
+        correct: false
+        explanation: "Misconception: a negative check covers nan. nan < 0 is false, so nan passes this check."
+      - text: "if latency is None: return None"
+        correct: false
+        explanation: "Misconception: nan is None. nan is a float value, not None."
+  - id: q02-4
+    type: mcq
+    text: |
+      Minute 10:15 has statuses 200 and 500. Minute 10:16 has six requests, all 200. What is the error rate for 10:15?
+
+      Hint: the rate is per minute. Whose requests go in the denominator?
+    concepts: [error-rate, aggregation]
+    options:
+      - text: "0.5"
+        correct: true
+        explanation: "Inside 10:15 one request of two failed: 1 / 2."
+      - text: "0.125"
+        correct: false
+        explanation: "Misconception: divide by every request in the log. 1 / 8 is a global ratio and hides the bad minute."
+      - text: "0.25"
+        correct: false
+        explanation: "Misconception: the rate is an average of the minutes. (0.5 + 0) / 2 mixes the two minutes; each minute gets its own rate."
+      - text: "1"
+        correct: false
+        explanation: "Misconception: the rate is the number of errors. It is errors divided by requests."
+  - id: q02-5
+    type: mcq
+    text: |
+      What does datetime.strptime do with a timestamp that does not match the format?
+
+      Hint: the parser can use one except clause for the timestamp, the address and the numbers.
+    concepts: [input-validation]
+    sources: [37]
+    options:
+      - text: "It raises ValueError"
+        correct: true
+        explanation: "strptime raises ValueError on a mismatch, like int(), float() and ipaddress.ip_address() on bad input."
+      - text: "It returns None"
+        correct: false
+        explanation: "Misconception: parsers signal failure with None. strptime raises; only your own parse_line returns None."
+      - text: "It raises TypeError"
+        correct: false
+        explanation: "Misconception: a wrong value is a wrong type. The argument is a str as expected; its content is wrong, which is a ValueError."
+      - text: "It guesses the closest valid date"
+        correct: false
+        explanation: "Misconception: strptime is forgiving. It needs an exact match to the format."
+  - id: q02-6
+    type: mcq
+    text: |
+      A blank line reaches the parser. What does "".split() return?
+
+      Hint: split() with no argument drops empty pieces.
+    concepts: [split, malformed-lines]
+    options:
+      - text: "[]"
+        correct: true
+        explanation: "With no separator, split() returns no pieces for an empty or all-space string, so the 7-field check fails."
+      - text: "['']"
+        correct: false
+        explanation: "Misconception: split always returns at least one piece. That is true of split(','), not of split() with no argument."
+      - text: "Seven empty strings"
+        correct: false
+        explanation: "Misconception: split knows the expected field count. It only cuts the string it is given."
+      - text: "It raises ValueError"
+        correct: false
+        explanation: "Misconception: splitting an empty string is an error. It returns an empty list."
+  - id: q02-7
+    type: mcq
+    text: |
+      What does "a,,b".split(",") return?
+
+      Hint: an explicit separator behaves differently from split() with no argument.
+    concepts: [split]
+    options:
+      - text: "['a', '', 'b']"
+        correct: true
+        explanation: "With an explicit separator, two commas in a row leave an empty piece between them."
+      - text: "['a', 'b']"
+        correct: false
+        explanation: "Misconception: split(',') drops empty pieces like split() does. Only split() with no argument drops them."
+      - text: "['a', ',', 'b']"
+        correct: false
+        explanation: "Misconception: the separator is kept. split removes every separator."
+  - id: q02-8
+    type: mcq
+    text: |
+      What is -(-7 // 2)?
+
+      Hint: // rounds down, towards minus infinity, also for negative numbers.
+    concepts: [integer-ceil, percentile]
+    options:
+      - text: "4"
+        correct: true
+        explanation: "-7 // 2 is -4 (rounded down), and flipping the sign gives 4: the ceiling of 3.5."
+      - text: "3"
+        correct: false
+        explanation: "Misconception: the two minus signs cancel. The inner // rounds -3.5 down to -4 before the outer sign flips."
+      - text: "-4"
+        correct: false
+        explanation: "Misconception: the outer minus is ignored. It flips -4 back to 4."
+      - text: "3.5"
+        correct: false
+        explanation: "Misconception: // is true division. // always rounds down to a whole number."
+  - id: q02-9
+    type: mcq
+    text: |
+      values holds the numbers 1 to 20. What is the nearest-rank p95?
+
+      Hint: place ceil(95 * 20 / 100), counted from 1, then turn the place into a list index.
+    concepts: [percentile, off-by-one]
+    options:
+      - text: "19"
+        correct: true
+        explanation: "Place 19, index 18, value 19."
+      - text: "20"
+        correct: false
+        explanation: "Misconception: the place is also the list index. ordered[int(0.95 * 20)] reads index 19, one past the right value."
+      - text: "19.05"
+        correct: false
+        explanation: "Misconception: the percentile interpolates between values. Nearest rank always returns a value from the list."
+      - text: "95"
+        correct: false
+        explanation: "Misconception: p95 is the 95th item. It is the item at 95 percent of the way through the sorted list."
   - id: q02-3
     type: trace
-    text: "Apply the nearest-rank rule (rank = ceil(pct * n / 100), 1-based) to the sorted list [10, 20, 30, 40]. What rank and value come out for each percentile?"
+    text: |
+      Apply the nearest-rank rule (rank = ceil(pct * n / 100), 1-based) to the sorted list [10, 20, 30, 40]. What rank and value come out for each percentile?
+
+      Hint: round the rank up, then subtract 1 to index the list.
     concepts: [percentile]
-    sources: [12]
     code: |
       values = [10, 20, 30, 40]
       rank = ceil(pct * 4 / 100)
@@ -42,19 +178,3 @@ questions:
       - {label: "pct = 50", values: {rank: 2, value: 20}}
       - {label: "pct = 95", values: {rank: 4, value: 40}}
     explanation: "25 percent of 4 is exactly 1, so rank 1 (value 10). 50 percent is rank 2 (20). 0.95 * 4 = 3.8 rounds up to 4, giving the maximum, 40. Nearest-rank always returns an observed value."
-  - id: q02-4
-    type: mcq
-    text: "Why does the reference compute the error rate as errors divided by requests inside each minute rather than averaging per-request flags across the whole log?"
-    concepts: [error-rate, aggregation]
-    sources: [9]
-    options:
-      - {text: "The problem asks for a rate per minute, so each minute needs its own numerator and denominator", correct: true, explanation: "A single global ratio would hide a bad minute inside a long quiet period."}
-      - {text: "A defaultdict cannot store a float", correct: false, explanation: "It can store any value; the reference keeps a [requests, errors] list and divides at the end."}
-      - {text: "Counter.most_common() only works per minute", correct: false, explanation: "most_common is not used for the error rate at all."}
-      - {text: "Dividing early avoids integer overflow", correct: false, explanation: "Python integers do not overflow; this is not the reason."}
-  - id: q02-5
-    type: short
-    text: "Which exception type does `datetime.strptime` raise for a timestamp that does not match the format?"
-    concepts: [input-validation]
-    sources: [37]
-    answers: ["ValueError", "ValueError exception"]

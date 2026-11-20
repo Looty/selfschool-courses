@@ -2,9 +2,110 @@ schemaVersion: 1
 id: q09
 title: "Check: undo, recover and bisect"
 questions:
+  - id: q09-2
+    type: mcq
+    text: |
+      Commit A wrote `v1` into `f.txt`; commit B changed it to `v2`. At B, with a clean tree, you run `git reset --soft HEAD~1`. What does `git status` report?
+
+      Hint: soft touches one place only.
+    concepts: [git-reset-modes]
+    sources: [153]
+    options:
+      - {text: "f.txt modified and staged; the file still holds v2", correct: true, explanation: "--soft only moves the branch to A. Index and disk still hold v2, which now differs from A, so the change shows as staged."}
+      - {text: "f.txt modified but not staged", correct: false, explanation: "Misconception: --soft also resets the index. That is --mixed."}
+      - {text: "Clean; f.txt holds v1", correct: false, explanation: "Misconception: every reset rewrites files. Only --hard overwrites the disk."}
+      - {text: "Clean; B is deleted for good", correct: false, explanation: "Misconception: reset deletes commits. B is still reachable through the reflog, and here its change is even still staged."}
+  - id: q09-3
+    type: mcq
+    text: |
+      You run `git reset HEAD~1` with no mode flag. Which mode is that?
+
+      Hint: it is the middle one.
+    concepts: [git-reset-modes]
+    sources: [153]
+    options:
+      - {text: "--mixed: branch and index move, the disk is kept", correct: true, explanation: "--mixed is the default, so your edits survive as unstaged changes."}
+      - {text: "--soft", correct: false, explanation: "Misconception: the default is the gentlest mode. --soft must be asked for."}
+      - {text: "--hard", correct: false, explanation: "Misconception: reset always wipes your files. Only --hard touches the disk, and it must be asked for."}
+  - id: q09-4
+    type: mcq
+    text: |
+      At B, `f.txt` holds an unsaved, uncommitted `v3`. You run `git reset --hard HEAD~1`, panic, and run `git reset --hard HEAD@{1}`. What does `f.txt` contain?
+
+      Hint: what does the reflog record: commits, or keystrokes?
+    concepts: [git-reflog, git-reset-modes]
+    sources: [153, 154]
+    options:
+      - {text: "v2", correct: true, explanation: "HEAD@{1} is commit B, which holds v2. The uncommitted v3 was never recorded anywhere, so --hard destroyed it for good."}
+      - {text: "v3", correct: false, explanation: "Misconception: the reflog saves uncommitted edits. It logs where HEAD pointed; only committed states can come back."}
+      - {text: "The command fails: A has no commit before it", correct: false, explanation: "Misconception: HEAD@{1} means HEAD~1, the parent. HEAD@{1} is where HEAD was one move ago, which is B."}
+  - id: q09-5
+    type: mcq
+    text: |
+      What does `HEAD@{1}` mean?
+
+      Hint: the reflog is a diary of moves.
+    concepts: [git-reflog]
+    sources: [154]
+    options:
+      - {text: "Where HEAD pointed one move ago", correct: true, explanation: "Reflog entries count moves of HEAD (commits, resets, switches), newest first."}
+      - {text: "The parent of the current commit", correct: false, explanation: "Misconception: @{1} is the same as ~1. HEAD~1 follows the parent link; HEAD@{1} follows your own history of moves."}
+      - {text: "The first commit in the repository", correct: false, explanation: "Misconception: the number counts commits from the start. It counts moves back from now, and every new move shifts it."}
+  - id: q09-6
+    type: mcq
+    text: |
+      Commit B is on `origin/main` and a colleague has already pulled it. How do you undo B?
+
+      Hint: do not take B away from anyone.
+    concepts: [git-revert, git-reset-modes]
+    sources: [153, 154]
+    options:
+      - {text: "git revert B, then push", correct: true, explanation: "Revert adds a new commit that does the opposite of B. Nothing is rewritten, so the colleague's history stays valid."}
+      - {text: "git reset --hard HEAD~1, then force-push", correct: false, explanation: "Misconception: reset is fine once pushed. It rewrites shared history; others still have B and must repair their clones."}
+      - {text: "git reflog, then pick an older entry", correct: false, explanation: "Misconception: the reflog undoes changes. It only finds old positions in your own repository; it changes nothing on the remote."}
+  - id: q09-7
+    type: mcq
+    text: |
+      History is A then B. You run `git revert --no-edit HEAD`. What does `git log --oneline` show?
+
+      Hint: revert adds; it never removes.
+    concepts: [git-revert]
+    sources: [154]
+    options:
+      - {text: "Revert \"B\", B, A", correct: true, explanation: "A new commit undoes B's change; B stays in history (f.txt is back to v1)."}
+      - {text: "A only", correct: false, explanation: "Misconception: revert deletes the commit. That is what reset --hard HEAD~1 does to the branch."}
+      - {text: "B, A, with B's change edited out of B", correct: false, explanation: "Misconception: revert edits the old commit. Commits never change; a changed commit would get a new hash."}
+  - id: q09-8
+    type: mcq
+    text: |
+      Your script for `git bisect run` must report "this commit is bad". Which exit status should it use?
+
+      Hint: one non-zero number has a special meaning.
+    concepts: [git-bisect]
+    sources: [153, 154]
+    options:
+      - {text: "1", correct: true, explanation: "Any status from 1 to 127 except 125 means bad; 1 is the usual choice."}
+      - {text: "125", correct: false, explanation: "Misconception: any non-zero status means bad. 125 means skip, so every commit is skipped and bisect ends with We cannot bisect more!"}
+      - {text: "0", correct: false, explanation: "Misconception: the test reports whether the bug was found. 0 means good, which would send the search the wrong way."}
+      - {text: "255", correct: false, explanation: "Misconception: any big number is fine. A status above 127 aborts the bisect."}
+  - id: q09-9
+    type: mcq
+    text: |
+      Between a good and a bad commit lie about 1,000 commits. Roughly how many tests does `git bisect` run?
+
+      Hint: each test halves what is left.
+    concepts: [git-bisect]
+    sources: [153]
+    options:
+      - {text: "About 10", correct: true, explanation: "1,000 halves to 1 in about 10 steps, since 2^10 = 1,024. The test run needed 3 for 8 commits."}
+      - {text: "About 500", correct: false, explanation: "Misconception: bisect checks half of the commits. It checks one commit per halving, not half the range."}
+      - {text: "About 1,000", correct: false, explanation: "Misconception: bisect tests every commit. That would be a linear search."}
   - id: q09-1
     type: trace
-    text: "A repo has commits one and two; f.txt contains 'two' in the commit, the index and the working directory. Each command below is run separately from that same starting point. Which commit does the branch point to, and what does f.txt contain in the index and in the working directory?"
+    text: |
+      Commit A wrote v1 into f.txt and commit B changed it to v2; at B the index and the working directory also hold v2. Each command below is run separately from that same starting point. Which commit does the branch point to, and what does f.txt contain in the index and in the working directory?
+
+      Hint: soft, mixed, hard touch 1, 2, 3 places.
     concepts: [git-reset-modes, three-trees]
     sources: [153]
     code: |
@@ -13,56 +114,8 @@ questions:
       git reset --hard  HEAD~1
     variables: [branch, index, workdir]
     steps:
-      - {label: "Start", values: {branch: "two", index: "two", workdir: "two"}, given: [branch, index, workdir]}
-      - {label: "reset --soft HEAD~1", values: {branch: "one", index: "two", workdir: "two"}}
-      - {label: "reset --mixed HEAD~1", values: {branch: "one", index: "one", workdir: "two"}}
-      - {label: "reset --hard HEAD~1", values: {branch: "one", index: "one", workdir: "one"}}
-    explanation: "Every mode moves the branch. --soft stops there, so the change shows as staged. --mixed (the default) also makes the index match the commit, so the change is unstaged but still in the file. --hard also overwrites the working directory, and the uncommitted 'two' is gone from the tree."
-  - id: q09-2
-    type: fill
-    text: "The commit at the tip of docs belongs on feature/report. The tree is clean and docs was never pushed. Complete the fix."
-    concepts: [git-cherry-pick, git-reset-modes]
-    sources: [153, 154]
-    template: |
-      git switch {{1}}
-      git {{2}} docs
-      git switch docs
-      git reset {{3}} HEAD~1
-    chips:
-      - {text: "feature/report", slot: 1, explanation: "Switch to the branch that should receive the commit."}
-      - {text: "cherry-pick", slot: 2, explanation: "Copies the change at the tip of docs as a new commit on feature/report."}
-      - {text: "--hard", slot: 3, explanation: "Moves docs back one commit and drops the change from its index and working tree too."}
-      - {text: "revert", explanation: "Would add an inverse commit instead of copying the change."}
-      - {text: "--soft", explanation: "Would move docs back but leave the JSON change staged on docs."}
-  - id: q09-3
-    type: spot
-    text: "This test script is used with `git bisect run sh check.sh`. Which line stops bisect from finding the bad commit?"
-    concepts: [git-bisect]
-    sources: [154]
-    code: |
-      #!/bin/sh
-      cd "$(dirname "$0")" || exit 1
-      . ./lib/size.sh
-      got=$(to_mib 2G)
-      if [ "$got" != 2048 ]; then
-          exit 125
-      fi
-      echo ok
-    correct: [6]
-    explanation: "Exit code 125 tells bisect the commit cannot be tested, so every bad commit is skipped. In the course's test run this ended with 'We cannot bisect more!'. A failing check must exit with 1 to 127, other than 125, for example exit 1."
-  - id: q09-4
-    type: mcq
-    text: "You rebased your branch topic, which you had pushed earlier, and ran `git push --force-with-lease origin topic`. It printed `! [rejected] topic -> topic (stale info)`. What does that mean?"
-    concepts: [force-with-lease, git-push]
-    sources: [154]
-    options:
-      - {text: "Someone updated origin/topic since your last fetch, so the push would have overwritten their commits", correct: true, explanation: "The lease checks that the remote ref still matches your remote-tracking branch. It no longer did, so Git refused."}
-      - {text: "Your local branch is behind origin/topic, so you need a plain git push", correct: false, explanation: "A plain push of rewritten commits is also refused as a non-fast-forward; and the issue is new remote commits, not a missing pull."}
-      - {text: "The remote does not allow force pushes at all", correct: false, explanation: "That would be a different rejection; 'stale info' is the lease check failing."}
-      - {text: "You should retry with --force, which is equivalent but skips the check", correct: false, explanation: "--force disables every safety check and would delete the colleague's commits from the remote."}
-  - id: q09-5
-    type: short
-    text: "A hard reset dropped the newest commit from branch experiment. Which command lists every position experiment has pointed to, so you can find the lost commit?"
-    concepts: [git-reflog]
-    sources: [154]
-    answers: ["git reflog experiment", "git reflog show experiment", "reflog experiment", "git log -g experiment"]
+      - {label: "Start", values: {branch: "B", index: "v2", workdir: "v2"}, given: [branch, index, workdir]}
+      - {label: "reset --soft HEAD~1", values: {branch: "A", index: "v2", workdir: "v2"}}
+      - {label: "reset --mixed HEAD~1", values: {branch: "A", index: "v1", workdir: "v2"}}
+      - {label: "reset --hard HEAD~1", values: {branch: "A", index: "v1", workdir: "v1"}}
+    explanation: "Every mode moves the branch. --soft stops there, so the change shows as staged. --mixed (the default) also makes the index match the commit, so the change is unstaged but still in the file. --hard also overwrites the working directory, and v2 is gone from the tree."

@@ -5,116 +5,151 @@ quiz: quiz-04.yaml
 resources: [../resources/ch02/vmapi.service]
 sources: [79, 105, 106, 117, 118, 119, 125]
 ---
-After this lesson you can answer "the service is down, walk me through it": read a process's state from `/proc`, say what each stop signal does, and write and debug a systemd unit.
+After this lesson you can say what `kill`, `kill -9` and `kill -HUP` do, decode an exit status such as 137, and answer "the service is down, walk me through it".
 
-## The interview answer, in order
+## Signals: asking versus forcing
 
-```bash
-systemctl status vmapi                  # state, main PID, last 10 journal lines
-journalctl -u vmapi -n 50 --no-pager    # what it said before it died
-ss -ltnp                                # is anything listening? (lesson 3)
-systemctl --failed                      # every failed unit
-```
+**Prerequisite.** A signal is a short numbered message the kernel delivers to a process. Per signal, a process has a disposition: default action, ignore, or its own handler. [105]
 
-[117] [118]
+**Rule:** SIGTERM is a knock on the door (the process may clean up, or ignore it); SIGKILL removes it without asking. [105]
 
-## Process state from /proc
-
-`/proc/PID/status` is the readable view; `ps` reads the one-line `/proc/PID/stat`. [106]
+Each rung starts `sleep 30` in the background (`$!` is its PID); `wait` collects its status, 128+N for signal N. [125]
 
 ```console
-# grep -E '^(Name|State|PPid|SigIgn)' /proc/2056/status
-Name:	worker-v1.sh
-State:	S (sleeping)
-PPid:	1
-SigIgn:	0000000000004006
+$ sleep 30 & kill $!; wait $!; echo $?         # plain kill sends TERM (15)
+143                                             # 128 + 15
+$ sleep 30 & kill -9 $!; wait $!; echo $?      # KILL (9)
+137                                             # 128 + 9
+$ sleep 30 & kill -HUP $!; wait $!; echo $?    # HUP (1); sleep has no handler
+129                                             # 128 + 1: HUP's default is Term
+$ bash -c 'trap "" TERM; sleep 30' & sleep 1; kill $!   # edge: TERM ignored
+$ ps -o stat= -p $!                             # S: still alive, sleeping
+$ kill -9 $!; wait $!; echo $?                 # KILL cannot be ignored
+137
 ```
 
-States: R running, S interruptible sleep, D uninterruptible disk sleep, T stopped, Z zombie. [106] `SigBlk`, `SigIgn`, `SigCgt` are hex masks of blocked, ignored and caught signals. [106]
+Ignored signals are inherited by children and survive `execve`, so `trap '' TERM` in a script spreads to every program it starts. [105] `SigIgn` in `/proc/PID/status` shows them. [106] Edge: `kill -9` on a zombie (`<defunct>`, state Z) changes nothing; it has already exited. Fix or end its parent. [106]
 
-A zombie (`Z`, `<defunct>` in `ps`) has already exited; its parent never collected its exit status. When a child ends, SIGCHLD is sent, and its default action is to ignore it. [105] `kill -9` on a zombie changes nothing: fix or end the parent.
+**Contrast:**
 
-## Signals that matter
+| Signal | No. | Default | Catchable? | Sent by |
+| --- | --- | --- | --- | --- |
+| SIGTERM | 15 | Term | yes | `kill`, `systemctl stop`, `docker stop` |
+| SIGKILL | 9 | Term | no | `kill -9`; systemd and `docker stop` after a timeout (Docker: 10 s) |
+| SIGHUP | 1 | Term | yes | the terminal or controlling process went away |
 
-```text
-SIGHUP   1  Term  terminal or controlling process went away
-SIGINT   2  Term  keyboard interrupt
-SIGKILL  9  Term  forced; cannot be caught, blocked or ignored
-SIGTERM 15  Term  polite termination request
-SIGCHLD 17  Ign   a child stopped or ended
-SIGSTOP 19  Stop  stop; cannot be caught, blocked or ignored
-```
+[105] [119] [79] Memory hook: TERM "please leave", KILL "security drags you out", HUP "the phone line hung up".
 
-[105] A forked child inherits its parent's dispositions, and `execve(2)` keeps ignored signals ignored. [105] So a script with `trap '' TERM` makes every program it starts ignore SIGTERM too.
+**P1.** A script with `trap '' TERM` starts `worker`. What do `kill WORKER_PID` and then `kill -9 WORKER_PID` do?
 
-Exit status tells you how a command ended. [125]
+## Exit statuses: how a command ended
+
+**Rule:** 127 is not found, 126 is found but not executable, above 128 is killed by signal (status minus 128). [125]
 
 ```console
-$ sleep 30 & kill $!; wait $!; echo $?
-143          # 128+15: killed by SIGTERM
-$ sleep 30 & kill -9 $!; wait $!; echo $?
-137          # 128+9: killed by SIGKILL
+$ nosuchcmd; echo $?                           # 127: not found
+127
+$ chmod 644 job.sh; ./job.sh; echo $?          # 126: found, no execute bit
+126
+$ sleep 30 & kill -INT $!; wait $!; echo $?    # 130 = 128 + 2, SIGINT (Ctrl-C)
+130
 ```
 
-127 means command not found, 126 found but not executable. [125] `docker stop` sends SIGTERM, then SIGKILL after a grace period (10 s by default). [79]
+[125] [105]
 
-## A systemd unit
+**P2.** A job log says `exit status 143`. Crash, bad path, or stop request?
 
-A file in `/etc/systemd/system` (the administrator's) overrides one of the same name in `/usr/lib/systemd/system` (the packages'). [119] To change one line of a packaged unit, `systemctl edit NAME` creates a drop-in `NAME.service.d/override.conf`. [118] [119]
+## systemctl: which command rereads what
 
-```ini
-[Unit]
-Description=vmapi VM inventory HTTP API
-Wants=redis-server.service
-After=redis-server.service
+**Rule:** systemd keeps its own copy of each unit file; `daemon-reload` refreshes that copy, `restart` restarts the process, `reload` asks the service to reread its *own* config. [118]
 
-[Service]
-Type=exec
-User=vmapi
-ExecStart=/usr/bin/python3 /opt/vmapi/vmapi.py
-Restart=on-failure
-RestartSec=2s
-TimeoutStopSec=10s
+`vmapi.service` in the resources is a unit with `Restart=on-failure` and a comment per line. Test-run ladder:
 
-[Install]
-WantedBy=multi-user.target
+```console
+# systemctl enable --now vmapi                   # link for boot AND start now
+Created symlink /etc/systemd/system/multi-user.target.wants/vmapi.service → ...
+# kill -9 $(systemctl show -p MainPID --value vmapi)
+# journalctl -u vmapi -n 8 --no-pager            # back 2 s later (RestartSec=2s)
+... Main process exited, code=killed, status=9/KILL
+... Scheduled restart job, restart counter is at 1.
+# systemctl stop vmapi; systemctl is-active vmapi; echo $?
+inactive                                         # edge: a stop is never restarted
+3
 ```
 
-- `Wants=` and `Requires=` say what to start; neither sets an order, so add `After=` or both start at once. [119]
-- `Type=exec` fails the start if the binary cannot run; `Type=simple` reports success anyway. [119]
-- `Restart=on-failure` is the recommended setting for long-running services; a unit stopped with `systemctl stop` is never restarted. [119]
-- On stop, systemd runs `ExecStop=` if set, else sends SIGTERM, then SIGKILL after `TimeoutStopSec=`. [119]
-- `[Install]` is read only by `systemctl enable`. [119]
+[118] [119]
 
-Open `vmapi.service` in the resources: it is this unit with a comment on every line.
+**Contrast:**
 
-## Commands to type from memory
+| Command | Rereads the unit file? | Touches the process? |
+| --- | --- | --- |
+| `systemctl daemon-reload` | yes | no |
+| `systemctl reload vmapi` | no | asks it to reread its own config |
+| `systemctl restart vmapi` | no | stops and starts it |
+| `systemctl enable vmapi` | no | no: boot links only; add `--now` |
 
-```bash
-systemctl daemon-reload            # reread unit files after editing them
-systemctl enable --now vmapi       # start at boot AND now; enable alone does not start
-systemctl is-active vmapi          # exit 0 if active, 3 if not
-systemctl cat vmapi                # unit file plus drop-ins
-journalctl -u vmapi -f             # follow one unit's log
-journalctl -u vmapi --since today  # time window
-journalctl -p err -b               # errors since this boot
-```
+[118] On stop, systemd runs `ExecStop=` if set, else sends SIGTERM, then SIGKILL after `TimeoutStopSec=`. [119]
 
-[117] [118]
+**P3.** You change `ExecStart=`, run `systemctl reload vmapi`, and the old command still runs. Why? What fixes it?
 
-The classic trap: `systemctl reload` asks the service to reload its own configuration; it does not reread the unit file. Only `daemon-reload` does. [118]
+## "The service is down": the walk-through
+
+1. `systemctl status vmapi`: state, main PID, last 10 log lines. [118]
+2. `journalctl -u vmapi -n 50 --no-pager`: its last words. [117]
+3. Decode the end: `status=9/KILL`, 143, 126, 127.
+4. `systemctl cat vmapi`: unit file plus drop-ins. [118]
+5. Fix; `daemon-reload` if you edited the unit; `restart`. [118]
+6. Running but unreachable? `ss -ltnp` (lesson 3).
+
+## Cheat sheet
+
+| Tool | Rule | Tiny example → result |
+| --- | --- | --- |
+| `kill PID` | sends TERM, can be ignored | `sleep` → 143 |
+| `kill -9 PID` | KILL, cannot be ignored | `sleep` → 137 |
+| exit status | 126 no x, 127 not found, 128+N signal N | 130 → SIGINT |
+| `daemon-reload` | reread unit files | then `restart` |
+| `enable --now` | boot link and start | `enable` alone: not started |
+
+## Answers
+
+**P1.** `kill` does nothing: the worker inherited the ignored TERM. `kill -9` ends it; `wait` reports 137.
+
+**P2.** A stop request: 143 − 128 = 15, SIGTERM.
+
+**P3.** `reload` does not reread unit files. Run `systemctl daemon-reload`, then `systemctl restart vmapi`.
+
+**R1.** No. Plain `kill` sends 15, TERM.
+
+**R2.** 128 + 9 = 137: killed by SIGKILL.
+
+**R3.** No: it already exited. Fix or end its parent.
+
+**R4.** No: `enable` only creates the boot link.
+
+**R5.** No: a unit stopped with `systemctl stop` is never restarted.
+
+## If you missed a quiz question
+
+| If you thought... | Reread | Re-check |
+| --- | --- | --- |
+| `kill` means "force" | Signals | **R1.** Does `kill PID` send signal 9? |
+| status 137 means "exited with 137" or "not found" | Exit statuses | **R2.** Decode 137. |
+| `kill -9` clears a zombie | Signals | **R3.** Can `kill -9` remove a `<defunct>` process? |
+| `enable` starts the service | systemctl | **R4.** Is a service running right after `systemctl enable`? |
+| `Restart=on-failure` undoes `systemctl stop` | systemctl | **R5.** Does systemd restart a unit you stopped? |
 
 :::key-takeaways
-- Service down: `systemctl status`, `journalctl -u`, then the exit status and the unit. [117] [118]
-- SIGTERM (15) asks, SIGKILL (9) forces; SIGKILL and SIGSTOP cannot be caught. [105]
-- 128+N means killed by signal N; 126 not executable, 127 not found. [125]
-- `After=` sets order, `Wants=`/`Requires=` do not; use `Type=exec` and `Restart=on-failure`. [119]
-- After editing a unit: `daemon-reload`, then restart. [118]
+- TERM (15) asks, KILL (9) forces; ignored signals are inherited. [105]
+- 128+N: killed by signal N; 126 not executable; 127 not found. [125]
+- Edited a unit: `daemon-reload`, then `restart`. [118]
 :::
 
 :::glossary
+- **Signal**: a short numbered message the kernel delivers to a process, such as "please stop".
 - **Disposition**: what a process does when a given signal arrives: the default, ignore it, or run a handler.
 - **Zombie**: a process that has exited but whose parent has not yet collected its exit status.
+- **Exit status**: the number a command returns; 0 means success.
 - **Unit**: anything systemd manages, described by a unit file such as `vmapi.service`.
-- **Drop-in**: a small file in `NAME.service.d/` that overrides selected lines of a unit.
+- **Journal**: systemd's log store, read with `journalctl`.
 :::

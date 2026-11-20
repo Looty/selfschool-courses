@@ -3,26 +3,156 @@ id: q03
 title: "Check: reservations and placement"
 questions:
   - id: q03-1
-    type: trace
-    text: "Run the merge loop on the reservations below, after sorting. What is `merged` after each reservation is processed?"
+    type: mcq
+    text: |
+      What does merge_reservations([(1, 10), (2, 3)]) return?
+
+      Hint: the second reservation lies entirely inside the first. Which end should survive?
     concepts: [interval-merge]
+    options:
+      - text: "[(1, 10)]"
+        correct: true
+        explanation: "(2, 3) starts before 10, so it merges, and max(10, 3) keeps the end at 10."
+      - text: "[(1, 3)]"
+        correct: false
+        explanation: "Misconception: the merged end is the new interval's end. Assigning end instead of max(last_end, end) shrinks a period when a nested interval arrives."
+      - text: "[(1, 10), (2, 3)]"
+        correct: false
+        explanation: "Misconception: a nested interval does not overlap. It overlaps completely, because 2 <= 10."
+      - text: "[(2, 3), (1, 10)]"
+        correct: false
+        explanation: "Misconception: the input order is kept. The merge sorts by start first."
+  - id: q03-3
+    type: mcq
+    text: |
+      Reservations are half-open and touching periods are merged. What does merge_reservations([(1, 5), (5, 8)]) return?
+
+      Hint: compare the next start with the last end using the condition from the lesson.
+    concepts: [interval-merge, half-open-interval]
+    options:
+      - text: "[(1, 8)]"
+        correct: true
+        explanation: "start <= last_end is 5 <= 5, so the touching periods join into one busy period."
+      - text: "[(1, 5), (5, 8)]"
+        correct: false
+        explanation: "Misconception: only overlapping periods merge, so the test is start < last_end. The problem asks to merge touching periods too."
+      - text: "[(1, 5)]"
+        correct: false
+        explanation: "Misconception: a merge drops the later interval. It stretches the last period's end instead."
+  - id: q03-4
+    type: mcq
+    text: |
+      Hosts hv1 and hv2 each have 10 CPUs. Requests arrive as 4, 4, 6, 6 CPUs and RAM is plentiful. What does first-fit give in arrival order, and in largest-first order?
+
+      Hint: fill hv1 first each time and track what is left on each host.
+    concepts: [first-fit, largest-first]
+    options:
+      - text: "Arrival order leaves one 6-CPU VM unplaced; largest-first places all four"
+        correct: true
+        explanation: "Arrival: hv1 gets 4 + 4, hv2 gets one 6, the second 6 fits nowhere. Largest-first: a 6 on each host, then a 4 beside each."
+      - text: "Both orders place all four VMs"
+        correct: false
+        explanation: "Misconception: total capacity decides. 20 CPUs are enough in total, but in arrival order the second 6 finds 2 CPUs on hv1 and 4 on hv2."
+      - text: "Both orders leave one VM unplaced"
+        correct: false
+        explanation: "Misconception: order cannot change a greedy result. Largest-first places each 6 on its own host and the 4s in the gaps."
+      - text: "Largest-first leaves a VM unplaced; arrival order places all four"
+        correct: false
+        explanation: "Misconception: big VMs first always waste space. Here the reverse happens; trace both orders."
+  - id: q03-5
+    type: mcq
+    text: |
+      What does peak_concurrency([(1, 5), (5, 8)]) return for half-open reservations?
+
+      Hint: at time 5, which event does the plain tuple sort apply first?
+    concepts: [sweep-line, half-open-interval]
     sources: [12]
-    code: |
-      for start, end in sorted([(6, 8), (1, 4), (2, 3), (8, 9)]):
-          if merged and start <= merged[-1][1]:
-              merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-          else:
-              merged.append((start, end))
-    variables: [merged]
-    steps:
-      - {label: "After (1, 4)", values: {merged: "[(1, 4)]"}}
-      - {label: "After (2, 3)", values: {merged: "[(1, 4)]"}}
-      - {label: "After (6, 8)", values: {merged: "[(1, 4), (6, 8)]"}}
-      - {label: "After (8, 9)", values: {merged: "[(1, 4), (6, 9)]"}}
-    explanation: "Sorted order is (1,4), (2,3), (6,8), (8,9). (2,3) lies inside (1,4) and max keeps the end at 4. (8,9) touches (6,8) because 8 <= 8, so they merge into (6,9)."
+    options:
+      - text: "1"
+        correct: true
+        explanation: "(5, -1) sorts before (5, 1), so the first VM leaves before the second arrives. The running count goes 1, 0, 1, 0."
+      - text: "2"
+        correct: false
+        explanation: "Misconception: touching reservations run at the same time. With half-open ranges the first one has stopped at 5."
+      - text: "0"
+        correct: false
+        explanation: "Misconception: an end and a start at the same time cancel out to nothing. Each reservation still runs alone."
+  - id: q03-6
+    type: mcq
+    text: |
+      What does sorted([(5, 1), (5, -1), (3, 1)]) return?
+
+      Hint: when the first fields tie, Python looks at the second.
+    concepts: [tuple-comparison, sweep-line]
+    sources: [12]
+    options:
+      - text: "[(3, 1), (5, -1), (5, 1)]"
+        correct: true
+        explanation: "Tuples compare left to right; at time 5 the -1 is smaller than 1, so the end event comes first."
+      - text: "[(3, 1), (5, 1), (5, -1)]"
+        correct: false
+        explanation: "Misconception: tuples compare on the first field only, so ties keep input order. The second field breaks the tie."
+      - text: "[(5, -1), (3, 1), (5, 1)]"
+        correct: false
+        explanation: "Misconception: the second field is compared first. Python compares the first field first."
+  - id: q03-7
+    type: mcq
+    text: |
+      hv1 has 8 free CPUs and hv2 has 5. A VM needs 4 CPUs (RAM fits everywhere). Which host does best-fit choose?
+
+      Hint: "best" means the tightest fit, not the most room.
+    concepts: [best-fit, first-fit]
+    options:
+      - text: "hv2, leaving 1 CPU"
+        correct: true
+        explanation: "Best-fit picks the host left with the least free CPU after placing the VM: 1 on hv2 against 4 on hv1."
+      - text: "hv1, leaving 4 CPUs"
+        correct: false
+        explanation: "Misconception: best-fit picks the host with the most room. That is what first-fit gives here only because hv1 is listed first."
+      - text: "Neither, because the VM fits two hosts"
+        correct: false
+        explanation: "Misconception: more than one fitting host is a conflict. The strategy exists to choose among them."
+  - id: q03-8
+    type: mcq
+    text: |
+      A host has 8 free CPUs and 4 GB free RAM. A VM asks for 2 CPUs and 16 GB. What does place_vms do with it?
+
+      Hint: how many resources does the fit check look at?
+    concepts: [first-fit, resource-check]
+    options:
+      - text: "Leaves it unplaced"
+        correct: true
+        explanation: "A VM fits only when both CPU and RAM fit; 16 GB does not fit in 4."
+      - text: "Places it, because CPU fits"
+        correct: false
+        explanation: "Misconception: CPU is the only resource to check. The fit condition is c >= cpu and r >= ram."
+      - text: "Raises ValueError"
+        correct: false
+        explanation: "Misconception: a VM that does not fit is an error. It is simply returned in the unplaced list."
+  - id: q03-9
+    type: mcq
+    text: |
+      merge_reservations must not modify the caller's list. Which loop header keeps that promise and still loops in sorted order?
+
+      Hint: one sorting tool returns a new list; the other changes the list it is called on.
+    concepts: [sort-vs-sorted, input-mutation]
+    sources: [12]
+    options:
+      - text: "for start, end in sorted(reservations):"
+        correct: true
+        explanation: "sorted() builds a new list, so the caller's list is untouched."
+      - text: "reservations.sort(), then for start, end in reservations:"
+        correct: false
+        explanation: "Misconception: sorting in place is harmless. .sort() reorders the caller's own list."
+      - text: "for start, end in reservations[:].sort():"
+        correct: false
+        explanation: "Misconception: .sort() returns the sorted copy. It returns None, so this loop raises TypeError."
   - id: q03-2
     type: spot
-    text: "This sweep gives the wrong peak for [(1, 5), (5, 8)]. Which line is the bug?"
+    text: |
+      This sweep gives the wrong peak for [(1, 5), (5, 8)]. Which line is the bug?
+
+      Hint: at time 5, which event should be applied first for half-open reservations?
     concepts: [sweep-line, half-open-interval]
     sources: [12]
     code: |
@@ -33,38 +163,3 @@ questions:
       events.sort(key=lambda e: (e[0], -e[1]))
     correct: [5]
     explanation: "Sorting by (time, -delta) puts starts (-1) before ends (+1) at the same time, so the VM ending at 5 and the VM starting at 5 are counted together. Plain events.sort() orders (5, -1) before (5, 1)."
-  - id: q03-3
-    type: fill
-    text: "Complete the heap-based peak: before adding a reservation, remove every VM that has already ended."
-    concepts: [heap, peak-concurrency]
-    sources: [8]
-    template: |
-      while ends and ends[0] {{1}} start:
-          heapq.{{2}}(ends)
-      heapq.{{3}}(ends, end)
-    chips:
-      - {text: "<=", slot: 1, explanation: "A VM ending exactly at start has already stopped, because intervals are half-open."}
-      - {text: "heappop", slot: 2, explanation: "Removes the smallest end time, the VM that finished earliest."}
-      - {text: "heappush", slot: 3, explanation: "Adds the new reservation's end time to the heap of running VMs."}
-      - {text: "heapify", explanation: "heapify converts a whole list into a heap; it does not remove or add one item."}
-  - id: q03-4
-    type: mcq
-    text: "Hosts hv1 and hv2 each have 10 CPUs. Requests arrive as 4, 4, 6, 6 CPUs and RAM is plentiful. What does first-fit give in arrival order, and in largest-first order?"
-    concepts: [first-fit, largest-first]
-    sources: [155]
-    options:
-      - {text: "Arrival order leaves one 6-CPU VM unplaced; largest-first places all four", correct: true, explanation: "Arrival: hv1 gets 4+4, hv2 gets one 6, the second 6 fits nowhere. Largest-first: a 6 on each host, then a 4 beside each."}
-      - {text: "Both orders place all four VMs", correct: false, explanation: "In arrival order the second 6 finds 2 CPUs left on hv1 and 4 left on hv2."}
-      - {text: "Both orders leave one VM unplaced", correct: false, explanation: "Largest-first places each 6 on its own host and the 4s in the gaps."}
-      - {text: "Largest-first leaves a VM unplaced; arrival order places all four", correct: false, explanation: "The reverse of what happens."}
-  - id: q03-5
-    type: sort
-    text: "Sort each statement about placement strategies."
-    concepts: [first-fit, best-fit, bin-packing]
-    sources: [155]
-    buckets: ["True of the heuristics here", "Not true"]
-    items:
-      - {text: "They run in O(V * H) time for V requests and H hosts", bucket: "True of the heuristics here", explanation: "Each request scans the hosts once."}
-      - {text: "They filter hosts that can take the VM, then choose among them", bucket: "True of the heuristics here", explanation: "The same two-phase shape as Nova's filter then weigh."}
-      - {text: "They are guaranteed to find a perfect packing when one exists", bucket: "Not true", explanation: "Greedy choices can block a better arrangement."}
-      - {text: "The result does not depend on the order of the requests", bucket: "Not true", explanation: "Order changes which VMs fit, which is why largest-first helps."}

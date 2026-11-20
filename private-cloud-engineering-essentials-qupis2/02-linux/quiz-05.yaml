@@ -3,63 +3,106 @@ id: q05
 title: "Check: permissions and disks"
 questions:
   - id: q05-1
-    type: trace
-    text: "A process runs `touch f; mkdir d` under each umask. `touch` asks for mode 0666 and `mkdir` for 0777. What modes (three octal digits) do f and d get?"
-    concepts: [umask, permission-bits]
+    type: mcq
+    text: |
+      Which letters does the octal digit 5 stand for?
+
+      Hint: break 5 into 4, 2 and 1.
+    concepts: [permission-bits]
     sources: [122]
-    code: |
-      umask 022; touch f; mkdir d
-      umask 027; touch f; mkdir d
-      umask 077; touch f; mkdir d
-      umask 002; touch f; mkdir d
-    variables: [file, dir]
-    steps:
-      - {label: "umask 022", values: {file: "644", dir: "755"}}
-      - {label: "umask 027", values: {file: "640", dir: "750"}}
-      - {label: "umask 077", values: {file: "600", dir: "700"}}
-      - {label: "umask 002", values: {file: "664", dir: "775"}}
-    explanation: "The umask turns bits off: 0666 & ~022 = 0644 and 0777 & ~022 = 0755. With 027 the group loses write and others lose everything: 640 and 750. 077 leaves only the owner. 002 keeps group write, the usual setting for shared team directories."
+    options:
+      - {text: "r-x", correct: true, explanation: "5 = 4 + 1: read and execute, no write."}
+      - {text: "rw-", correct: false, explanation: "Misconception: the 1 is write. Write is 2 and execute is 1, so rw- is 6."}
+      - {text: "-wx", correct: false, explanation: "Misconception: the digits count up from write. -wx is 2 + 1 = 3."}
+      - {text: "r--", correct: false, explanation: "Misconception: odd digits drop a bit. r-- is 4; 5 adds the execute bit."}
   - id: q05-2
-    type: sort
-    text: "User bob is in the file's group. For each action, whose mode decides whether he may do it?"
-    concepts: [directory-permissions, permission-bits]
+    type: mcq
+    text: |
+      `app.conf` is mode 640, owner alice, group ops. User carol is not alice and not in ops. What can carol do with the file?
+
+      Hint: read the third digit.
+    concepts: [permission-bits]
     sources: [122]
-    buckets: ["The directory's mode", "The file's own mode"]
-    items:
-      - {text: "Delete a file he does not own", bucket: "The directory's mode", explanation: "Removing a name needs write permission on the directory, not on the file."}
-      - {text: "Create a new file", bucket: "The directory's mode", explanation: "A new entry is added to the directory, so the directory needs w (and x)."}
-      - {text: "Reach dir/sub/file by its path", bucket: "The directory's mode", explanation: "Every directory on the path needs search (x) permission."}
-      - {text: "Append a line to the file", bucket: "The file's own mode", explanation: "Writing content needs w on the file itself."}
-      - {text: "Read the file's content", bucket: "The file's own mode", explanation: "Reading needs r on the file (and x on the directories above it)."}
-      - {text: "Run the file as a program", bucket: "The file's own mode", explanation: "Execution needs x on the file; even root needs at least one x bit set."}
+    options:
+      - {text: "Nothing: the other digit is 0", correct: true, explanation: "640 is rw- for the owner, r-- for the group and --- for everyone else."}
+      - {text: "Read it, because 4 is read", correct: false, explanation: "Misconception: the 4 belongs to everyone. The middle digit 4 is the group's; carol is not in the group."}
+      - {text: "Read and write it, because 6 is rw-", correct: false, explanation: "Misconception: the first digit is for all users. The first digit is only the owner's."}
+      - {text: "Read it, because config files are always world-readable", correct: false, explanation: "Misconception: file type sets the rights. Only the mode does; 644 would be world-readable, 640 is not."}
   - id: q05-3
-    type: fill
-    text: "Pick the mode for each path."
-    concepts: [permission-bits, special-bits]
+    type: mcq
+    text: |
+      A file is mode 0604, owner alice, group ops. bob is in ops but is not alice. Can bob read it?
+
+      Hint: the kernel uses exactly one digit per user.
+    concepts: [permission-bits]
     sources: [122]
-    template: |
-      chmod {{1}} ~/.ssh/id_ed25519      # private key: owner read and write only
-      chmod {{2}} /srv/team             # team dir: group writes, new files get the dir's group
-      chmod {{3}} /srv/shared           # anyone writes, only owners delete their files
-    chips:
-      - {text: "600", slot: 1, explanation: "rw------- : nobody but the owner can read the key."}
-      - {text: "2775", slot: 2, explanation: "The leading 2 is setgid; on a directory new files inherit its group."}
-      - {text: "1777", slot: 3, explanation: "The leading 1 is the sticky bit, as on /tmp: only the owner of a file (or of the directory) may delete it."}
-      - {text: "777", explanation: "World-writable with no sticky bit: any user can delete anyone's file."}
-      - {text: "4755", explanation: "The leading 4 is setuid, which matters for programs, not for these paths."}
+    options:
+      - {text: "No: as a group member he gets only the group digit, 0", correct: true, explanation: "Owner digit if you own it, else group digit if you are in its group, else other. bob gets 0 even though others get 4."}
+      - {text: "Yes: the other digit 4 lets everyone read", correct: false, explanation: "Misconception: a user gets every digit that matches. Once the group digit applies, the other digit is never checked."}
+      - {text: "Yes: the digits are added, 0 + 4 = 4", correct: false, explanation: "Misconception: permissions from several classes combine. Only one class applies."}
+      - {text: "No, because only the owner can ever read a file", correct: false, explanation: "Misconception: reading is owner-only. With 0640 the group could read; here the group digit is simply 0."}
   - id: q05-4
     type: mcq
-    text: "A 2 GB log was deleted with rm, but `df -h` still shows the same usage and `du` no longer counts the file. What is the most likely cause?"
-    concepts: [inodes, deleted-open-files]
+    text: |
+      bob may write in /srv/team (mode 770, group ops, bob is in ops). Inside is `notes.txt`, mode 0400, owned by alice. Can bob delete it?
+
+      Hint: deleting changes which list?
+    concepts: [directory-permissions]
+    sources: [122]
+    options:
+      - {text: "Yes: removing a name needs write on the directory, not on the file", correct: true, explanation: "A delete edits the directory's list of names. The test run showed bob deleting alice's 0400 file in a 770 directory."}
+      - {text: "No: the file is read-only (0400)", correct: false, explanation: "Misconception: deleting needs write on the file. The file's mode decides its content, not whether its name can be removed."}
+      - {text: "No: only the owner can delete a file", correct: false, explanation: "Misconception: ownership controls deletion in every directory. That is only true in a sticky directory such as /tmp."}
+      - {text: "Only with execute permission on the file", correct: false, explanation: "Misconception: x on the file matters for deletion. x on the file only matters for running it."}
+  - id: q05-5
+    type: mcq
+    text: |
+      A directory is mode 710, owner alice, group ops. bob is in ops. Inside is `report.txt`, mode 0640, group ops. What can bob do?
+
+      Hint: the group digit of the directory is 1. What does x alone allow on a directory?
+    concepts: [directory-permissions]
+    sources: [122]
+    options:
+      - {text: "cat dir/report.txt works, but ls dir is denied", correct: true, explanation: "x lets him pass through to a name he already knows; without r he cannot list the names. That matches the test run."}
+      - {text: "ls dir works, but cat dir/report.txt is denied", correct: false, explanation: "Misconception: x on a directory means list. That is r; the 740 row shows r without x: ls works, cat is denied."}
+      - {text: "Nothing at all: 1 is too little to use a directory", correct: false, explanation: "Misconception: a directory needs r to be used. x is search, enough to reach a known file."}
+      - {text: "He can also create files, since he can enter the directory", correct: false, explanation: "Misconception: entering means writing. Creating a name needs w on the directory."}
+  - id: q05-6
+    type: mcq
+    text: |
+      A 2 GB log was deleted with rm, but `df -h` shows the same usage and `du` no longer counts the file. What is the most likely cause?
+
+      Hint: when is a file's data actually freed?
+    concepts: [deleted-open-files, df-du]
     sources: [115, 122]
     options:
-      - {text: "A running process still holds the file open, so its data is not freed yet", correct: true, explanation: "unlink removes the name; the data stays until the last open descriptor is closed. lsof +L1 lists such files."}
-      - {text: "df caches its numbers for a few minutes", correct: false, explanation: "df reads the current filesystem statistics; there is no such cache."}
-      - {text: "The file had a symlink pointing to it, which keeps the data alive", correct: false, explanation: "A symlink stores only a path and does not count as a link to the inode."}
-      - {text: "The filesystem ran out of inodes", correct: false, explanation: "Running out of inodes stops new files from being created; it does not keep deleted data on disk."}
-  - id: q05-5
-    type: short
-    text: "`touch` fails with \"No space left on device\" but `df -h` shows the filesystem 2% used. Which command (with its option) do you run next?"
-    concepts: [inodes, df]
+      - {text: "A running process still holds the file open, so its data is not freed yet", correct: true, explanation: "rm removes the name; data is freed when the last name is gone and no process holds it open. lsof +L1 lists such files."}
+      - {text: "df caches its numbers for a few minutes", correct: false, explanation: "Misconception: df lags behind. It reads the filesystem's current numbers; the blocks really are still used."}
+      - {text: "du is wrong, because it cannot read the log's directory", correct: false, explanation: "Misconception: du missed the file by accident. du sums files by name, and the name is gone."}
+      - {text: "The filesystem ran out of inodes", correct: false, explanation: "Misconception: inode exhaustion keeps data around. Running out of inodes stops new files; it does not hold deleted data."}
+  - id: q05-7
+    type: mcq
+    text: |
+      `touch` fails with "No space left on device", but `df -h` shows the filesystem 2% used. What do you run next?
+
+      Hint: blocks are not the only thing a filesystem can run out of.
+    concepts: [inodes, df-du]
     sources: [114]
-    answers: ["df -i", "df --inodes", "df -i /var/spool/vmjobs", "df -hi", "df -ih"]
+    options:
+      - {text: "df -i", correct: true, explanation: "It shows inodes; one per file. Many small files can use 100% of them while blocks are free."}
+      - {text: "lsof +L1", correct: false, explanation: "Misconception: every df puzzle is a deleted-open file. That explains df higher than du, not 2% used with no room."}
+      - {text: "du -sh /", correct: false, explanation: "Misconception: du finds any kind of full. du -sh sums blocks, and blocks are fine here; du -s --inodes would help after df -i."}
+      - {text: "chmod 777 on the directory", correct: false, explanation: "Misconception: 'no space' is a permission problem. Permission errors say Permission denied."}
+  - id: q05-8
+    type: mcq
+    text: |
+      `/srv/exports` is mode 750, owner root, group export. The export job runs as user export (in group export) and cannot create its output file there. Which fix is right?
+
+      Hint: give the group exactly what it lacks.
+    concepts: [directory-permissions, permission-bits]
+    sources: [122]
+    options:
+      - {text: "chmod 770 /srv/exports", correct: true, explanation: "The group digit goes from 5 (r-x) to 7 (rwx), adding the missing write; others still get nothing."}
+      - {text: "chmod 777 /srv/exports", correct: false, explanation: "Misconception: if it works it is fine. 777 lets every user on the box replace or delete the exports."}
+      - {text: "chmod 750 on the output file", correct: false, explanation: "Misconception: the new file's mode matters. Creating a name needs w on the directory, and the file does not exist yet."}
+      - {text: "Test it as root first; if root can write, the mode is fine", correct: false, explanation: "Misconception: root shows what users can do. Root skips read and write checks; test as the service's user."}

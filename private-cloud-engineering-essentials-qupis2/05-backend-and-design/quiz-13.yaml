@@ -2,67 +2,103 @@ schemaVersion: 1
 id: q13
 title: "Check: designing the VM provisioning service"
 questions:
-  - id: q13-1
-    type: hotspot
-    text: "Click the component that is the single source of truth for which VMs should exist and what state they are in."
-    concepts: [source-of-truth, provisioning-architecture]
-    sources: [158]
-    image: resources/ch05/vm-provisioning.svg
-    alt: "Architecture of the VM provisioning service: client, API service, auth and quotas, job queue, worker, scheduler, IPAM, hypervisors, database, reconciler and image store, joined by numbered arrows."
-    regions:
-      - {name: "Database", correct: true, shape: rect, x: 43, y: 60, w: 14, h: 13, explanation: "The relational database holds desired state: every VM row, its state, host, IP and quota usage. Everything else acts on it or is compared with it."}
-      - {name: "Job queue", shape: rect, x: 43, y: 35, w: 14, h: 13, explanation: "The queue holds work waiting for a worker. Jobs can be lost or expire; it is not the record of what should exist."}
-      - {name: "Hypervisors", shape: rect, x: 85, y: 34, w: 14.6, h: 14, explanation: "The hypervisors hold the actual state. When they disagree with the database, the reconciler decides what to repair; they are not the record of intent."}
-      - {name: "Reconciler", shape: rect, x: 64, y: 60, w: 14, h: 13, explanation: "The reconciler compares desired and actual state; it stores neither."}
   - id: q13-2
-    type: fill
-    text: "Put the steps of one create request in order."
-    concepts: [provisioning-request-flow]
-    sources: [52, 50]
-    template: |
-      {{1}}
-      {{2}}
-      {{3}}
-      {{4}}
-      {{5}}
-      {{6}}
-    chips:
-      - {text: "Check quota and insert the VM row as BUILDING, in one transaction", slot: 1, explanation: "Desired state is recorded first, so nothing later can lose the request."}
-      - {text: "Enqueue the provision job and return 202 with a status URL", slot: 2, explanation: "Enqueue after the commit, then answer at once."}
-      - {text: "A worker filters and weighs hosts and claims capacity on one", slot: 3, explanation: "Placement happens in the worker, before any host work."}
-      - {text: "Reserve an IP address for the VM", slot: 4, explanation: "The address must be known before the guest's first boot configuration is written."}
-      - {text: "Create the disk, define and start the domain through libvirt", slot: 5, explanation: "The slow host-side work."}
-      - {text: "Mark the VM ACTIVE with its host and IP", slot: 6, explanation: "The status resource now shows the result."}
-      - {text: "Return 201 Created with the VM's IP address", explanation: "The VM does not exist yet when the API answers, so 201 and an IP are not available."}
+    type: mcq
+    text: |
+      The interviewer says "design a self-service VM service". What do you do first?
+
+      Hint: what do you need before you can defend any box?
+    concepts: [design-routine]
+    options:
+      - {text: "State requirements and do the numbers: load, VM size, capacity", correct: true, explanation: "Numbers come first; without them you cannot justify one database or an overcommit ratio."}
+      - {text: "Draw the components: API, database, queue, workers", correct: false, explanation: "Misconception: boxes are the design. Boxes drawn before the load is known cannot be justified."}
+      - {text: "List the failure modes at each arrow", correct: false, explanation: "Misconception: failures are the opening move. They are step 5; there are no arrows yet."}
+      - {text: "Write the Flask code for POST /v1/vms", correct: false, explanation: "Misconception: a design round wants code. It wants the talk-through; the API is step 2 and stays at the contract level."}
+  - id: q13-1
+    type: mcq
+    text: |
+      Which component is the single source of truth for which VMs should exist and what state they are in?
+
+      Hint: which side is "desired" and which is "actual"?
+    concepts: [source-of-truth, provisioning-architecture]
+    options:
+      - {text: "The database", correct: true, explanation: "It holds desired state: every VM row, its state, host, IP and quota. Everything else acts on it or is compared with it."}
+      - {text: "The job queue", correct: false, explanation: "Misconception: queued work records intent. Jobs can be lost or expire; the queue is not the record of what should exist."}
+      - {text: "The hypervisors", correct: false, explanation: "Misconception: what runs is what should run. Hosts hold actual state; the reconciler compares them with the database."}
+      - {text: "The reconciler", correct: false, explanation: "Misconception: the component that repairs also stores. The reconciler compares desired and actual state and stores neither."}
+  - id: q13-4
+    type: mcq
+    text: |
+      A host has 32 cores and 248 GiB free for VMs. Each VM is 4 vCPUs and 8 GiB. With no overcommit, how many VMs fit on the host?
+
+      Hint: work out the fit by CPU and by RAM separately.
+    concepts: [capacity-estimation]
+    options:
+      - {text: "8", correct: true, explanation: "CPU fits 32 / 4 = 8, RAM fits 248 / 8 = 31; the smaller wins, so CPU is the limit."}
+      - {text: "31", correct: false, explanation: "Misconception: RAM alone sets capacity. CPU runs out first at 8."}
+      - {text: "32", correct: false, explanation: "Misconception: count cores, not VMs. 32 cores hold 8 VMs of 4 vCPUs each."}
+      - {text: "2400", correct: false, explanation: "Misconception: per host and per fleet are the same number. 2400 is 8 per host times 300 hosts."}
   - id: q13-3
     type: mcq
-    text: "Hosts have 32 cores and 248 GiB of RAM available for VMs. Every VM is 4 vCPUs and 8 GiB. The CPU allocation ratio is 4.0 and the RAM ratio is 1.0. How many VMs fit on one host?"
+    text: |
+      Same host and VM size, but now the CPU allocation ratio is 4.0 and the RAM ratio stays 1.0. How many VMs fit?
+
+      Hint: recompute both limits; the ratio applies to one resource only.
     concepts: [capacity-estimation, overcommit]
     sources: [155, 156]
     options:
-      - {text: "31", correct: true, explanation: "CPU allows 32 × 4.0 / 4 = 32 VMs, RAM allows 248 / 8 = 31. The smaller wins, so RAM is now the limit."}
-      - {text: "8", correct: false, explanation: "That is the figure with no CPU overcommit (32 / 4). The ratio of 4.0 raises the CPU limit."}
-      - {text: "32", correct: false, explanation: "That is the CPU limit alone; it ignores that RAM runs out first."}
-      - {text: "124", correct: false, explanation: "That applies the CPU ratio to RAM as well. The RAM ratio is 1.0, so RAM is not overcommitted."}
-  - id: q13-4
-    type: match
-    text: "The reconciler compares the database with a host. Match each difference to the action this design takes."
-    concepts: [reconciliation-loop]
-    sources: [160]
-    pairs:
-      - {left: "Database says ACTIVE; the host has no such domain", right: "Mark the VM ERROR and alert; do not recreate it silently", explanation: "The user's data is gone; a silent rebuild would hide a real incident."}
-      - {left: "A domain runs on the host; the database has no row for it", right: "Treat it as an orphan: shut it down after a grace period, delete it later", explanation: "Two stages give a human time to notice a mistake before data is destroyed."}
-      - {left: "Database says BUILDING with no progress for 15 minutes", right: "Re-enqueue the idempotent provision job", explanation: "The job was lost or its worker died; the rerun skips finished steps."}
-    distractors:
-      - "Delete it immediately on the first pass"
-      - "Ignore it; the queue will retry it"
+      - {text: "31", correct: true, explanation: "CPU allows 32 × 4.0 / 4 = 32, RAM allows 248 / 8 = 31. The smaller wins, so RAM is now the limit."}
+      - {text: "8", correct: false, explanation: "Misconception: the ratio changes nothing. That is the no-overcommit figure; 4.0 raises the CPU limit to 32."}
+      - {text: "32", correct: false, explanation: "Misconception: only the overcommitted resource counts. RAM runs out first at 31."}
+      - {text: "124", correct: false, explanation: "Misconception: the CPU ratio applies to RAM too. The RAM ratio is 1.0."}
   - id: q13-5
     type: mcq
-    text: "Central workers reach every hypervisor with libvirt over SSH (`qemu+ssh://root@host/system`). What is the main cost of this choice compared with an agent on each host?"
-    concepts: [libvirt-remote, hypervisor-execution]
-    sources: [92, 158]
+    text: |
+      Why does the design overcommit CPU at 4.0 but keep RAM at 1.0?
+
+      Hint: compare what happens when each resource runs short.
+    concepts: [overcommit]
+    sources: [120, 155]
     options:
-      - {text: "The workers' SSH key gives root-equivalent control of every host, so it must be guarded like a production secret", correct: true, explanation: "A read-write system connection to libvirt is equivalent to a root shell, and this key opens one to all hosts."}
-      - {text: "libvirt cannot manage a remote host, so this does not work", correct: false, explanation: "Remote URIs with an ssh transport are a standard libvirt feature."}
-      - {text: "Every host needs extra software installed and upgraded", correct: false, explanation: "That is the cost of the agent option, not of SSH from central workers."}
-      - {text: "libvirt then chooses the host itself, so the scheduler loses control", correct: false, explanation: "libvirt works on one node and leaves policies such as load balancing to the tools above it."}
+      - {text: "Short CPU only slows VMs down; short RAM lets the OOM killer kill a process, which may be a whole guest", correct: true, explanation: "CPU contention degrades; memory exhaustion makes the kernel kill a process, and each guest is a process on the host."}
+      - {text: "RAM overcommit also only causes contention", correct: false, explanation: "Misconception: memory shares like CPU time. When memory runs out, the OOM killer kills a process."}
+      - {text: "RAM is cheaper than CPU, so there is always enough", correct: false, explanation: "Misconception: price decides the ratio. The ratio is about what fails when the resource runs out."}
+      - {text: "KVM cannot overcommit memory at all", correct: false, explanation: "Misconception: 1.0 is a hard limit of the hypervisor. It is a policy choice; the ratio could be set higher."}
+  - id: q13-6
+    type: mcq
+    text: |
+      Hosts hold `{"kvm-1": 5, "kvm-2": 7, "kvm-3": 8}` VMs, each with 8 slots. The weigher packs. Which host is chosen?
+
+      Hint: filter first, then weigh what is left.
+    concepts: [placement]
+    sources: [155]
+    options:
+      - {text: "kvm-2", correct: true, explanation: "kvm-3 is full and filtered out; of kvm-1 and kvm-2, pack takes the fullest that still fits."}
+      - {text: "kvm-3", correct: false, explanation: "Misconception: weigh before filtering. kvm-3 has no free slot, so the filter removes it first."}
+      - {text: "kvm-1", correct: false, explanation: "Misconception: pack means the emptiest. That is spread; pack fills the fullest host that fits."}
+      - {text: "No host fits", correct: false, explanation: "Misconception: one full host blocks placement. kvm-1 and kvm-2 still have room."}
+  - id: q13-7
+    type: mcq
+    text: |
+      A worker runs `UPDATE hosts SET used = used + 1 WHERE name = 'kvm-2' AND used + 1 <= total` and it reports 0 rows updated. What does that mean?
+
+      Hint: what makes the WHERE clause false?
+    concepts: [placement, conditional-write]
+    options:
+      - {text: "Another worker took the last slot first; try the next host", correct: true, explanation: "The condition failed because the room is gone. The conditional write is what settles the race."}
+      - {text: "The slot is claimed; 0 means success", correct: false, explanation: "Misconception: the return value is an error code. It is a row count; 1 means the claim worked."}
+      - {text: "The database failed; mark the VM ERROR", correct: false, explanation: "Misconception: 0 rows is a failure of the database. It is a normal lost race; the worker moves on."}
+      - {text: "Read the host's free slots again and, if any show, place there without the condition", correct: false, explanation: "Misconception: a fresh read is enough. Two workers can both read room; only the conditional write prevents the overfill."}
+  - id: q13-8
+    type: mcq
+    text: |
+      The reconciler sees, on two passes in a row, that the database says ACTIVE for a VM but its host has no such domain. What does this design do?
+
+      Hint: the user's disk may be gone. Should that be hidden?
+    concepts: [reconciliation-loop]
+    sources: [160]
+    options:
+      - {text: "Mark the VM ERROR and alert; do not recreate it silently", correct: true, explanation: "The user's data may be lost; a silent rebuild would hide a real incident."}
+      - {text: "Recreate the VM on the same host at once", correct: false, explanation: "Misconception: reconciling means always making actual match desired. A silent rebuild hides data loss."}
+      - {text: "Delete the database row so both sides agree", correct: false, explanation: "Misconception: the host is the source of truth. The database holds desired state; deleting it erases the user's request."}
+      - {text: "Nothing; the queue will retry it", correct: false, explanation: "Misconception: the queue tracks running VMs. The job finished long ago; nothing will retry it."}

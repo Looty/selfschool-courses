@@ -2,9 +2,174 @@ schemaVersion: 1
 id: q01
 title: "Check: the Python you type from memory"
 questions:
+  - id: q01-2
+    type: mcq
+    text: |
+      What does Counter(["x", "y", "x"])["z"] return?
+
+      Hint: think of a tally sheet and a name that is not written on it.
+    concepts: [counter, counting]
+    sources: [9]
+    options:
+      - text: "0"
+        correct: true
+        explanation: "A Counter reads a missing key as a count of 0 and does not raise."
+      - text: "KeyError"
+        correct: false
+        explanation: "Misconception: a Counter behaves like a plain dict for missing keys. Only a plain dict raises KeyError on d[key]."
+      - text: "None"
+        correct: false
+        explanation: "Misconception: indexing a Counter works like dict.get. A missing count is 0, a number you can add to."
+      - text: "1"
+        correct: false
+        explanation: "Misconception: reading a key adds a tick. Reading does not count anything; 'z' was never in the input."
+  - id: q01-3
+    type: mcq
+    text: |
+      What does Counter(["b", "a", "b", "a"]).most_common(1) return?
+
+      Hint: both letters have the same count. Which one did the Counter meet first?
+    concepts: [counter, most-common-ties]
+    sources: [9]
+    options:
+      - text: "[('b', 2)]"
+        correct: true
+        explanation: "a and b tie at 2, and most_common keeps ties in first-seen order; b came first."
+      - text: "[('a', 2)]"
+        correct: false
+        explanation: "Misconception: most_common breaks ties alphabetically. It keeps first-seen order, so sort with (-count, name) when you need alphabetical."
+      - text: "[('b', 2), ('a', 2)]"
+        correct: false
+        explanation: "Misconception: most_common(k) returns every item tied with the k-th. It returns exactly k items."
+      - text: "[(2, 'b')]"
+        correct: false
+        explanation: "Misconception: the pair is (count, item). most_common returns (item, count) pairs."
+  - id: q01-4
+    type: mcq
+    text: |
+      buckets = defaultdict(list). Then you run value = buckets.get("k") and check "k" in buckets. What are value and the check?
+
+      Hint: only one way of reading a defaultdict calls its factory.
+    concepts: [defaultdict, grouping]
+    sources: [9]
+    options:
+      - text: "None and False"
+        correct: true
+        explanation: "get never calls the factory, so it returns None and adds no key. Only buckets['k'] creates the empty list."
+      - text: "[] and True"
+        correct: false
+        explanation: "Misconception: get also triggers the default. That is what buckets['k'] does, not get."
+      - text: "[] and False"
+        correct: false
+        explanation: "Misconception: get returns the default without storing it. get does not call the factory at all, so it returns None."
+      - text: "KeyError"
+        correct: false
+        explanation: "Misconception: get raises on a missing key. get never raises; it returns None or the default you pass."
+  - id: q01-5
+    type: mcq
+    text: |
+      groups = dict.fromkeys(["a", "b"], []), then groups["a"].append(1). What is groups?
+
+      Hint: how many list objects did the call create?
+    concepts: [dict-fromkeys, shared-mutable, code-review]
+    sources: [15]
+    options:
+      - text: "{'a': [1], 'b': [1]}"
+        correct: true
+        explanation: "fromkeys puts the same single list under every key, so appending through 'a' shows under 'b' too. Use defaultdict(list) or a dict comprehension."
+      - text: "{'a': [1], 'b': []}"
+        correct: false
+        explanation: "Misconception: fromkeys copies the value for each key. It reuses one object."
+      - text: "{'a': [1]}"
+        correct: false
+        explanation: "Misconception: fromkeys creates keys lazily like defaultdict. Both keys exist right after the call."
+      - text: "TypeError, because a list cannot be a dict value"
+        correct: false
+        explanation: "Misconception: dict values must be hashable. Only keys must be hashable; any object can be a value."
+  - id: q01-6
+    type: mcq
+    text: |
+      pairs = [("c", 2), ("a", 3), ("b", 2)]. What does sorted(pairs, key=lambda p: -p[1]) return?
+
+      Hint: the key looks only at the count. What happens to the two items with count 2?
+    concepts: [sorting-keys, sort-stability]
+    sources: [12]
+    options:
+      - text: "[('a', 3), ('c', 2), ('b', 2)]"
+        correct: true
+        explanation: "Highest count first. c and b have equal keys, and the stable sort keeps them in input order."
+      - text: "[('a', 3), ('b', 2), ('c', 2)]"
+        correct: false
+        explanation: "Misconception: ties are broken by the rest of the item. Only the key is compared; to get b before c add the name: (-p[1], p[0])."
+      - text: "[('c', 2), ('b', 2), ('a', 3)]"
+        correct: false
+        explanation: "Misconception: negating does not change the order. Sorting -count ascending puts the largest count first."
+      - text: "[('b', 2), ('c', 2), ('a', 3)]"
+        correct: false
+        explanation: "Misconception: negation sorts names. The key is a number only; this is ascending count with alphabetical ties."
+  - id: q01-7
+    type: mcq
+    text: |
+      pairs = [("a", 2), ("b", 2), ("c", 3)]. What does sorted(pairs, key=lambda p: (p[1], p[0]), reverse=True) return?
+
+      Hint: reverse flips the whole comparison, not just its first field.
+    concepts: [sorting-keys, reverse]
+    sources: [12]
+    options:
+      - text: "[('c', 3), ('b', 2), ('a', 2)]"
+        correct: true
+        explanation: "reverse=True flips every field of the tuple key, so the names among the count-2 ties come out reverse alphabetical."
+      - text: "[('c', 3), ('a', 2), ('b', 2)]"
+        correct: false
+        explanation: "Misconception: reverse applies to the first field only. To get high counts with alphabetical names, use key (-p[1], p[0]) without reverse."
+      - text: "[('a', 2), ('b', 2), ('c', 3)]"
+        correct: false
+        explanation: "Misconception: reverse=True is ignored with a tuple key. This is the ascending order."
+  - id: q01-8
+    type: mcq
+    text: |
+      pairs = [("b", 1), ("a", 2)]. You write ranked = pairs.sort(key=lambda p: p[1]). What is ranked?
+
+      Hint: one sorting tool returns a new list; the other changes the list it is called on.
+    concepts: [sort-vs-sorted]
+    sources: [12]
+    options:
+      - text: "None"
+        correct: true
+        explanation: ".sort() sorts pairs in place and returns None. Use sorted(pairs, ...) to get a new list."
+      - text: "[('b', 1), ('a', 2)]"
+        correct: false
+        explanation: "Misconception: .sort() returns the sorted list like sorted(). It returns None; pairs itself holds the result."
+      - text: "[('a', 2), ('b', 1)]"
+        correct: false
+        explanation: "Misconception: .sort() returns a copy, ordered by name. It returns None, and the key here is the count, not the name."
+  - id: q01-9
+    type: mcq
+    text: |
+      counts = {"b": 2, "a": 3, "c": 2}. What does heapq.nlargest(2, counts.items(), key=lambda p: (p[1], p[0])) return?
+
+      Hint: "largest" applies to the whole key, name included.
+    concepts: [heapq, top-k]
+    sources: [8]
+    options:
+      - text: "[('a', 3), ('c', 2)]"
+        correct: true
+        explanation: "Among the count-2 ties, the largest key is (2, 'c'), so nlargest picks c. For alphabetical ties use nsmallest with (-count, name)."
+      - text: "[('a', 3), ('b', 2)]"
+        correct: false
+        explanation: "Misconception: nlargest breaks ties alphabetically. It takes the largest whole key, so 'c' beats 'b'."
+      - text: "[('c', 2), ('a', 3)]"
+        correct: false
+        explanation: "Misconception: nlargest returns items in heap or input order. It returns them largest first, like sorted(..., reverse=True)[:k]."
+      - text: "[('a', 3)]"
+        correct: false
+        explanation: "Misconception: ties at the cut-off are dropped. nlargest always returns k items when there are at least k."
   - id: q01-1
     type: trace
-    text: "You are reviewing this helper. Track first and second after each call."
+    text: |
+      You are reviewing this helper. Track first and second after each call.
+
+      Hint: when is the default list created, once per call or once in total?
     concepts: [mutable-default-argument, code-review]
     code: |
       def add_tag(tag, tags=[]):
@@ -19,50 +184,3 @@ questions:
       - {label: "After first = add_tag('a')", values: {first: ["['a']", "[\"a\"]"], second: ["None", "none"]}}
       - {label: "After second = add_tag('b')", values: {first: ["['a', 'b']", "[\"a\", \"b\"]"], second: ["['a', 'b']", "[\"a\", \"b\"]"]}}
     explanation: "The default list is created once and shared by every call that omits the argument. Both names refer to that one list, so the second call also changes what first shows. Use tags=None and create the list inside the function."
-  - id: q01-2
-    type: spot
-    text: "Every call with words of length 1 to 3 returns lists that all contain every word. Which line is the bug?"
-    concepts: [dict-fromkeys, shared-mutable, code-review]
-    sources: [15]
-    code: |
-      def group_by_len(words):
-          groups = dict.fromkeys(range(1, 4), [])
-          for w in words:
-              groups[len(w)].append(w)
-          return groups
-    correct: [2]
-    explanation: "dict.fromkeys uses one single list object as the value of every key, so all three keys point at the same list. Build distinct lists with a dict comprehension or use defaultdict(list)."
-  - id: q01-3
-    type: fill
-    text: "Complete the ranking of IP addresses by request count, highest first, ties by address ascending."
-    concepts: [sorting-keys, counter]
-    sources: [9, 12]
-    template: |
-      top = sorted(requests.items(), key=lambda kv: ({{1}}kv[1], {{2}}))[:top_n]
-    chips:
-      - {text: "-", slot: 1, explanation: "Negating the count sorts the highest count first while the sort stays ascending."}
-      - {text: "kv[0]", slot: 2, explanation: "The address is the second key, so equal counts are ordered by address."}
-      - {text: "reverse=True", explanation: "That would also reverse the tie-break, putting higher addresses first."}
-  - id: q01-4
-    type: sort
-    text: "Sort each operation by its typical cost on a container with n items."
-    concepts: [time-complexity, deque-vs-list]
-    sources: [9, 14]
-    buckets: ["O(1) or about O(1)", "O(n)"]
-    items:
-      - {text: "my_list.pop(0)", bucket: "O(n)", explanation: "Every remaining item shifts one place."}
-      - {text: "my_deque.popleft()", bucket: "O(1) or about O(1)", explanation: "Deque ends are about O(1)."}
-      - {text: "x in my_set", bucket: "O(1) or about O(1)", explanation: "Average-case hash lookup."}
-      - {text: "x in my_list", bucket: "O(n)", explanation: "A linear scan."}
-      - {text: "my_dict.get(k)", bucket: "O(1) or about O(1)", explanation: "Average-case hash lookup."}
-      - {text: "my_list.insert(0, x)", bucket: "O(n)", explanation: "Inserting at the front moves everything."}
-  - id: q01-5
-    type: mcq
-    text: "data = [('x', 2), ('y', 1), ('z', 2)]. What does sorted(data, key=lambda p: p[1], reverse=True) return?"
-    concepts: [sort-stability, reverse]
-    sources: [12]
-    options:
-      - {text: "[('x', 2), ('z', 2), ('y', 1)]", correct: true, explanation: "reverse=True keeps the sort stable, so the equal keys x and z stay in their original order."}
-      - {text: "[('z', 2), ('x', 2), ('y', 1)]", correct: false, explanation: "That would be a plain reversal of the sorted list; sorted with reverse=True preserves the order of equal items."}
-      - {text: "[('y', 1), ('x', 2), ('z', 2)]", correct: false, explanation: "That is ascending order."}
-      - {text: "It raises TypeError because the tuples tie", correct: false, explanation: "Only the key (the number) is compared, so ties are fine."}

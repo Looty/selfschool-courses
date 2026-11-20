@@ -3,97 +3,174 @@ id: l14
 title: "Jenkins pipelines and KVM in brief"
 quiz: quiz-14.yaml
 resources: [../resources/ch06/Jenkinsfile, ../resources/ch06/domain.xml]
-sources: [86, 87, 89, 92, 93, 94, 95, 104, 143, 144, 146, 148, 149, 151]
+sources: [86, 87, 89, 92, 93, 94, 95, 104, 143, 146, 149]
 ---
-After this lesson you can read a Declarative `Jenkinsfile`, explain how KVM, QEMU and libvirt stack up, and drive a VM with `virsh`.
+After this lesson you can read a Declarative `Jenkinsfile`, predict its `post` blocks, place KVM, QEMU and libvirt, and drive a VM with `virsh`.
 
-## Jenkins: who does the work
+## Declarative skeleton: pipeline, agent, stages, steps, post
 
-| Term | What it is |
-| --- | --- |
-| Controller | stores configuration, serves the UI, decides where tasks run [148] [149] |
-| Agent | a small Java client that connects to the controller and runs tasks [149] |
-| Executor | a slot on a node; the count is how many tasks run at once [149] |
-| Label | text grouping agents by capability, such as `docker` [148] |
-
-By default builds run on the built-in node, inside the controller, with its file access; set its executors to 0 [151].
-
-## Declarative skeleton
+**Rule:** a Declarative pipeline is nested boxes: `pipeline` holds `agent` (where), `stages` (what, in order) and `post` (after) [143]. The **controller** schedules; **agents** run the steps [149].
 
 ```groovy
-pipeline {                       // required
-    agent any                    // required: any, none, label 'x', docker
-    stages {                     // required
-        stage('Build') {
-            steps { sh 'make' }  // required in a stage
-        }
+// rung 1: the smallest valid file
+pipeline {
+    agent any                       // any free agent
+    stages {
+        stage('Build') { steps { sh 'make' } }
     }
-    post { always { echo 'done' } }
 }
+
+// rung 2: a second stage, and post after all stages
+        stage('Test')  { steps { sh 'make check' } }
+    post { always { echo 'done' } }
+
+// rung 3: agent none at the top -> every stage names its own
+    agent none
+    stage('Test') {
+        agent { label 'docker' }
+        steps { sh 'make check' }
+    }
+
+// rung 4: deploy only from main, checked before taking an agent
+    stage('Deploy') {
+        when {
+            beforeAgent true
+            branch 'main'
+        }
+        agent { label 'deploy' }
+        steps { sh './deploy.sh' }
+    }
 ```
 
-Walk through `resources/ch06/Jenkinsfile`:
+Rungs 2 to 4 show only the changed part.
 
-- `agent none` at the top, so each stage picks its own agent [143].
-- `Test` runs two stages in `parallel`, with `failFast true` [143].
-- `REGISTRY = credentials('registry-push')` binds a username/password credential as `REGISTRY_USR` and `REGISTRY_PSW` [143] [144].
-- `Deploy` has `when` with `branch 'main'` and `beforeAgent true`: only `main`, checked before grabbing an agent [143]. `branch` works only in a Multibranch Pipeline, one job per branch [143] [146].
+Edge case: `branch` works only in a Multibranch Pipeline, one job per branch [143] [146]. In a plain Pipeline job (course test run), the stage never ran:
 
-`post` conditions include `always`, `changed`, `fixed` (success after a failure), `regression` (failure after a success), `failure`, `success`, and `cleanup`, which runs last [143].
+```text
+Stage "Deploy" skipped due to when conditional
+```
 
-## The virtualization stack
+**P1.** You delete the `when { branch 'main' }` line from a Multibranch job. Which branches deploy now?
 
-| Layer | Job |
+## `post` conditions: compare with the last run
+
+**Rule:** `always` and `cleanup` always run; `success`/`failure` look at this run; `changed`, `fixed` and `regression` compare it with the previous run [143].
+
+| Previous → this run | Which of these seven run [143] |
 | --- | --- |
-| Intel VT / AMD-V | let guest code run on the real CPU [104] |
-| KVM | kernel modules `kvm.ko` plus `kvm-intel.ko` or `kvm-amd.ko`, exposed as `/dev/kvm` [86] [87] |
-| QEMU | user-space process that models memory, disks and NICs; each VM is one QEMU process [89] [104] |
-| libvirt | management API and daemon for one host [92] |
+| SUCCESS → SUCCESS | always, success, cleanup |
+| FAILURE → FAILURE | always, failure, cleanup |
+| SUCCESS → FAILURE | always, changed, regression, failure, cleanup |
+| FAILURE → SUCCESS | always, changed, fixed, success, cleanup |
+
+Hook: **fixed** = back to green; **regression** = fell back to red. `cleanup` runs last [143].
+
+**P2.** The previous run failed and this one failed too. Does `changed` run? Does `fixed`?
+
+## KVM vs QEMU vs libvirt: who does what
+
+**Rule:** KVM runs the guest's CPU in the kernel, QEMU builds the rest of the machine as a process, and libvirt manages VMs on one host [86] [89] [92].
+
+| Layer | Is | Job |
+| --- | --- | --- |
+| Intel VT / AMD-V | CPU feature | let guest code run on the real CPU [104] |
+| KVM | kernel modules `kvm.ko` + `kvm-intel.ko` or `kvm-amd.ko` [87] | exposed as `/dev/kvm` [86] |
+| QEMU | user-space process | models memory, disks, NICs; one process per VM [89] [104] |
+| libvirt | API and daemon | define, start, stop VMs on one host [92] |
 
 ```bash
-egrep '^flags.*(vmx|svm)' /proc/cpuinfo   # CPU has VT? [104]
-ls -l /dev/kvm                            # KVM usable? Both must pass
+egrep -c '^flags.*(vmx|svm)' /proc/cpuinfo   # 8 lines: the CPU has VT
+ls -l /dev/kvm                               # No such file or directory
 ```
 
-QEMU defaults to TCG, pure software emulation, so a hardware accelerator such as KVM must be requested [89]; libvirt picks it from `<domain type='kvm'>` [93].
+The course's test container: flags present, device missing, no KVM. Both checks must pass [104].
 
-## libvirt and virsh
+Edge case: QEMU defaults to TCG, pure software emulation; KVM must be requested [89]. libvirt requests it with `<domain type='kvm'>` [93].
 
-URIs: `qemu:///system` (root daemon) or `qemu+ssh://root@kvm-017/system` (remote); read-write, it equals a root shell [92].
+**P3.** `/dev/kvm` is missing, yet QEMU starts the VM. Why, and how will it feel?
 
-`resources/ch06/domain.xml` describes a 2-vCPU, 2 GiB guest [93]:
+## virsh verbs: define, start, destroy, undefine
 
-| Element | Meaning |
-| --- | --- |
-| `<domain type='kvm'>`, `<name>`, `<uuid>` | hypervisor, unique name, fixed id |
-| `<memory>`, `<vcpu>` | maximum RAM and vCPUs |
-| `<cpu mode='host-model'/>` | copy the host CPU model (portable) |
-| `<disk>` with `type='qcow2'`, `bus='virtio'` | the overlay disk |
-| `<interface type='network'>` `default` | the NAT network |
+**Rule:** a **persistent** domain is defined first, then started, and is remembered after it stops; a **transient** one is created and started at once and vanishes when it stops [94].
 
-A **persistent** domain is defined, then started; a **transient** one is created and vanishes when it stops [94].
+Ladder from `resources/ch06` on libvirt's test driver, no hypervisor needed (test run, condensed) [92] [95]:
 
-| Verb | Effect [95] |
-| --- | --- |
-| `define FILE` / `create FILE` | register persistent / create and start transient |
-| `start`, `shutdown` | boot; ask the guest to stop (asynchronous, may be ignored) |
-| `destroy` | power cut; storage and definition kept |
-| `undefine` | remove the stored config |
-| `list --all`, `domstate`, `dumpxml`, `console` | inspect |
-
-Try it in `resources/ch06` with no hypervisor (5 minutes) [92]:
-
-```bash
-virsh -c test:///default "define domain.xml; start vm-demo-01; domstate vm-demo-01; destroy vm-demo-01; undefine vm-demo-01; list --all"
+```text
+virsh -c test:///default "define domain.xml; start vm-demo-01; shutdown vm-demo-01; start vm-demo-01; destroy vm-demo-01; undefine vm-demo-01; list --all"
+define domain.xml     Domain 'vm-demo-01' defined     -> shut off
+start vm-demo-01      Domain 'vm-demo-01' started     -> running
+shutdown vm-demo-01   Domain 'vm-demo-01' is being shutdown -> shut off
+start vm-demo-01      Domain 'vm-demo-01' started     -> running
+destroy vm-demo-01    Domain 'vm-demo-01' destroyed   -> shut off (still listed)
+undefine vm-demo-01   Domain 'vm-demo-01' has been undefined -> gone
 ```
+
+Edge case: the test driver has no guest OS, so `shutdown` was instant; a real guest may take time or ignore it [95].
+
+| Verb | Sounds like | Really [95] |
+| --- | --- | --- |
+| `shutdown` | stop now | asks the guest OS; asynchronous, may be ignored |
+| `destroy` | delete | pulls the power; storage and definition kept |
+| `undefine` | stop | removes the stored config |
+| `create FILE` | define | starts a transient VM that vanishes when stopped |
+
+**P4.** You run `virsh destroy web1`. Can you `virsh start web1` afterwards?
+
+## Cheat sheet
+
+| Tool | Rule | Tiny example → result |
+| --- | --- | --- |
+| `when { branch }` | Multibranch only | plain job → skipped |
+| `fixed` / `regression` | red→green / green→red | FAILURE → SUCCESS → `fixed` |
+| `/dev/kvm` | must exist | missing → no KVM |
+| `destroy` | power cut | domain stays defined |
+| `undefine` | forget config | gone from `list --all` |
+
+## Answers
+
+**P1.** Every branch the job builds.
+
+**P2.** Neither: the status did not change, and `fixed` needs a success.
+
+**P3.** It runs on TCG, QEMU's default software emulation, not KVM: it works, but slowly.
+
+**P4.** Yes: `destroy` only cut the power; the definition stays.
+
+**R1.** `regression`, plus `always`, `changed`, `failure`, `cleanup`.
+
+**R2.** QEMU: KVM only runs the CPU.
+
+**R3.** `undefine`: it removes the stored config.
+
+**R4.** Nothing: each stage must declare its own agent.
+
+## If you missed a quiz question
+
+| If you thought... | Reread | Re-check |
+| --- | --- | --- |
+| `fixed`/`regression` swapped | `post` | **R1.** SUCCESS → FAILURE runs? |
+| KVM emulates disks | KVM vs QEMU | **R2.** Who models disks? |
+| `destroy` deletes the VM | virsh verbs | **R3.** Which verb forgets the config? |
+| `agent none` means the controller | Skeleton | **R4.** What does `agent none` allocate? |
 
 :::low-confidence
-Nothing here ran on KVM: the course's test machine has no `/dev/kvm`; `virsh` ran against the test driver. The Jenkinsfile was linted, not run end to end; its `ruff`, `pytest` and `deploy.sh` commands are assumptions about the service repository. The notes do not say which flag belongs to which vendor; check `vmx` and `svm` against your CPU vendor's documentation.
+Nothing ran on KVM (no `/dev/kvm` on the test machine); `virsh` used the test driver; the Jenkinsfile was only linted. The notes do not say which of `vmx` and `svm` is which vendor's flag; check your CPU vendor's documentation.
 :::
 
 :::key-takeaways
-- The controller schedules; agents with executors do the work; give the built-in node 0 executors. [149] [151]
-- Declarative needs `pipeline`, `agent`, `stages`, `stage`, `steps`. [143]
-- KVM is kernel modules plus `/dev/kvm`; QEMU models the machine and defaults to TCG. [86] [89]
-- `define` + `start` for persistent VMs; `destroy` is a power cut, `undefine` forgets the config. [94] [95]
+- Declarative: `pipeline`, `agent`, `stages`, `steps`; `branch` needs Multibranch; `fixed` is red to green. [143]
+- KVM runs the CPU; QEMU models the machine, TCG by default; libvirt manages one host. [86] [89] [92]
+- `destroy` is a power cut; `undefine` forgets the config. [95]
+:::
+
+:::glossary
+- **Controller**: the central Jenkins server that schedules work.
+- **Agents**: machines or containers that run build steps.
+- **Multibranch Pipeline**: a job type with one pipeline per branch.
+- **KVM**: the Linux kernel part that runs a guest's CPU on the hardware.
+- **QEMU**: the program that pretends to be the rest of the computer for each VM.
+- **TCG**: QEMU's slow, software-only way of running guest code.
+- **libvirt**: a library and daemon that manages VMs on one host.
+- **Domain**: libvirt's word for one virtual machine.
+- **virsh**: libvirt's command-line tool.
 :::

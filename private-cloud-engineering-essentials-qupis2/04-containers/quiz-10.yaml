@@ -3,31 +3,109 @@ id: q10
 title: "Check: namespaces, cgroups, images and Dockerfiles"
 questions:
   - id: q10-1
-    type: trace
-    text: "For each docker run command, what do cpu.max and memory.max contain inside the container? Write each file's content exactly as cat would print it (memory.max in bytes)."
+    type: mcq
+    text: |
+      A container runs with `--cpus 1.5 --memory 64m`. What does `cat /sys/fs/cgroup/cpu.max` print inside it?
+
+      Hint: the file holds a quota and a period, both in microseconds.
     concepts: [cgroup-v2, resource-limits]
     sources: [62, 78]
-    code: |
-      A: docker run --cpus 0.5 --memory 128m IMAGE
-      B: docker run --cpus 1.5 --memory 64m IMAGE
-    variables: [cpu_max, memory_max]
-    steps:
-      - {label: "A", values: {cpu_max: "50000 100000", memory_max: "134217728"}}
-      - {label: "B", values: {cpu_max: "150000 100000", memory_max: "67108864"}}
-    explanation: "--cpus sets a quota per 100000-microsecond period, so 0.5 CPUs is 50000 and 1.5 CPUs is 150000. 128 MiB is 128 * 1024 * 1024 = 134217728 bytes and 64 MiB is 67108864."
+    options:
+      - {text: "150000 100000", correct: true, explanation: "1.5 CPUs is 150 ms of CPU time per 100 ms period, written in microseconds. 0.5 CPUs gave 50000 100000 in the lesson."}
+      - {text: "1.5", correct: false, explanation: "Misconception: the file stores a CPU count. cgroup v2 stores a quota and a period."}
+      - {text: "150 100", correct: false, explanation: "Misconception: the units are milliseconds. cpu.max is in microseconds."}
+      - {text: "max 100000", correct: false, explanation: "Misconception: --cpus is only a hint. It writes the quota; max 100000 is the file with no limit."}
   - id: q10-2
     type: mcq
-    text: "A container exits with status 137. Inside a similar container, memory.events shows oom_kill 1. What happened?"
+    text: |
+      A container exits with status 137 and `docker inspect` shows `OOMKilled=true`. What happened?
+
+      Hint: 137 = 128 + a signal number.
     concepts: [oom-kill, exit-status, cgroup-v2]
     sources: [62, 105, 125]
     options:
-      - {text: "The process hit memory.max and the OOM killer sent it SIGKILL (128 + 9 = 137)", correct: true, explanation: "A signal-killed process reports 128 plus the signal number, SIGKILL is 9, and oom_kill counts processes killed by the OOM killer in that cgroup."}
-      - {text: "The process went over memory.high and was killed", correct: false, explanation: "memory.high only throttles and reclaims; it never invokes the OOM killer."}
-      - {text: "Python raised an uncaught MemoryError", correct: false, explanation: "An uncaught exception exits with status 1 and prints a traceback; SIGKILL leaves no traceback."}
-      - {text: "docker stop sent SIGTERM and the app exited cleanly", correct: false, explanation: "A clean exit after SIGTERM is usually 0; 143 would be death by SIGTERM itself (128 + 15)."}
+      - {text: "The process hit memory.max and the OOM killer sent it SIGKILL (128 + 9 = 137)", correct: true, explanation: "A signal-killed process reports 128 plus the signal number, SIGKILL is 9, and OOMKilled confirms the memory limit."}
+      - {text: "The process went over memory.high and was killed", correct: false, explanation: "Misconception: memory.high is a kill limit. It only throttles and never invokes the OOM killer."}
+      - {text: "Python raised an uncaught MemoryError", correct: false, explanation: "Misconception: running out of memory is an app exception. An uncaught exception exits 1 with a traceback; SIGKILL leaves no traceback."}
+      - {text: "docker stop sent SIGTERM and the app exited cleanly", correct: false, explanation: "Misconception: 137 is a normal stop. A clean exit is 0; death by SIGTERM itself would be 143 (128 + 15)."}
+  - id: q10-4
+    type: mcq
+    text: |
+      Inside a container, `ls /proc` shows only four process IDs, and the shell is PID 1. Which kernel feature causes that?
+
+      Hint: is this about what the process sees, or how much it uses?
+    concepts: [namespaces]
+    sources: [60, 65]
+    options:
+      - {text: "A pid namespace", correct: true, explanation: "Namespaces decide what a process can see; the pid namespace gives the container its own process numbering."}
+      - {text: "A cgroup", correct: false, explanation: "Misconception: cgroups hide things. cgroups limit how much a process may use; they do not change what it sees."}
+      - {text: "The container's own kernel", correct: false, explanation: "Misconception: a container boots a kernel. It shares the host kernel; that is the difference from a VM."}
+  - id: q10-5
+    type: mcq
+    text: |
+      A container started with `--memory 128m` shows `MemTotal: 8132716 kB` in `/proc/meminfo`. What is true?
+
+      Hint: where did the lesson read the limit from?
+    concepts: [cgroup-v2, resource-limits]
+    sources: [62, 78]
+    options:
+      - {text: "The limit is in force; /proc/meminfo shows the whole machine, and memory.max holds 134217728", correct: true, explanation: "The --memory flag writes the cgroup file memory.max. /proc/meminfo does not reflect it."}
+      - {text: "The limit did not apply", correct: false, explanation: "Misconception: /proc/meminfo shows the container's limit. It shows the host's (here the Docker VM's) memory."}
+      - {text: "The container may use 8 GB because limits are only advisory", correct: false, explanation: "Misconception: memory limits are hints. At memory.max the OOM killer ends the process, as the 200 MiB test showed."}
+  - id: q10-6
+    type: mcq
+    text: |
+      A container exits with status 1. Its log ends with `KeyError: 'DB_HOST'`, and `docker inspect` shows `OOMKilled=false`. What is the first suspect?
+
+      Hint: which exit status comes with a traceback?
+    concepts: [exit-status]
+    sources: [125]
+    options:
+      - {text: "The application: a missing environment variable raised an uncaught exception", correct: true, explanation: "An uncaught exception exits 1 and prints a traceback; the test run showed exactly this."}
+      - {text: "The memory limit", correct: false, explanation: "Misconception: any failed container was OOM-killed. That is 137 with OOMKilled=true, and no traceback."}
+      - {text: "docker stop killed it", correct: false, explanation: "Misconception: any non-zero exit is a kill. A kill by signal gives 128 + N, such as 137 or 143."}
+  - id: q10-7
+    type: mcq
+    text: |
+      One `RUN` creates a 50 MB file and the next `RUN` deletes it. What happens to the image size?
+
+      Hint: layers are read-only once built.
+    concepts: [image-layers]
+    sources: [68]
+    options:
+      - {text: "It still carries the 50 MB: the earlier layer keeps the bytes", correct: true, explanation: "Deleting in a later layer only hides the file. In the test run a 183 MB base grew to 231 MB. Delete in the same RUN that creates it."}
+      - {text: "It shrinks back, because the file is gone", correct: false, explanation: "Misconception: a later layer can remove earlier bytes. Each layer stores only its own changes on top."}
+      - {text: "The build fails", correct: false, explanation: "Misconception: deleting a file from a lower layer is an error. It is allowed; it just does not save space."}
+  - id: q10-8
+    type: mcq
+    text: |
+      The Dockerfile is `COPY requirements.txt .`, then `RUN pip install ...`, then `COPY app/ ./app/`. You edit `requirements.txt` and rebuild. Which of those three steps run again?
+
+      Hint: what happens to the layers after a changed one?
+    concepts: [build-cache, layer-order]
+    sources: [74]
+    options:
+      - {text: "All three", correct: true, explanation: "The first COPY changes, so every later layer is rebuilt too."}
+      - {text: "Only COPY requirements.txt", correct: false, explanation: "Misconception: only the changed layer rebuilds. Once one layer changes, every later layer is rebuilt."}
+      - {text: "Only RUN pip install", correct: false, explanation: "Misconception: Docker knows which steps read the file. The cache works in order, layer by layer."}
+  - id: q10-9
+    type: mcq
+    text: |
+      An image ends with `ENTRYPOINT python app.py`. `docker stop -t 10` takes about 10 seconds and the exit status is 137. Why?
+
+      Hint: who is PID 1, and who receives SIGTERM?
+    concepts: [pid-1, cmd-vs-entrypoint]
+    sources: [71, 79]
+    options:
+      - {text: "Shell form makes /bin/sh -c PID 1; it does not pass SIGTERM on, so SIGKILL ends it after the grace period", correct: true, explanation: "docker stop signals PID 1 only. Exec form, ENTRYPOINT [\"python\", \"app.py\"], stopped in 0.42 s with exit 0."}
+      - {text: "The app needs 10 seconds to shut down", correct: false, explanation: "Misconception: the app is slow. It never saw SIGTERM at all; 137 means it was killed."}
+      - {text: "docker stop always sends SIGKILL", correct: false, explanation: "Misconception: stop is kill. It sends SIGTERM first and SIGKILL only after the grace period."}
   - id: q10-3
     type: spot
-    text: "Every edit to service.py makes this build reinstall all dependencies. Click the line that causes it."
+    text: |
+      Every edit to service.py makes this build reinstall all dependencies. Click the line that causes it.
+
+      Hint: what is in the layer just before the install?
     concepts: [build-cache, layer-order]
     sources: [74]
     code: |
@@ -38,43 +116,3 @@ questions:
       ENTRYPOINT ["python", "service.py"]
     correct: [3]
     explanation: "COPY . . puts the source into the same layer as requirements.txt, before the install. Any changed file invalidates that layer and every layer after it, including pip install. Copy requirements.txt first, install, then copy the source."
-  - id: q10-4
-    type: spot
-    text: "This is Dockerfile.bad. Click the line that leaks a credential to anyone who can pull the image."
-    concepts: [dockerfile-secrets, arg-vs-env]
-    sources: [71]
-    code: |
-      FROM python:latest
-      ADD . /app
-      WORKDIR /app
-      RUN apt-get update
-      RUN apt-get install -y curl build-essential
-      RUN pip install -r requirements.txt
-      ENV API_TOKEN=s3cr3t-token-123
-      RUN rm -rf /root/.cache
-      EXPOSE 8000
-      ENTRYPOINT python app/service.py; echo "service exited"
-    correct: [7]
-    explanation: "ENV values persist in the image and show up in docker inspect; the test run printed API_TOKEN=s3cr3t-token-123 from the image's config. Pass secrets at run time, or use RUN --mount=type=secret during the build. ARG would not help: build arguments are visible in docker history."
-  - id: q10-5
-    type: trace
-    text: "For each image and docker run command, what command line runs, and which program is PID 1 in the container?"
-    concepts: [cmd-vs-entrypoint, pid-1]
-    sources: [71]
-    code: |
-      Image X:  ENTRYPOINT ["python", "app.py"]
-                CMD ["--port", "8000"]
-      Image Y:  ENTRYPOINT python app.py
-      Image Z:  CMD ["python", "app.py"]
-
-      1: docker run X
-      2: docker run X --port 9000
-      3: docker run Y --port 9000
-      4: docker run Z bash
-    variables: [runs, pid1]
-    steps:
-      - {label: "1", values: {runs: ["python app.py --port 8000"], pid1: ["python"]}}
-      - {label: "2", values: {runs: ["python app.py --port 9000"], pid1: ["python"]}}
-      - {label: "3", values: {runs: ["/bin/sh -c python app.py", "/bin/sh -c 'python app.py'", "sh -c python app.py"], pid1: ["sh", "/bin/sh"]}}
-      - {label: "4", values: {runs: ["bash"], pid1: ["bash"]}}
-    explanation: "Exec-form ENTRYPOINT gets CMD appended (1), and docker run arguments replace CMD (2). Shell-form ENTRYPOINT runs under /bin/sh -c and ignores both CMD and run arguments, so the shell is PID 1 and --port 9000 is lost (3). With no ENTRYPOINT, run arguments replace CMD entirely (4)."
